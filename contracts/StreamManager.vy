@@ -99,6 +99,9 @@ def create_stream(
     assert start_time <= block.timestamp
 
     funded_amount: uint256 = token.allowance(msg.sender, self)
+    if funded_amount == max_value(uint256):
+        funded_amount = token.balanceOf(msg.sender)
+
     assert funded_amount >= max(MIN_STREAM_LIFE, block.timestamp - start_time) * amount_per_second
 
     assert token.transferFrom(msg.sender, self, funded_amount, default_return_value=True)
