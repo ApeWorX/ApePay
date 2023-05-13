@@ -78,8 +78,16 @@ class Stream(ManagerAccessMixin):
         return self.contract.amount_unlocked(self.creator, self.stream_id)
 
     @property
+    def amount_left(self) -> int:
+        return self.info.funded_amount - self.amount_unlocked
+
+    @property
     def time_left(self) -> timedelta:
         return timedelta(seconds=self.contract.time_left(self.creator, self.stream_id))
+
+    @property
+    def is_active(self) -> bool:
+        return self.time_left.total_seconds() > 0
 
     @property
     def add_funds(self) -> ContractTransactionHandler:
@@ -122,6 +130,10 @@ class StreamManager(ManagerAccessMixin):
 
     def __repr__(self) -> str:
         return f"<apepay_sdk.StreamManager address={self.contract.address}>"
+
+    @property
+    def owner(self) -> AddressType:
+        return self.contract.owner()
 
     def is_accepted(self, token: Union[ContractInstance, str, AddressType]):
         return self.contract.token_is_accepted(token)
