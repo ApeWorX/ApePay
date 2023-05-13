@@ -78,10 +78,8 @@ class Stream(ManagerAccessMixin):
         return self.contract.amount_unlocked(self.creator, self.stream_id)
 
     @property
-    def time_left(self) -> datetime:
-        return datetime.fromtimestamp(
-            self.contract.time_left(self.creator, self.stream_id)
-        )
+    def time_left(self) -> timedelta:
+        return timedelta(seconds=self.contract.time_left(self.creator, self.stream_id))
 
     @property
     def add_funds(self) -> ContractTransactionHandler:
