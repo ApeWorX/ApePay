@@ -3,6 +3,8 @@ import pytest
 
 from datetime import datetime
 
+from apepay import exceptions as apepay_exc
+
 
 def test_init(stream_manager, token):
     assert stream_manager.is_accepted(token)
@@ -11,21 +13,21 @@ def test_init(stream_manager, token):
 @pytest.mark.parametrize(
     "extra_args",
     [
-        {},
-        {"reason": "Just trying out a reason"},
-        {"start_time": -1000},
+        dict(),
+        dict(reason="Just trying out a reason"),
+        dict(start_time=-1000),
     ],
 )
 def test_create_stream(chain, payer, token, stream_manager, extra_args):
     # NOTE: Maximum amount we can afford to send (using 1 hr pre-allocation)
     amount_per_second = token.balanceOf(payer) // (60 * 60)
 
-    with ape.reverts():
+    with pytest.raises(apepay_exc.StreamLifeInsufficient):
         stream_manager.create(token, amount_per_second, sender=payer)
 
     token.approve(stream_manager.contract, 2**256 - 1, sender=payer)
 
-    with ape.reverts():
+    with pytest.raises(apepay_exc.StreamLifeInsufficient):
         stream_manager.create(token, amount_per_second + 1, sender=payer)
 
     start_time = chain.pending_timestamp

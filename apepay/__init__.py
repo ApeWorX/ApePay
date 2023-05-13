@@ -215,6 +215,20 @@ class StreamManager(ManagerAccessMixin):
             else:
                 args.append(start_time)
 
+        if sender := hasattr(token, "allowance") and txn_kwargs.get("sender"):
+            allowance = token.allowance(sender, self.contract)
+
+            if allowance == 2**256 - 1:  # NOTE: Sentinel value meaning "all balance"
+                allowance = token.balanceOf(sender)
+
+            stream_life = allowance // amount_per_second
+
+            if stream_life < self.MIN_STREAM_LIFE.total_seconds():
+                raise StreamLifeInsufficient(
+                    stream_life=timedelta(seconds=stream_life),
+                    min_stream_life=self.MIN_STREAM_LIFE,
+                )
+
         tx = self.contract.create_stream(*args, **txn_kwargs)
         event = tx.events.filter(self.contract.StreamCreated)[0]
         return Stream(
