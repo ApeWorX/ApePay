@@ -138,6 +138,10 @@ class StreamManager(ManagerAccessMixin):
     def is_accepted(self, token: Union[ContractInstance, str, AddressType]):
         return self.contract.token_is_accepted(token)
 
+    @cached_property
+    def MIN_STREAM_LIFE(self) -> timedelta:
+        return timedelta(seconds=self.contract.MIN_STREAM_LIFE())
+
     def create(
         self,
         token: ContractInstance,

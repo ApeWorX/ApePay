@@ -21,7 +21,7 @@
 from vyper.interfaces import ERC20
 
 MAX_REASON_SIZE: constant(uint16) = 1024
-MIN_STREAM_LIFE: constant(uint256) = 60 * 60 # 1 hour
+MIN_STREAM_LIFE: public(immutable(uint256))
 
 
 struct Stream:
@@ -70,9 +70,15 @@ event Withdrawn:
 
 
 @external
-def __init__(owner: address, tokens: DynArray[ERC20, 20]):
+def __init__(
+    owner: address,
+    min_stream_life: uint256,  # timedelta in seconds
+    accepted_tokens: DynArray[ERC20, 20],
+):
     self.owner = owner
-    for token in tokens:
+    MIN_STREAM_LIFE = min_stream_life
+
+    for token in accepted_tokens:
         self.token_is_accepted[token] = True
 
 
