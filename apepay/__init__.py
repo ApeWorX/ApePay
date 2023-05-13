@@ -75,7 +75,7 @@ class Stream(ManagerAccessMixin):
 
     @property
     def amount_unlocked(self) -> int:
-        return self.contract.time_left(self.creator, self.stream_id)
+        return self.contract.amount_unlocked(self.creator, self.stream_id)
 
     @property
     def time_left(self) -> datetime:
