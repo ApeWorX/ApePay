@@ -125,9 +125,12 @@ def create_stream(
 @view
 @internal
 def _amount_unlocked(creator: address, stream_id: uint256) -> uint256:
-    return (
-        (block.timestamp - self.streams[creator][stream_id].last_pull)
-        * self.streams[creator][stream_id].amount_per_second
+    return min(
+        (
+            (block.timestamp - self.streams[creator][stream_id].last_pull)
+            * self.streams[creator][stream_id].amount_per_second
+        ),
+        self.streams[creator][stream_id].funded_amount,
     )
 
 
