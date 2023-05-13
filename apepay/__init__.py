@@ -7,6 +7,13 @@ from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
 from ape.types import AddressType, HexBytes
 from ape.utils import ManagerAccessMixin, cached_property
+from .exceptions import (
+    MissingCreationReceipt,
+    StreamNotCancellable,
+    FundsNotWithdrawable,
+    TokenNotAccepted,
+    StreamLifeInsufficient,
+)
 
 
 class Stream(ManagerAccessMixin):
@@ -31,7 +38,7 @@ class Stream(ManagerAccessMixin):
         if self.transaction_hash:
             return self.chain_manager.get_receipt(self.transaction_hash)
 
-        raise
+        raise MissingCreationReceipt()
 
     def __repr__(self) -> str:
         return (
@@ -103,7 +110,7 @@ class Stream(ManagerAccessMixin):
     @property
     def cancel(self) -> ContractTransactionHandler:
         if not self.is_cancelable:
-            raise
+            raise StreamNotCancellable(self.time_left)
 
         return cast(
             ContractTransactionHandler,
@@ -113,7 +120,7 @@ class Stream(ManagerAccessMixin):
     @property
     def withdraw(self) -> ContractTransactionHandler:
         if not self.amount_unlocked > 0:
-            raise
+            raise FundsNotWithdrawable()
 
         return cast(
             ContractTransactionHandler,
@@ -151,7 +158,7 @@ class StreamManager(ManagerAccessMixin):
         **txn_kwargs,
     ) -> Stream:
         if not self.contract.token_is_accepted(token):
-            raise
+            raise TokenNotAccepted(str(token))
 
         if isinstance(amount_per_second, str):
             value, time = amount_per_second.split("/")
