@@ -2,3 +2,17 @@ name: ApePay
 
 plugins:
   - name: vyper
+  # For testing
+  - name: etherscan
+  - name: alchemy
+  - name: foundry
+  - name: solidity
+
+ethereum:
+  default_network: mainnet-fork
+
+foundry:
+  fork:
+    ethereum:
+      mainnet:
+        upstream_provider: alchemy

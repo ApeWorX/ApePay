@@ -40,3 +40,8 @@ def test_create_stream(chain, payer, token, stream_manager, extra_args):
     assert stream.start_time == datetime.fromtimestamp(
         start_time + extra_args.get("start_time", 0)
     )
+
+
+@pytest.mark.skip(reason="https://github.com/ApeWorX/ape/issues/1442")
+def test_create_stream_with_permit2(chain, payer, token, stream_manager, permit2):
+    pass

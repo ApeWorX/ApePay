@@ -25,6 +25,11 @@ def stream_manager_contract(owner, project, token):
 
 
 @pytest.fixture(scope="session")
+def permit2(Contract, stream_manager_contract):
+    return Contract(stream_manager_contract.PERMIT2())
+
+
+@pytest.fixture(scope="session")
 def stream_manager(stream_manager_contract):
     return StreamManager(contract=stream_manager_contract)
 

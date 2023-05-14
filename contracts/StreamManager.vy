@@ -24,6 +24,38 @@ MAX_REASON_SIZE: constant(uint16) = 1024
 MIN_STREAM_LIFE: public(immutable(uint256))
 
 
+# Permit2 by Uniswap
+# See https://docs.uniswap.org/contracts/permit2/reference/signature-transfer
+
+struct TokenPermissions:
+    token: address
+    amount: uint256
+
+
+struct PermitTransferFrom:
+    permitted: TokenPermissions
+    nonce: uint256
+    deadline: uint256
+
+
+struct SignatureTransferDetails:
+    receiver: address
+    requestedAmount: uint256
+
+
+interface Permit2:
+    def permitTransferFrom(
+        permit: PermitTransferFrom,
+        transferDetails: SignatureTransferDetails,
+        owner: address,
+        signature: Bytes[65],
+    ): nonpayable
+
+
+# NOTE: Make this public just so you know what it is for testing
+PERMIT2: public(immutable(Permit2))
+
+
 struct Stream:
     token: ERC20
     amount_per_second: uint256
@@ -75,6 +107,9 @@ def __init__(
     min_stream_life: uint256,  # timedelta in seconds
     accepted_tokens: DynArray[ERC20, 20],
 ):
+    # NOTE: Need to make immutable due to Vyper bug disallowing interface constants
+    # See https://github.com/vyperlang/vyper/issues/3407
+    PERMIT2 = Permit2(0x000000000022D473030F116dDEE9F6B43aC78BA3)
     self.owner = owner
     MIN_STREAM_LIFE = min_stream_life
 
@@ -94,23 +129,18 @@ def remove_token(token: ERC20):
     self.token_is_accepted[token] = False
 
 
-@external
-def create_stream(
+@internal
+def _create_stream(
     token: ERC20,
+    funded_amount: uint256,
     amount_per_second: uint256,
-    reason: Bytes[MAX_REASON_SIZE] = b"",
-    start_time: uint256 = block.timestamp,
+    reason: Bytes[MAX_REASON_SIZE],
+    start_time: uint256,
 ) -> uint256:
     assert self.token_is_accepted[token]
     assert start_time <= block.timestamp
 
-    funded_amount: uint256 = token.allowance(msg.sender, self)
-    if funded_amount == max_value(uint256):
-        funded_amount = token.balanceOf(msg.sender)
-
     assert funded_amount >= max(MIN_STREAM_LIFE, block.timestamp - start_time) * amount_per_second
-
-    assert token.transferFrom(msg.sender, self, funded_amount, default_return_value=True)
 
     stream_id: uint256 = self.num_streams[msg.sender]
     self.streams[msg.sender][stream_id] = Stream({
@@ -126,6 +156,53 @@ def create_stream(
     log StreamCreated(token, msg.sender, stream_id, amount_per_second, start_time, reason)
 
     return stream_id
+
+
+@external
+def create_stream(
+    token: ERC20,
+    amount_per_second: uint256,
+    reason: Bytes[MAX_REASON_SIZE] = b"",
+    start_time: uint256 = block.timestamp,
+) -> uint256:
+    funded_amount: uint256 = token.allowance(msg.sender, self)
+    if funded_amount == max_value(uint256):
+        funded_amount = token.balanceOf(msg.sender)
+
+    assert token.transferFrom(msg.sender, self, funded_amount, default_return_value=True)
+
+    return self._create_stream(token, funded_amount, amount_per_second, reason, start_time)
+
+
+@external
+def create_stream_with_permit2(
+    token: ERC20,
+    funded_amount: uint256,
+    nonce: uint256,
+    deadline: uint256,
+    signature: Bytes[65],
+    amount_per_second: uint256,
+    reason: Bytes[MAX_REASON_SIZE] = b"",
+    start_time: uint256 = block.timestamp,
+) -> uint256:
+    PERMIT2.permitTransferFrom(
+        PermitTransferFrom({
+            permitted: TokenPermissions({
+                token: token.address,
+                amount: funded_amount,
+            }),
+            nonce: nonce,
+            deadline: deadline,
+        }),
+        SignatureTransferDetails({
+            receiver: self,
+            requestedAmount: funded_amount,
+        }),
+        msg.sender,
+        signature,
+    )
+
+    return self._create_stream(token, funded_amount, amount_per_second, reason, start_time)
 
 
 @view
