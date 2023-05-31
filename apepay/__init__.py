@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Any, Iterator, List, Optional, Union, cast
+from typing import Any, Iterator, List, Optional, Union, cast, AsyncIterator
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
@@ -15,6 +15,7 @@ from .exceptions import (
     TokenNotAccepted,
     StreamLifeInsufficient,
 )
+from .utils import async_wrap_iter
 
 
 class Stream(BaseInterfaceModel):
@@ -265,9 +266,9 @@ class StreamManager(BaseInterfaceModel):
                 transaction_hash=stream_created_event.transaction_hash,
             )
 
-    def poll_new_streams(self, **polling_kwargs) -> Iterator[Stream]:
-        for stream_created_event in self.contract.StreamCreated.poll_logs(
-            **polling_kwargs
+    async def poll_new_streams(self, **polling_kwargs) -> AsyncIterator[Stream]:
+        async for stream_created_event in async_wrap_iter(
+            self.contract.StreamCreated.poll_logs(**polling_kwargs)
         ):
             yield Stream(
                 contract=self.contract,
@@ -276,9 +277,9 @@ class StreamManager(BaseInterfaceModel):
                 transaction_hash=stream_created_event.transaction_hash,
             )
 
-    def poll_cancelled_streams(self, **polling_kwargs) -> Iterator[Stream]:
-        for stream_cancelled_event in self.contract.StreamCancelled.poll_logs(
-            **polling_kwargs
+    async def poll_cancelled_streams(self, **polling_kwargs) -> AsyncIterator[Stream]:
+        async for stream_cancelled_event in async_wrap_iter(
+            self.contract.StreamCancelled.poll_logs(**polling_kwargs)
         ):
             yield Stream(
                 contract=self.contract,
