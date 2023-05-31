@@ -6,7 +6,8 @@ from typing import Any, Iterator, List, Optional, Union, cast
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
 from ape.types import AddressType, HexBytes
-from ape.utils import ManagerAccessMixin, cached_property
+from ape.utils import BaseInterfaceModel, cached_property
+from pydantic import validator
 from .exceptions import (
     MissingCreationReceipt,
     StreamNotCancellable,
@@ -16,20 +17,22 @@ from .exceptions import (
 )
 
 
-class Stream(ManagerAccessMixin):
-    def __init__(
-        self,
-        contract: ContractInstance,
-        creator: AddressType,
-        stream_id: int,
-        creation_receipt: Optional[ReceiptAPI] = None,
-        transaction_hash: Optional[HexBytes] = None,
-    ):
-        self.contract = contract
-        self.creator = creator
-        self.stream_id = stream_id
-        self.creation_receipt = creation_receipt
-        self.transaction_hash = transaction_hash
+class Stream(BaseInterfaceModel):
+    contract: ContractInstance
+    creator: AddressType
+    stream_id: int
+    creation_receipt: Optional[ReceiptAPI] = None
+    transaction_hash: Optional[HexBytes] = None
+
+    @validator("contract", pre=True)
+    def fetch_contract_instance(cls, value: Any) -> ContractInstance:
+        if isinstance(value, ContractInstance):
+            return value
+
+        if isinstance(value, str):
+            value = cls.conversion_manager.convert(value, AddressType)
+
+        return cls.chain_manager.contracts.instance_at(value)
 
     def transaction_created(self) -> ReceiptAPI:
         if self.creation_receipt:
@@ -128,12 +131,18 @@ class Stream(ManagerAccessMixin):
         )
 
 
-class StreamManager(ManagerAccessMixin):
-    def __init__(
-        self,
-        contract: ContractInstance,
-    ):
-        self.contract = contract
+class StreamManager(BaseInterfaceModel):
+    contract: ContractInstance
+
+    @validator("contract", pre=True)
+    def fetch_contract_instance(cls, value: Any) -> ContractInstance:
+        if isinstance(value, ContractInstance):
+            return value
+
+        if isinstance(value, str):
+            value = cls.conversion_manager.convert(value, AddressType)
+
+        return cls.chain_manager.contracts.instance_at(value)
 
     def __repr__(self) -> str:
         return f"<apepay_sdk.StreamManager address={self.contract.address}>"
@@ -232,7 +241,10 @@ class StreamManager(ManagerAccessMixin):
         tx = self.contract.create_stream(*args, **txn_kwargs)
         event = tx.events.filter(self.contract.StreamCreated)[0]
         return Stream(
-            self.contract, event.creator, event.stream_id, creation_receipt=tx
+            contract=self.contract,
+            creator=event.creator,
+            stream_id=event.stream_id,
+            creation_receipt=tx,
         )
 
     def streams_by_creator(self, creator: AddressType) -> Iterator[Stream]:
@@ -242,9 +254,9 @@ class StreamManager(ManagerAccessMixin):
     def all_streams(self) -> Iterator[Stream]:
         for stream_created_event in self.contract.StreamCreated:
             yield Stream(
-                self.contract,
-                stream_created_event.creator,
-                stream_created_event.stream_id,
+                contract=self.contract,
+                creator=stream_created_event.creator,
+                stream_id=stream_created_event.stream_id,
                 transaction_hash=stream_created_event.transaction_hash,
             )
 
@@ -253,9 +265,9 @@ class StreamManager(ManagerAccessMixin):
             **polling_kwargs
         ):
             yield Stream(
-                self.contract,
-                stream_created_event.creator,
-                stream_created_event.stream_id,
+                contract=self.contract,
+                creator=stream_created_event.creator,
+                stream_id=stream_created_event.stream_id,
                 transaction_hash=stream_created_event.transaction_hash,
             )
 
@@ -264,7 +276,7 @@ class StreamManager(ManagerAccessMixin):
             **polling_kwargs
         ):
             yield Stream(
-                self.contract,
-                stream_cancelled_event.creator,
-                stream_cancelled_event.stream_id,
+                contract=self.contract,
+                creator=stream_cancelled_event.creator,
+                stream_id=stream_cancelled_event.stream_id,
             )

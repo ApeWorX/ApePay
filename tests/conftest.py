@@ -1,5 +1,4 @@
 import pytest
-
 from apepay import StreamManager
 
 ONE_HOUR = 60 * 60
@@ -27,7 +26,7 @@ def stream_manager_contract(owner, project, token):
 
 @pytest.fixture(scope="session")
 def stream_manager(stream_manager_contract):
-    return StreamManager(stream_manager_contract)
+    return StreamManager(contract=stream_manager_contract)
 
 
 @pytest.fixture(scope="session")
