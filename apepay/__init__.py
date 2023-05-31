@@ -131,6 +131,34 @@ class Stream(BaseInterfaceModel):
         )
 
 
+def coerce_time_unit(time):
+    time = time.strip().lower()
+    if time in ("week", "day", "hour", "minute", "second"):
+        return f"{time}s"
+
+    shorthand = {
+        "wk": "weeks",
+        "d": "days",
+        "h": "hours",
+        "hr": "hours",
+        "m": "minutes",
+        "min": "minutes",
+        "mins": "minutes",
+        "s": "seconds",
+        "sec": "seconds",
+        "secs": "seconds",
+    }
+
+    if time in shorthand:
+        return shorthand[time]
+
+    return time
+
+
+def total_seconds_for_time_unit(time_unit: str) -> int:
+    return timedelta(**{coerce_time_unit(time_unit): 1}).total_seconds()
+
+
 class StreamManager(BaseInterfaceModel):
     contract: ContractInstance
 
@@ -169,35 +197,12 @@ class StreamManager(BaseInterfaceModel):
         if not self.contract.token_is_accepted(token):
             raise TokenNotAccepted(str(token))
 
-        if isinstance(amount_per_second, str):
+        if isinstance(amount_per_second, str) and "/" in amount_per_second:
             value, time = amount_per_second.split("/")
-
-            def coerce_time_unit(time):
-                time = time.strip().lower()
-                if time in ("week", "day", "hour", "minute", "second"):
-                    return f"{time}s"
-
-                shorthand = {
-                    "wk": "weeks",
-                    "d": "days",
-                    "h": "hours",
-                    "hr": "hours",
-                    "m": "minutes",
-                    "min": "minutes",
-                    "mins": "minutes",
-                    "s": "seconds",
-                    "sec": "seconds",
-                    "secs": "seconds",
-                }
-
-                if time in shorthand:
-                    return shorthand[time]
-
-                return time
 
             amount_per_second = int(
                 self.conversion_manager.convert(value.strip(), int)
-                / timedelta(**{coerce_time_unit(time): 1}).total_seconds()
+                / total_seconds_for_time_unit(time)
             )
 
         args: List[Any] = [token, amount_per_second]
