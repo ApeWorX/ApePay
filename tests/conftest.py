@@ -20,8 +20,13 @@ def token(payer, project):
 
 
 @pytest.fixture(scope="session")
-def stream_manager_contract(owner, project, token):
-    return owner.deploy(project.StreamManager, owner, ONE_HOUR, [], [token])
+def validator(owner, project):
+    return owner.deploy(project.TestValidator)
+
+
+@pytest.fixture(scope="session")
+def stream_manager_contract(owner, project, validator, token):
+    return owner.deploy(project.StreamManager, owner, ONE_HOUR, [validator], [token])
 
 
 @pytest.fixture(scope="session")
