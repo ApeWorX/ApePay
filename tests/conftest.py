@@ -21,7 +21,7 @@ def token(payer, project):
 
 @pytest.fixture(scope="session")
 def stream_manager_contract(owner, project, token):
-    return owner.deploy(project.StreamManager, owner, ONE_HOUR, [token])
+    return owner.deploy(project.StreamManager, owner, ONE_HOUR, [], [token])
 
 
 @pytest.fixture(scope="session")

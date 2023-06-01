@@ -22,13 +22,14 @@ def __init__(blueprint: address):
 
 
 @external
-def create(accepted_tokens: DynArray[address, 20]) -> address:
+def create(validators: DynArray[address, 10], accepted_tokens: DynArray[address, 20]) -> address:
     #assert self.deployments[msg.sender] == empty(address)  # dev: only one deployment allowed
 
     deployment: address = create_from_blueprint(
         BLUEPRINT,
         msg.sender,  # Only caller can create
         ONE_HOUR,  # Safety parameter (not configurable)
+        validators,
         accepted_tokens,  # whatever caller wants to accept
         salt=convert(msg.sender, bytes32),  # Ensures unique deployment per caller
         code_offset=3,
