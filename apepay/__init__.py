@@ -210,7 +210,7 @@ class StreamManager(BaseInterfaceModel):
 
         if reason is not None:
             if isinstance(reason, dict):
-                reason = json.dumps(reason)
+                reason = json.dumps(reason, separators=(",", ":"))
 
             if isinstance(reason, str):
                 reason = reason.encode("utf-8")
