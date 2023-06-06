@@ -6,7 +6,7 @@ A smart contract payment system built for automated service management
 
 ## About
 
-See the [blog post](#tbd) to learn more about ApePay!
+See the [blog post](https://mirror.xyz/apeworx.eth/XPAko-Ez-BqHJF5zaB9sG8kfuDutNn1TqPg4827C7fw) to learn more about ApePay!
 
 ## Documentation
 
