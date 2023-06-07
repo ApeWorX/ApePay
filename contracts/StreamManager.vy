@@ -20,13 +20,7 @@
 
 from vyper.interfaces import ERC20
 
-interface Validator:
-    def validate(
-        creator: address,
-        token: ERC20,
-        amount_per_second: uint256,
-        reason: Bytes[MAX_REASON_SIZE],
-    ) -> uint256: nonpayable
+from . import Validator
 
 
 MAX_VALIDATORS: constant(uint8) = 10
@@ -135,7 +129,7 @@ def create_stream(
         # NOTE: Validator either raises or returns a max stream life to use
         max_stream_life = min(
             max_stream_life,
-            validator.validate(msg.sender, token, amount_per_second, reason),
+            validator.validate(msg.sender, token.address, amount_per_second, reason),
         )
 
     assert max_stream_life >= funded_amount / amount_per_second
