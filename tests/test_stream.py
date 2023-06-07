@@ -1,12 +1,18 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import ape
 import pytest
 from apepay import exceptions as apepay_exc
 
 
-def test_init(stream_manager, token):
-    assert stream_manager.is_accepted(token)
+def test_init(stream_manager, owner, validators, tokens):
+    assert stream_manager.MIN_STREAM_LIFE == timedelta(hours=1)
+    assert stream_manager.owner == owner
+
+    assert stream_manager.validators == validators
+
+    for token in tokens:
+        assert stream_manager.is_accepted(token)
 
 
 @pytest.mark.parametrize(
@@ -24,22 +30,29 @@ def test_init(stream_manager, token):
         dict(start_time=-1000),
     ],
 )
-def test_create_stream(chain, payer, token, stream_manager, extra_args):
+def test_create_stream(chain, payer, tokens, stream_manager, extra_args):
+    if len(tokens) == 0:
+        pytest.skip("No valid tokens")
+
     # NOTE: Maximum amount we can afford to send (using 1 hr pre-allocation)
-    amount_per_second = token.balanceOf(payer) // (60 * 60)
+    amount_per_second = tokens[0].balanceOf(payer) // int(
+        stream_manager.MIN_STREAM_LIFE.total_seconds()
+    )
 
     with pytest.raises(apepay_exc.StreamLifeInsufficient):
-        stream_manager.create(token, amount_per_second, sender=payer)
+        stream_manager.create(tokens[0], amount_per_second, sender=payer)
 
-    token.approve(stream_manager.contract, 2**256 - 1, sender=payer)
+    tokens[0].approve(stream_manager.contract, 2**256 - 1, sender=payer)
 
     with pytest.raises(apepay_exc.StreamLifeInsufficient):
-        stream_manager.create(token, amount_per_second + 1, sender=payer)
+        stream_manager.create(tokens[0], amount_per_second + 1, sender=payer)
 
     start_time = chain.pending_timestamp
-    stream = stream_manager.create(token, amount_per_second, **extra_args, sender=payer)
+    stream = stream_manager.create(
+        tokens[0], amount_per_second, **extra_args, sender=payer
+    )
 
-    assert stream.token == token
+    assert stream.token == tokens[0]
     assert stream.stream_id == 0
     assert stream.creator == payer
     assert stream.amount_per_second == amount_per_second

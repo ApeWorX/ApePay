@@ -20,6 +20,13 @@
 
 from vyper.interfaces import ERC20
 
+from . import Validator
+
+
+MAX_VALIDATORS: constant(uint8) = 10
+validators: public(DynArray[Validator, MAX_VALIDATORS])
+
+
 MAX_REASON_SIZE: constant(uint16) = 1024
 MIN_STREAM_LIFE: public(immutable(uint256))
 
@@ -27,6 +34,7 @@ MIN_STREAM_LIFE: public(immutable(uint256))
 struct Stream:
     token: ERC20
     amount_per_second: uint256
+    max_stream_life: uint256
     funded_amount: uint256
     start_time: uint256
     last_pull: uint256
@@ -73,13 +81,21 @@ event Withdrawn:
 def __init__(
     owner: address,
     min_stream_life: uint256,  # timedelta in seconds
+    validators: DynArray[Validator, MAX_VALIDATORS],
     accepted_tokens: DynArray[ERC20, 20],
 ):
     self.owner = owner
     MIN_STREAM_LIFE = min_stream_life
+    self.validators = validators
 
     for token in accepted_tokens:
         self.token_is_accepted[token] = True
+
+
+@external
+def set_validators(validators: DynArray[Validator, MAX_VALIDATORS]):
+    assert msg.sender == self.owner
+    self.validators = validators
 
 
 @external
@@ -108,7 +124,19 @@ def create_stream(
     if funded_amount == max_value(uint256):
         funded_amount = token.balanceOf(msg.sender)
 
-    assert funded_amount >= max(MIN_STREAM_LIFE, block.timestamp - start_time) * amount_per_second
+    max_stream_life: uint256 = max_value(uint256)
+    for validator in self.validators:
+        # NOTE: Validator either raises or returns a max stream life to use
+        max_stream_life = min(
+            max_stream_life,
+            validator.validate(msg.sender, token.address, amount_per_second, reason),
+        )
+
+    assert max_stream_life >= funded_amount / amount_per_second
+
+    prefunded_stream_life: uint256 = max(MIN_STREAM_LIFE, block.timestamp - start_time)
+    assert max_stream_life >= prefunded_stream_life
+    assert funded_amount >= prefunded_stream_life * amount_per_second
 
     assert token.transferFrom(msg.sender, self, funded_amount, default_return_value=True)
 
@@ -116,6 +144,7 @@ def create_stream(
     self.streams[msg.sender][stream_id] = Stream({
         token: token,
         amount_per_second: amount_per_second,
+        max_stream_life: max_stream_life,
         funded_amount: funded_amount,
         start_time: start_time,
         last_pull: start_time,
@@ -167,8 +196,15 @@ def add_funds(creator: address, stream_id: uint256, amount: uint256) -> uint256:
     token: ERC20 = self.streams[creator][stream_id].token
     assert token.transferFrom(msg.sender, self, amount, default_return_value=True)
     self.streams[creator][stream_id].funded_amount += amount
+
+    time_left: uint256 = self._time_left(creator, stream_id)
+    assert (
+        (time_left + block.timestamp - self.streams[creator][stream_id].start_time)
+        <= self.streams[creator][stream_id].max_stream_life
+    )
+
     log StreamFunded(creator, stream_id, amount)
-    return self._time_left(creator, stream_id)
+    return time_left
 
 
 @view

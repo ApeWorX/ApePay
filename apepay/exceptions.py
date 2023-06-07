@@ -1,5 +1,10 @@
 from datetime import timedelta
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from . import Validator
+
 
 class ApePayException(Exception):
     pass
@@ -35,3 +40,8 @@ class StreamLifeInsufficient(ApePayException, ValueError):
             f"Please wait or back-date stream by {min_stream_life - stream_life} amount "
             "of time to succeed, or approve more token allowance for the stream to use."
         )
+
+
+class ValidatorFailed(ApePayException, ValueError):
+    def __init__(self, validator: "Validator"):
+        super().__init__(f"Validator failed: {validator.contract}")

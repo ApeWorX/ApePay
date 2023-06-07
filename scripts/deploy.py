@@ -51,8 +51,9 @@ def stream_factory(cli_ctx, account, network, blueprint):
 @network_option()
 @click.option("--owner", default=None)
 @click.option("--min-stream-life", type=int, default=60 * 60)
+@click.option("--validator", "validators", multiple=True, default=[])
 @click.argument("tokens", nargs=-1)
-def stream_manager(account, network, owner, min_stream_life, tokens):
+def stream_manager(account, network, owner, min_stream_life, validators, tokens):
     if len(tokens) > 20:
         raise click.BadArgumentUsage("Doesn't accept more than 20 tokens")
 
@@ -70,6 +71,7 @@ def stream_manager(account, network, owner, min_stream_life, tokens):
         project.StreamManager,
         owner or account,
         min_stream_life,
+        list(validators),
         token_addresses,
         publish=click.confirm("Publish"),
     )

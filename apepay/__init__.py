@@ -5,6 +5,7 @@ from typing import Any, Iterator, List, Optional, Union, cast, AsyncIterator
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
+from ape.exceptions import ContractLogicError
 from ape.types import AddressType, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from pydantic import validator
@@ -12,6 +13,7 @@ from .exceptions import (
     MissingCreationReceipt,
     StreamNotCancellable,
     FundsNotWithdrawable,
+    ValidatorFailed,
     TokenNotAccepted,
     StreamLifeInsufficient,
 )
@@ -160,6 +162,27 @@ def total_seconds_for_time_unit(time_unit: str) -> int:
     return timedelta(**{coerce_time_unit(time_unit): 1}).total_seconds()
 
 
+class Validator(BaseInterfaceModel):
+    contract: ContractInstance
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, Validator):
+            return self.contract == other.contract
+
+        elif isinstance(other, ContractInstance):
+            return self.contract == other
+
+        return super().__eq__(other)
+
+    def validate(self, creator, token, amount_per_second, reason) -> bool:
+        try:
+            self.contract.validate.call(creator, token, amount_per_second, reason)
+            return True
+
+        except ContractLogicError:
+            return False
+
+
 class StreamManager(BaseInterfaceModel):
     contract: ContractInstance
 
@@ -179,6 +202,24 @@ class StreamManager(BaseInterfaceModel):
     @property
     def owner(self) -> AddressType:
         return self.contract.owner()
+
+    @property
+    def validators(self) -> List[Validator]:
+        validators = []
+
+        for idx in range(20):
+            try:
+                validators.append(
+                    Validator(
+                        contract=self.project_manager.Validator.at(
+                            self.contract.validators(idx)
+                        )
+                    )
+                )
+            except ContractLogicError:
+                break
+
+        return validators
 
     def is_accepted(self, token: Union[ContractInstance, str, AddressType]):
         return self.contract.token_is_accepted(token)
@@ -243,6 +284,18 @@ class StreamManager(BaseInterfaceModel):
                     stream_life=timedelta(seconds=stream_life),
                     min_stream_life=self.MIN_STREAM_LIFE,
                 )
+
+            validator_args = [sender, *args[:2]]
+            # Arg 3 (reason) is optional
+            if len(args) == 3:
+                validator_args.append(args[2])
+            else:
+                validator_args.append(b"")
+            # Skip arg 4 (start_time)
+
+            for validator in self.validators:
+                if not validator.validate(*validator_args):
+                    raise ValidatorFailed(validator)
 
         tx = self.contract.create_stream(*args, **txn_kwargs)
         event = tx.events.filter(self.contract.StreamCreated)[0]
