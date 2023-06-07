@@ -185,7 +185,6 @@ class StreamManager(BaseInterfaceModel):
             if not stream.is_active and stream.amount_unlocked > 0:
                 yield stream
 
-
 class Stream(BaseInterfaceModel):
     manager: StreamManager
     creator: AddressType
@@ -495,8 +494,8 @@ class StreamManager(BaseInterfaceModel):
             creation_receipt=tx,
         )
 
-    def batch_withdraw(self, creators: List[AddressType], stream_ids: List[int], **txn_kwargs) -> ContractTransactionHandler:
-        return self.contract.batch_withdraw(creators, stream_ids, **txn_kwargs)
+    def batch_withdraw(self, batches: List[dict], **txn_kwargs):
+        return self.contract.batch_withdraw(batches, **txn_kwargs)
 
     def streams_by_creator(self, creator: AddressType) -> Iterator[Stream]:
         for stream_id in range(self.contract.num_streams(creator)):
