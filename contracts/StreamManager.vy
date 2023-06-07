@@ -305,17 +305,17 @@ def withdraw(creator: address, stream_id: uint256) -> uint256:
 
 
 @external
-def batch_withdraw(creators: DynArray[address, MAX_BATCH_SIZE], strams: DynArray[uint256, MAX_BATCH_SIZE]):
+def batch_withdraw(creators: DynArray[address, MAX_BATCH_SIZE], stream_ids: DynArray[uint256, MAX_BATCH_SIZE]):
     """
     @dev Withdraw from all streams for a given creator.
     @param creators The creator of the stream.
     """
-    assert len(creators) == len(strams), "creators and streams must be the same length"
+    assert len(creators) == len(stream_ids), "creators and streams must be the same length"
 
     for i in range(MAX_BATCH_SIZE):
         if convert(i, uint256) >= len(creators):
             break
-        self._withdraw(creators[i], strams[i])
+        self._withdraw(creators[i], stream_ids[i])
 
 
 @internal
