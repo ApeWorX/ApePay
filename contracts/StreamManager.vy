@@ -1,4 +1,4 @@
-# @version 0.3.9
+# @version 0.3.7
 
 """
 @title StreamManager
@@ -94,18 +94,33 @@ def __init__(
 
 @external
 def set_validators(validators: DynArray[Validator, MAX_VALIDATORS]):
+    """
+    @dev Set the validators for this contract. This can only be called by the
+        owner of the contract.
+    @param validators The validators to use.
+    """
     assert msg.sender == self.owner
     self.validators = validators
 
 
 @external
 def add_token(token: ERC20):
+    """
+    @dev Add a token to the list of accepted tokens. This can only be called by
+        the owner of the contract.
+    @param token The token to add.
+    """
     assert msg.sender == self.owner
     self.token_is_accepted[token] = True
 
 
 @external
 def remove_token(token: ERC20):
+    """
+    @dev Remove a token from the list of accepted tokens. This can only be
+        called by the owner of the contract.
+    @param token The token to remove.
+    """
     assert msg.sender == self.owner
     self.token_is_accepted[token] = False
 
@@ -117,6 +132,19 @@ def create_stream(
     reason: Bytes[MAX_REASON_SIZE] = b"",
     start_time: uint256 = block.timestamp,
 ) -> uint256:
+    """
+    @dev Create a stream targeting the owner of this contract. The stream will
+        be funded with the lesser of the `amount_per_second` * `max_stream_life`
+        or the `funded_amount` of the token. The `start_time` can be in the
+        past, but the stream will not be able to be cancelled until
+        `start_time` + `MIN_STREAM_LIFE` has elapsed. 
+    @param token The token to use for the stream.
+    @param amount_per_second The amount of the token to stream per second.
+    @param reason A reason for the stream. This is optional.
+    @param start_time The time to start the stream. Defaults to the current block
+        timestamp. Default to now.
+    @return The id of the stream.
+    """
     assert self.token_is_accepted[token]
     assert start_time <= block.timestamp
 
@@ -160,6 +188,14 @@ def create_stream(
 @view
 @internal
 def _amount_unlocked(creator: address, stream_id: uint256) -> uint256:
+    """
+    @dev Get the amount of the stream that is unlocked and available for
+        withdrawal.
+    @param creator The creator of the stream.
+    @param stream_id The id of the stream.
+    @return The amount of the stream that is unlocked and available for
+        withdrawal.
+    """
     return min(
         (
             (block.timestamp - self.streams[creator][stream_id].last_pull)
@@ -172,12 +208,26 @@ def _amount_unlocked(creator: address, stream_id: uint256) -> uint256:
 @view
 @external
 def amount_unlocked(creator: address, stream_id: uint256) -> uint256:
+    """
+    @dev Get the amount of the stream that is unlocked and available for
+        withdrawal.
+    @param creator The creator of the stream.
+    @param stream_id The id of the stream.
+    @return The amount of the stream that is unlocked and available for
+        withdrawal.
+    """
     return self._amount_unlocked(creator, stream_id)
 
 
 @view
 @internal
 def _time_left(creator: address, stream_id: uint256) -> uint256:
+    """
+    @dev Get the amount of time left in the stream.
+    @param creator The creator of the stream.
+    @param stream_id The id of the stream.
+    @return The amount of time left in the stream.
+    """
     unlocked: uint256 = self._amount_unlocked(creator, stream_id)
     return (
         (self.streams[creator][stream_id].funded_amount - unlocked)
@@ -188,11 +238,24 @@ def _time_left(creator: address, stream_id: uint256) -> uint256:
 @view
 @external
 def time_left(creator: address, stream_id: uint256) -> uint256:
+    """
+    @dev Get the amount of time left in the stream.
+    @param creator The creator of the stream.
+    @param stream_id The id of the stream.
+    @return The amount of time left in the stream.
+    """
     return self._time_left(creator, stream_id)
 
 
 @external
 def add_funds(creator: address, stream_id: uint256, amount: uint256) -> uint256:
+    """
+    @dev Add funds to a stream.
+    @param creator The creator of the stream.
+    @param stream_id The id of the stream.
+    @param amount The amount to add to the stream.
+    @return The amount of time left in the stream.
+    """
     token: ERC20 = self.streams[creator][stream_id].token
     assert token.transferFrom(msg.sender, self, amount, default_return_value=True)
     self.streams[creator][stream_id].funded_amount += amount
@@ -210,6 +273,12 @@ def add_funds(creator: address, stream_id: uint256, amount: uint256) -> uint256:
 @view
 @external
 def stream_is_cancelable(creator: address, stream_id: uint256) -> bool:
+    """
+    @dev Check if a stream is cancelable.
+    @param creator The creator of the stream.
+    @param stream_id The id of the stream.
+    @return True if the stream is cancelable, False otherwise.
+    """
     return self.streams[creator][stream_id].start_time + MIN_STREAM_LIFE <= block.timestamp
 
 
@@ -219,6 +288,12 @@ def cancel_stream(
     reason: Bytes[MAX_REASON_SIZE] = b"",
     creator: address = msg.sender,
 ) -> uint256:
+    """
+    @dev Cancel a stream. The stream must  must have been created at least `MIN_STREAM_LIFE` ago.
+    @param stream_id The id of the stream.
+    @param reason The reason for the cancellation.
+    @param creator The creator of the stream.
+    """
     assert msg.sender in [creator, self.owner]
     assert self.streams[creator][stream_id].start_time + MIN_STREAM_LIFE <= block.timestamp
 
@@ -237,11 +312,39 @@ def cancel_stream(
 
 @external
 def withdraw(creator: address, stream_id: uint256) -> uint256:
+    """
+    @dev Withdraw from a stream.
+    @param creator The creator of the stream.
+    @param stream_id The id of the stream.
+    """
+    return self._withdraw(creator, stream_id)
+
+
+@external
+def withdraw_all(creators: DynArray[address, 128], strams: DynArray[uint256, 128]):
+    """
+    @dev Withdraw from all streams for a given creator.
+    @param creators The creator of the stream.
+    """
+    creators_len: uint256 = len(creators)
+    assert creators_len == len(strams), "creators and streams must be the same length"
+
+    for i in range(0, 128):
+        if i >= creators_len:
+            break
+        self._withdraw(creators[i], strams[i])
+
+
+@internal
+def _withdraw(creator: address, stream_id: uint256) -> uint256:
     funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
     withdrawal_amount: uint256 = min(
         self._amount_unlocked(creator, stream_id),
         funded_amount,
     )
+
+    if withdrawal_amount == 0:
+        return 0
 
     token: ERC20 = self.streams[creator][stream_id].token
     assert token.transfer(self.owner, withdrawal_amount, default_return_value=True)

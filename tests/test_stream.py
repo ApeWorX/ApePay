@@ -60,3 +60,25 @@ def test_create_stream(chain, payer, tokens, stream_manager, extra_args):
     assert stream.start_time == datetime.fromtimestamp(
         start_time + extra_args.get("start_time", 0)
     )
+
+def test_withdraw_all(chain, payer, owner, tokens, stream_manager):
+    if len(tokens) == 0:
+        pytest.skip("No valid tokens")
+    streams = []
+    payers = []
+    for i in range(len(tokens)):
+        amount_per_second = tokens[i].balanceOf(payer) // int(
+            stream_manager.MIN_STREAM_LIFE.total_seconds()
+        )
+
+        tokens[i].approve(stream_manager.contract, 2**256 - 1, sender=payer)
+
+        stream = stream_manager.create(
+            tokens[i], amount_per_second, sender=payer
+        )
+        streams.append(stream.stream_id)
+        payers.append(payer.address)
+
+    chain.pending_timestamp += 3600 * 12
+    stream_manager.withdraw_all(payers, streams, sender=owner)
+
