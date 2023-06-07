@@ -301,30 +301,8 @@ def withdraw(creator: address, stream_id: uint256) -> uint256:
     @param creator The creator of the stream.
     @param stream_id The id of the stream.
     """
-    return self._withdraw(creator, stream_id)
-
-
-@external
-def batch_withdraw(creators: DynArray[address, MAX_BATCH_SIZE], stream_ids: DynArray[uint256, MAX_BATCH_SIZE]):
-    """
-    @dev Withdraw from all streams for a given creator.
-    @param creators The creator of the stream.
-    """
-    assert len(creators) == len(stream_ids), "creators and streams must be the same length"
-
-    for i in range(MAX_BATCH_SIZE):
-        if convert(i, uint256) >= len(creators):
-            break
-        self._withdraw(creators[i], stream_ids[i])
-
-
-@internal
-def _withdraw(creator: address, stream_id: uint256) -> uint256:
     funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
-    withdrawal_amount: uint256 = min(
-        self._amount_unlocked(creator, stream_id),
-        funded_amount,
-    )
+    withdrawal_amount: uint256 = self._amount_unlocked(creator, stream_id)
 
     if withdrawal_amount == 0:
         return 0
@@ -338,3 +316,40 @@ def _withdraw(creator: address, stream_id: uint256) -> uint256:
     log Withdrawn(creator, stream_id, funded_amount == withdrawal_amount, withdrawal_amount)
 
     return withdrawal_amount
+
+
+@external
+def batch_withdraw(
+    creators: DynArray[address, MAX_BATCH_SIZE],
+    stream_ids: DynArray[uint256, MAX_BATCH_SIZE]
+    ) -> uint256:
+    """
+    @dev Withdraw from all streams for a given creator.
+    @param creators The creator of the stream.
+    """
+    assert len(creators) == len(stream_ids), "creators and streams must be the same length"
+    
+    total_amount: uint256 = 0
+    token: ERC20 = self.streams[creators[0]][stream_ids[0]].token
+    assert token.address != empty(address), "token must be set"
+
+    for i in range(MAX_BATCH_SIZE):
+        if convert(i, uint256) >= len(creators):
+            break
+        assert token.address == self.streams[creators[i]][stream_ids[i]].token.address, "token must be the same for all streams"
+
+        funded_amount: uint256 = self.streams[creators[i]][stream_ids[i]].funded_amount
+        withdrawal_amount: uint256 = self._amount_unlocked(creators[i], stream_ids[i])
+
+        if withdrawal_amount == 0:
+            continue
+        total_amount += withdrawal_amount
+
+
+        self.streams[creators[i]][stream_ids[i]].funded_amount = funded_amount - withdrawal_amount
+        self.streams[creators[i]][stream_ids[i]].last_pull = block.timestamp
+
+        log Withdrawn(creators[i], stream_ids[i], funded_amount == withdrawal_amount, withdrawal_amount)
+    
+    assert token.transfer(self.owner, total_amount, default_return_value=True)
+    return total_amount

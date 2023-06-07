@@ -496,10 +496,7 @@ class StreamManager(BaseInterfaceModel):
         )
 
     def batch_withdraw(self, creators: List[AddressType], stream_ids: List[int], **txn_kwargs) -> ContractTransactionHandler:
-        return cast(
-            ContractTransactionHandler,
-            partial(self.contract.batch_withdraw, creators, stream_ids, **txn_kwargs),
-        )
+        return self.contract.batch_withdraw(creators, stream_ids, **txn_kwargs)
 
     def streams_by_creator(self, creator: AddressType) -> Iterator[Stream]:
         for stream_id in range(self.contract.num_streams(creator)):
