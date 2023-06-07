@@ -61,7 +61,7 @@ def test_create_stream(chain, payer, tokens, stream_manager, extra_args):
         start_time + extra_args.get("start_time", 0)
     )
 
-def test_withdraw_all(chain, payer, owner, tokens, stream_manager):
+def test_batch_withdraw(chain, payer, owner, tokens, stream_manager):
     if len(tokens) == 0:
         pytest.skip("No valid tokens")
     streams = []
@@ -80,5 +80,5 @@ def test_withdraw_all(chain, payer, owner, tokens, stream_manager):
         payers.append(payer.address)
 
     chain.pending_timestamp += 3600 * 12
-    stream_manager.withdraw_all(payers, streams, sender=owner)
+    stream_manager.batch_withdraw(payers, streams, sender=owner)
 
