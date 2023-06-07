@@ -20,6 +20,13 @@ def test_init(stream_manager, owner, validators, tokens):
     [
         dict(),
         dict(reason="Just trying out a reason"),
+        dict(
+            reason={
+                "ecosystem_id": 13,
+                "custom_block_time": 10,
+                "bot_counts": {"1": 4, "10": 1, "42": 16},
+            }
+        ),
         dict(start_time=-1000),
     ],
 )
