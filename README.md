@@ -78,9 +78,7 @@ To run the demo ApePay cluster daemon, first run a node like `anvil`:
 $ anvil --derivation-path "m/44'/60'/0'/" --block-time 1 --prune-history
 ```
 
-```note
-the `--derivation-path` flag makes ape's test accounts match anvil's
-```
+**NOTE**: the `--derivation-path` flag makes ape's test accounts match anvil's
 
 Then run the daemon:
 

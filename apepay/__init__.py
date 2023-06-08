@@ -2,7 +2,6 @@ import json
 from datetime import datetime, timedelta
 from functools import partial
 from typing import Any, Iterator, List, Optional, Union, cast, AsyncIterator
-from enum import Enum
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
@@ -18,59 +17,7 @@ from .exceptions import (
     TokenNotAccepted,
     StreamLifeInsufficient,
 )
-from .utils import async_wrap_iter
-
-WARNING_LEVEL = timedelta(minutes=1)  # days=2)
-CRITICAL_LEVEL = timedelta(seconds=5)  # hours=12)
-
-
-class Status(Enum):
-    NORMAL = "normal"
-    WARNING = "warning"
-    CRITICAL = "critical"
-    INACTIVE = "inactive"
-
-    @classmethod
-    def from_time_left(cls, time_left: timedelta) -> "Status":
-        if time_left > WARNING_LEVEL:
-            return cls.NORMAL
-
-        elif time_left > CRITICAL_LEVEL:
-            return cls.WARNING
-
-        elif time_left.total_seconds() > 0:
-            return cls.CRITICAL
-
-        else:
-            return cls.INACTIVE
-
-
-def coerce_time_unit(time):
-    time = time.strip().lower()
-    if time in ("week", "day", "hour", "minute", "second"):
-        return f"{time}s"
-
-    shorthand = {
-        "wk": "weeks",
-        "d": "days",
-        "h": "hours",
-        "hr": "hours",
-        "m": "minutes",
-        "min": "minutes",
-        "mins": "minutes",
-        "s": "seconds",
-        "sec": "seconds",
-        "secs": "seconds",
-    }
-
-    if time in shorthand:
-        return shorthand[time]
-
-    return time
-
-
-def total_seconds_for_time_unit(time_unit: str) -> int:
-    return timedelta(**{coerce_time_unit(time_unit): 1}).total_seconds()
+from .utils import async_wrap_iter, time_unit_to_timedelta
 
 
 class Validator(BaseInterfaceModel):
@@ -155,7 +102,7 @@ class StreamManager(BaseInterfaceModel):
 
             amount_per_second = int(
                 self.conversion_manager.convert(value.strip(), int)
-                / total_seconds_for_time_unit(time)
+                / time_unit_to_timedelta(time).total_seconds()
             )
 
         args: List[Any] = [token, amount_per_second]
@@ -341,12 +288,8 @@ class Stream(BaseInterfaceModel):
         return timedelta(seconds=self.contract.time_left(self.creator, self.stream_id))
 
     @property
-    def status(self) -> Status:
-        return Status.from_time_left(self.time_left)
-
-    @property
     def is_active(self) -> bool:
-        return self.status is not Status.INACTIVE
+        return self.time_left.total_seconds() > 0
 
     @property
     def add_funds(self) -> ContractTransactionHandler:

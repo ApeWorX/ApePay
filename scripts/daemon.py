@@ -1,11 +1,38 @@
 import asyncio
 import itertools
+from enum import Enum
+from datetime import timedelta
 
-from apepay import Stream, StreamManager, Status, WARNING_LEVEL, CRITICAL_LEVEL
+from apepay import Stream, StreamManager
+from .settings import Settings
 from silverback import SilverBackApp
 
+settings = Settings()
+
+
+class Status(Enum):
+    NORMAL = "normal"
+    WARNING = "warning"
+    CRITICAL = "critical"
+    INACTIVE = "inactive"
+
+    @classmethod
+    def from_time_left(cls, time_left: timedelta) -> "Status":
+        if time_left > settings.WARNING_LEVEL:
+            return cls.NORMAL
+
+        elif time_left > settings.CRITICAL_LEVEL:
+            return cls.WARNING
+
+        elif time_left.total_seconds() > 0:
+            return cls.CRITICAL
+
+        else:
+            return cls.INACTIVE
+
+
 # TODO: Load `address` from `os.environ`
-SM = StreamManager(address="0x274b028b03A250cA03644E6c578D81f019eE1323")
+SM = StreamManager(address=settings.CONTRACT_ADDRESS)
 
 app = SilverBackApp()
 
@@ -54,16 +81,16 @@ async def stream_created(event):
 
 @app.broker.task(task_name="stream/normal")
 async def stream_funding_normal_level(stream: Stream):
-    while stream.status is Status.NORMAL:
+    while Status.from_time_left(stream.time_left) is Status.NORMAL:
         # Wait until we're in warning range
-        await asyncio.sleep((stream.time_left - WARNING_LEVEL).total_seconds())
+        await asyncio.sleep((stream.time_left - settings.WARNING_LEVEL).total_seconds())
 
     # Check if stream has been cancelled
-    if stream.status is Status.WARNING:
+    if Status.from_time_left(stream.time_left) is Status.WARNING:
         # TODO: Trigger funding warning notification
         print(f"Warning: only {stream.time_left} left")
 
-    elif stream.status is Status.CRITICAL:
+    elif Status.from_time_left(stream.time_left) is Status.CRITICAL:
         # TODO: Trigger funding critical notification
         print(f"Critical: only {stream.time_left} left")
 
@@ -72,12 +99,14 @@ async def stream_funding_normal_level(stream: Stream):
 
 @app.broker.task(task_name="stream/warning")
 async def stream_funding_warning_level(stream: Stream):
-    while stream.status is Status.WARNING:
+    while Status.from_time_left(stream.time_left) is Status.WARNING:
         # Wait for critical
-        await asyncio.sleep((stream.time_left - CRITICAL_LEVEL).total_seconds())
+        await asyncio.sleep(
+            (stream.time_left - settings.CRITICAL_LEVEL).total_seconds()
+        )
 
     # Check if stream has been cancelled
-    if stream.status is Status.CRITICAL:
+    if Status.from_time_left(stream.time_left) is Status.CRITICAL:
         # TODO: Trigger funding critical notification
         print(f"Critical: only {stream.time_left} left")
 
@@ -86,7 +115,7 @@ async def stream_funding_warning_level(stream: Stream):
 
 @app.broker.task(task_name="stream/critical")
 async def stream_funding_critical_level(stream: Stream):
-    while stream.status is Status.CRITICAL:
+    while Status.from_time_left(stream.time_left) is Status.CRITICAL:
         # Wait until there's no time left
         await asyncio.sleep(stream.time_left.total_seconds())
 

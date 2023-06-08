@@ -1,5 +1,6 @@
 import asyncio, threading
 from typing import Iterator, AsyncIterator
+from datetime import timedelta
 
 
 def async_wrap_iter(it: Iterator) -> AsyncIterator:
@@ -33,3 +34,31 @@ def async_wrap_iter(it: Iterator) -> AsyncIterator:
 
     threading.Thread(target=iter_to_queue).start()
     return yield_queue_items()
+
+
+def coerce_time_unit(time: str) -> str:
+    time = time.strip().lower()
+    if time in ("week", "day", "hour", "minute", "second"):
+        return f"{time}s"
+
+    shorthand = {
+        "wk": "weeks",
+        "d": "days",
+        "h": "hours",
+        "hr": "hours",
+        "m": "minutes",
+        "min": "minutes",
+        "mins": "minutes",
+        "s": "seconds",
+        "sec": "seconds",
+        "secs": "seconds",
+    }
+
+    if time in shorthand:
+        return shorthand[time]
+
+    return time
+
+
+def time_unit_to_timedelta(time_unit: str) -> timedelta:
+    return timedelta(**{coerce_time_unit(time_unit): 1})
