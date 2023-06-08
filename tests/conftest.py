@@ -47,7 +47,7 @@ def stream_manager_contract(owner, project, validators, tokens):
 
 @pytest.fixture(scope="session")
 def stream_manager(stream_manager_contract):
-    return StreamManager(contract=stream_manager_contract)
+    return StreamManager(address=stream_manager_contract)
 
 
 @pytest.fixture(scope="session")
