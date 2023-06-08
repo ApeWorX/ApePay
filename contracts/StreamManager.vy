@@ -335,6 +335,7 @@ def batch_withdraw(
     assert token.address != empty(address), "token must be set"
 
     for batch in batches:
+        creator: address = batch.creator
         for stream_id in batch.stream_ids:
             assert token.address == self.streams[creator][stream_id].token.address, "token must be the same for all streams"
         
