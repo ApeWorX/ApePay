@@ -18,7 +18,7 @@ from .exceptions import (
     TokenNotAccepted,
     StreamLifeInsufficient,
 )
-from .utils import async_wrap_iter
+from .utils import async_wrap_iter, time_unit_to_timedelta
 
 WARNING_LEVEL = timedelta(minutes=1)  # days=2)
 CRITICAL_LEVEL = timedelta(seconds=5)  # hours=12)
@@ -43,34 +43,6 @@ class Status(Enum):
 
         else:
             return cls.INACTIVE
-
-
-def coerce_time_unit(time):
-    time = time.strip().lower()
-    if time in ("week", "day", "hour", "minute", "second"):
-        return f"{time}s"
-
-    shorthand = {
-        "wk": "weeks",
-        "d": "days",
-        "h": "hours",
-        "hr": "hours",
-        "m": "minutes",
-        "min": "minutes",
-        "mins": "minutes",
-        "s": "seconds",
-        "sec": "seconds",
-        "secs": "seconds",
-    }
-
-    if time in shorthand:
-        return shorthand[time]
-
-    return time
-
-
-def total_seconds_for_time_unit(time_unit: str) -> int:
-    return timedelta(**{coerce_time_unit(time_unit): 1}).total_seconds()
 
 
 class Validator(BaseInterfaceModel):
@@ -155,7 +127,7 @@ class StreamManager(BaseInterfaceModel):
 
             amount_per_second = int(
                 self.conversion_manager.convert(value.strip(), int)
-                / total_seconds_for_time_unit(time)
+                / time_unit_to_timedelta(time).total_seconds()
             )
 
         args: List[Any] = [token, amount_per_second]
