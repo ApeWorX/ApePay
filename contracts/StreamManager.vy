@@ -334,15 +334,8 @@ def batch_withdraw(
     token: ERC20 = self.streams[batches[0].creator][batches[0].stream_ids[0]].token
     assert token.address != empty(address), "token must be set"
 
-    for i in range(MAX_BATCH_SIZE):
-        if convert(i, uint256) >= len(batches):
-            break
-        creator: address = batches[i].creator
-        stream_ids: DynArray[uint256, MAX_BATCH_SIZE] = batches[i].stream_ids
-        for j in range(MAX_BATCH_SIZE):
-            if convert(j, uint256) >= len(stream_ids):
-                break
-            stream_id: uint256 = stream_ids[j]
+    for batch in batches:
+        for stream_id in batch.stream_ids:
             assert token.address == self.streams[creator][stream_id].token.address, "token must be the same for all streams"
         
             funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
