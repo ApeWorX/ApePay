@@ -123,6 +123,27 @@ files = [
 frozenlist = ">=1.1.0"
 
 [[package]]
+name = "anyio"
+version = "3.7.0"
+description = "High level compatibility layer for multiple asynchronous event loop implementations"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "anyio-3.7.0-py3-none-any.whl", hash = "sha256:eddca883c4175f14df8aedce21054bfca3adb70ffe76a9f607aef9d7fa2ea7f0"},
+    {file = "anyio-3.7.0.tar.gz", hash = "sha256:275d9973793619a5374e1c89a4f4ad3f4b0a5510a2b5b939444bee8f4c4d37ce"},
+]
+
+[package.dependencies]
+exceptiongroup = {version = "*", markers = "python_version < \"3.11\""}
+idna = ">=2.8"
+sniffio = ">=1.1"
+
+[package.extras]
+doc = ["Sphinx (>=6.1.0)", "packaging", "sphinx-autodoc-typehints (>=1.2.0)", "sphinx-rtd-theme", "sphinxcontrib-jquery"]
+test = ["anyio[trio]", "coverage[toml] (>=4.5)", "hypothesis (>=4.0)", "mock (>=4)", "psutil (>=5.9)", "pytest (>=7.0)", "pytest-mock (>=3.6.1)", "trustme", "uvloop (>=0.17)"]
+trio = ["trio (<0.22)"]
+
+[[package]]
 name = "appnope"
 version = "0.1.3"
 description = "Disable App Nap on macOS >= 10.9"
@@ -1231,6 +1252,17 @@ files = [
 ]
 
 [[package]]
+name = "graphlib-backport"
+version = "1.0.3"
+description = "Backport of the Python 3.9 graphlib module for Python 3.6+"
+optional = false
+python-versions = ">=3.6,<4.0"
+files = [
+    {file = "graphlib_backport-1.0.3-py3-none-any.whl", hash = "sha256:24246967b9e7e6a91550bc770e6169585d35aa32790258579a8a3899a8c18fde"},
+    {file = "graphlib_backport-1.0.3.tar.gz", hash = "sha256:7bb8fc7757b8ae4e6d8000a26cd49e9232aaa9a3aa57edb478474b8424bfaae2"},
+]
+
+[[package]]
 name = "greenlet"
 version = "2.0.2"
 description = "Lightweight in-process concurrent programming"
@@ -2012,6 +2044,20 @@ dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
+name = "prometheus-client"
+version = "0.17.0"
+description = "Python client for the Prometheus monitoring system."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "prometheus_client-0.17.0-py3-none-any.whl", hash = "sha256:a77b708cf083f4d1a3fb3ce5c95b4afa32b9c521ae363354a4a910204ea095ce"},
+    {file = "prometheus_client-0.17.0.tar.gz", hash = "sha256:9c3b26f1535945e85b8934fb374678d263137b78ef85f305b1156c7c881cd11b"},
+]
+
+[package.extras]
+twisted = ["twisted"]
+
+[[package]]
 name = "prompt-toolkit"
 version = "3.0.38"
 description = "Library for building powerful interactive command lines in Python"
@@ -2222,6 +2268,16 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 files = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
     {file = "pycparser-2.21.tar.gz", hash = "sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206"},
+]
+
+[[package]]
+name = "pycron"
+version = "3.0.0"
+description = "Simple cron-like parser, which determines if current datetime matches conditions."
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "pycron-3.0.0.tar.gz", hash = "sha256:b916044e3e8253d5409c68df3ac64a3472c4e608dab92f40e8f595e5d3acb3de"},
 ]
 
 [[package]]
@@ -2783,6 +2839,27 @@ dev = ["Django (>=1.11)", "check-manifest", "colorama (<=0.4.1)", "coverage", "f
 doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
+name = "silverback"
+version = "0.1.0b1"
+description = "Ape SDK for the Silverback platform"
+optional = false
+python-versions = ">=3.8,<4"
+files = [
+    {file = "silverback-0.1.0b1-py3-none-any.whl", hash = "sha256:a0ddb2630108ed42daf54448c22d34dc541d7381b0b0a3324814ec7bf8eeccd8"},
+    {file = "silverback-0.1.0b1.tar.gz", hash = "sha256:34ef4efe0bf5f578bf927c3e3f80235801c24eb8cd2c2c00690c61fff96f44d2"},
+]
+
+[package.dependencies]
+eth-ape = ">=0.6.0,<1.0"
+taskiq = {version = ">=0.6.0,<0.7.0", extras = ["metrics"]}
+
+[package.extras]
+dev = ["IPython", "black (>=22.12.0)", "commitizen", "flake8 (>=5.0.4)", "hypothesis (>=6.2.0,<7.0)", "ipdb", "isort (>=5.10.1)", "mdformat (>=0.7.16)", "mdformat-frontmatter (>=0.4.1)", "mdformat-gfm (>=0.3.5)", "mypy (>=0.991)", "pre-commit", "pytest (>=6.0)", "pytest-cov", "pytest-watch", "pytest-xdist", "setuptools", "twine", "types-setuptools", "wheel"]
+lint = ["black (>=22.12.0)", "flake8 (>=5.0.4)", "isort (>=5.10.1)", "mdformat (>=0.7.16)", "mdformat-frontmatter (>=0.4.1)", "mdformat-gfm (>=0.3.5)", "mypy (>=0.991)", "types-setuptools"]
+release = ["setuptools", "twine", "wheel"]
+test = ["hypothesis (>=6.2.0,<7.0)", "pytest (>=6.0)", "pytest-cov", "pytest-xdist"]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -2791,6 +2868,17 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 files = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
+]
+
+[[package]]
+name = "sniffio"
+version = "1.3.0"
+description = "Sniff out which async library your code is running under"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "sniffio-1.3.0-py3-none-any.whl", hash = "sha256:eecefdce1e5bbfb7ad2eeaabf7c1eeb404d7757c379bd1f7e5cce9d8bf425384"},
+    {file = "sniffio-1.3.0.tar.gz", hash = "sha256:e60305c5e5d314f5389259b7f22aaa33d8f7dee49763119234af3755c55b9101"},
 ]
 
 [[package]]
@@ -2899,6 +2987,46 @@ pure-eval = "*"
 
 [package.extras]
 tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
+
+[[package]]
+name = "taskiq"
+version = "0.6.0"
+description = "Distributed task queue with full async support"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "taskiq-0.6.0-py3-none-any.whl", hash = "sha256:ed4292f4b05cc3cd25f6a73074d4fe5ea3e794c59bf2feb255f2af6dab18b242"},
+    {file = "taskiq-0.6.0.tar.gz", hash = "sha256:50822a3dbc4fea93576324206b76d4f98b20c9a8794b304778709735c30dd406"},
+]
+
+[package.dependencies]
+anyio = ">=3,<4"
+importlib-metadata = "*"
+prometheus_client = {version = ">=0,<1", optional = true, markers = "extra == \"metrics\""}
+pycron = ">=3.0.0,<4.0.0"
+pydantic = ">=1.6.2,<2.0.0"
+taskiq_dependencies = ">=1,<2"
+typing-extensions = ">=3.10.0.0"
+
+[package.extras]
+metrics = ["prometheus_client (>=0,<1)"]
+reload = ["gitignore-parser (>=0,<1)", "watchdog (>=2.1.9,<3.0.0)"]
+uv = ["uvloop (>=0.16.0,<1)"]
+zmq = ["pyzmq (>=23.2.0,<24.0.0)"]
+
+[[package]]
+name = "taskiq-dependencies"
+version = "1.2.4"
+description = "FastAPI like dependency injection implementation"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "taskiq_dependencies-1.2.4-py3-none-any.whl", hash = "sha256:47605e5a67963e924029c180960fb5baf25904432407496fa225b48565fa4853"},
+    {file = "taskiq_dependencies-1.2.4.tar.gz", hash = "sha256:e21a3daecf8d336a6fa0eb7423308342f564705126d23afba1f9ba756ed3cee3"},
+]
+
+[package.dependencies]
+graphlib-backport = {version = ">=1.0.3,<2.0.0", markers = "python_version < \"3.9\""}
 
 [[package]]
 name = "tomli"
@@ -3372,4 +3500,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.11"
-content-hash = "675290a41aa2783409357d2d320f55d3dda22bafe6d4f799899ba435ad22c88d"
+content-hash = "f74ba8846b4026d017a20c4dae42010404390e0434b25fe8204737de11aaa22c"
