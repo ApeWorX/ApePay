@@ -12,6 +12,7 @@ eth-ape = "^0.6.8"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
+silverback = "^0.1.0b1"
 
 [build-system]
 requires = ["poetry-core"]

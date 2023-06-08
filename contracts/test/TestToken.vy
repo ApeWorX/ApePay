@@ -3,11 +3,14 @@ totalSupply: public(uint256)
 balanceOf: public(HashMap[address, uint256])
 allowance: public(HashMap[address, HashMap[address, uint256]])
 
+name: public(constant(String[10])) = "Test Token"
+symbol: public(constant(String[4])) = "TEST"
+decimals: public(constant(uint8)) = 18
 
 @external
 def __init__():
-    self.totalSupply = 100 * 10 ** 18
-    self.balanceOf[msg.sender] = 100 * 10 ** 18
+    self.totalSupply = 100 * 10 ** decimals
+    self.balanceOf[msg.sender] = 100 * 10 ** decimals
 
 
 @external

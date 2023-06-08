@@ -61,16 +61,34 @@ $ ape test --gas
 To deploy a StreamManager (for testing purposes), run:
 
 ```sh
-$ ape run deploy stream-manager [TOKEN_ADDRESS [...]]
+$ ape run deploy manager [TOKEN_ADDRESS [...]]
 # Or if `ape tokens` is installed with a valid tokenlist
-$ ape run deploy stream-manager [TOKEN_SYMBOL [...]]
+$ ape run deploy manager [TOKEN_SYMBOL [...]]
 ```
 
 To deploy the StreamFactory (for production use), run:
 
 ```sh
-$ ape run deploy stream-factory
+$ ape run deploy factory
 ```
+
+To run the demo ApePay cluster daemon, first run a node like `anvil`:
+
+```sh
+$ anvil --derivation-path "m/44'/60'/0'/" --block-time 1 --prune-history
+```
+
+```note
+the `--derivation-path` flag makes ape's test accounts match anvil's
+```
+
+Then run the daemon:
+
+```sh
+$ silverback run scripts.daemon:app --network ::foundry --account TEST::0
+```
+
+After that, it's suggested to start `ape console` and create a stream to watch the daemon react
 
 ## License
 

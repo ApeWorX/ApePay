@@ -2,11 +2,12 @@ import json
 from datetime import datetime, timedelta
 from functools import partial
 from typing import Any, Iterator, List, Optional, Union, cast, AsyncIterator
+from enum import Enum
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
 from ape.exceptions import ContractLogicError
-from ape.types import AddressType, HexBytes
+from ape.types import AddressType, HexBytes, ContractLog
 from ape.utils import BaseInterfaceModel, cached_property
 from pydantic import validator
 from .exceptions import (
@@ -19,119 +20,29 @@ from .exceptions import (
 )
 from .utils import async_wrap_iter
 
+WARNING_LEVEL = timedelta(minutes=1)  # days=2)
+CRITICAL_LEVEL = timedelta(seconds=5)  # hours=12)
 
-class Stream(BaseInterfaceModel):
-    contract: ContractInstance
-    creator: AddressType
-    stream_id: int
-    creation_receipt: Optional[ReceiptAPI] = None
-    transaction_hash: Optional[HexBytes] = None
 
-    @validator("contract", pre=True)
-    def fetch_contract_instance(cls, value: Any) -> ContractInstance:
-        if isinstance(value, ContractInstance):
-            return value
+class Status(Enum):
+    NORMAL = "normal"
+    WARNING = "warning"
+    CRITICAL = "critical"
+    INACTIVE = "inactive"
 
-        if isinstance(value, str):
-            value = cls.conversion_manager.convert(value, AddressType)
+    @classmethod
+    def from_time_left(cls, time_left: timedelta) -> "Status":
+        if time_left > WARNING_LEVEL:
+            return cls.NORMAL
 
-        return cls.chain_manager.contracts.instance_at(value)
+        elif time_left > CRITICAL_LEVEL:
+            return cls.WARNING
 
-    def transaction_created(self) -> ReceiptAPI:
-        if self.creation_receipt:
-            return self.creation_receipt
+        elif time_left.total_seconds() > 0:
+            return cls.CRITICAL
 
-        if self.transaction_hash:
-            return self.chain_manager.get_receipt(self.transaction_hash)
-
-        raise MissingCreationReceipt()
-
-    def __repr__(self) -> str:
-        return (
-            f"<apepay_sdk.Stream address={self.contract.address} "
-            f"creator={self.creator} stream_id={self.stream_id}>"
-        )
-
-    @property
-    def info(self):
-        return self.contract.streams(self.creator, self.stream_id)
-
-    @cached_property
-    def token(self) -> ContractInstance:
-        return self.chain_manager.contracts.instance_at(self.info.token)
-
-    @cached_property
-    def amount_per_second(self) -> int:
-        return self.info.amount_per_second
-
-    @cached_property
-    def start_time(self) -> datetime:
-        return datetime.fromtimestamp(self.info.start_time)
-
-    @cached_property
-    def reason(self) -> Union[HexBytes, str, dict]:
-        try:
-            reason_str = self.info.reason.decode("utf-8")
-
-        except Exception:
-            return self.info.reason
-
-        try:
-            return json.loads(reason_str)
-
-        except Exception:
-            return reason_str
-
-    @property
-    def last_pull(self) -> datetime:
-        return datetime.fromtimestamp(self.info.last_pull)
-
-    @property
-    def amount_unlocked(self) -> int:
-        return self.contract.amount_unlocked(self.creator, self.stream_id)
-
-    @property
-    def amount_left(self) -> int:
-        return self.info.funded_amount - self.amount_unlocked
-
-    @property
-    def time_left(self) -> timedelta:
-        return timedelta(seconds=self.contract.time_left(self.creator, self.stream_id))
-
-    @property
-    def is_active(self) -> bool:
-        return self.time_left.total_seconds() > 0
-
-    @property
-    def add_funds(self) -> ContractTransactionHandler:
-        return cast(
-            ContractTransactionHandler,
-            partial(self.contract.add_funds, self.creator, self.stream_id),
-        )
-
-    @property
-    def is_cancelable(self) -> bool:
-        return self.contract.stream_is_cancelable(self.creator, self.stream_id)
-
-    @property
-    def cancel(self) -> ContractTransactionHandler:
-        if not self.is_cancelable:
-            raise StreamNotCancellable(self.time_left)
-
-        return cast(
-            ContractTransactionHandler,
-            partial(self.contract.cancel_stream, self.stream_id),
-        )
-
-    @property
-    def withdraw(self) -> ContractTransactionHandler:
-        if not self.amount_unlocked > 0:
-            raise FundsNotWithdrawable()
-
-        return cast(
-            ContractTransactionHandler,
-            partial(self.contract.withdraw, self.creator, self.stream_id),
-        )
+        else:
+            return cls.INACTIVE
 
 
 def coerce_time_unit(time):
@@ -184,20 +95,20 @@ class Validator(BaseInterfaceModel):
 
 
 class StreamManager(BaseInterfaceModel):
-    contract: ContractInstance
+    address: AddressType
 
-    @validator("contract", pre=True)
-    def fetch_contract_instance(cls, value: Any) -> ContractInstance:
-        if isinstance(value, ContractInstance):
-            return value
+    @validator("address", pre=True)
+    def normalize_address(cls, value: Any) -> AddressType:
+        return cls.conversion_manager.convert(value, AddressType)
 
-        if isinstance(value, str):
-            value = cls.conversion_manager.convert(value, AddressType)
-
-        return cls.chain_manager.contracts.instance_at(value)
+    @property
+    def contract(self) -> ContractInstance:
+        # TODO: Fix this
+        return self.project_manager.StreamManager.at(self.address)
+        # return self.chain_manager.contracts.instance_at(self.address)
 
     def __repr__(self) -> str:
-        return f"<apepay_sdk.StreamManager address={self.contract.address}>"
+        return f"<apepay_sdk.StreamManager address={self.address}>"
 
     @property
     def owner(self) -> AddressType:
@@ -235,7 +146,7 @@ class StreamManager(BaseInterfaceModel):
         reason: Union[HexBytes, bytes, str, dict, None] = None,
         start_time: Union[datetime, int, None] = None,
         **txn_kwargs,
-    ) -> Stream:
+    ) -> "Stream":
         if not self.contract.token_is_accepted(token):
             raise TokenNotAccepted(str(token))
 
@@ -299,43 +210,171 @@ class StreamManager(BaseInterfaceModel):
 
         tx = self.contract.create_stream(*args, **txn_kwargs)
         event = tx.events.filter(self.contract.StreamCreated)[0]
-        return Stream(
-            contract=self.contract,
-            creator=event.creator,
-            stream_id=event.stream_id,
-            creation_receipt=tx,
+        return Stream.from_event(
+            manager=self,
+            event=event,
+            is_creation_event=True,
         )
 
-    def streams_by_creator(self, creator: AddressType) -> Iterator[Stream]:
+    def streams_by_creator(self, creator: AddressType) -> Iterator["Stream"]:
         for stream_id in range(self.contract.num_streams(creator)):
-            yield Stream(self.contract, creator, stream_id)
+            yield Stream(self, creator, stream_id)
 
-    def all_streams(self) -> Iterator[Stream]:
+    def all_streams(self) -> Iterator["Stream"]:
         for stream_created_event in self.contract.StreamCreated:
-            yield Stream(
-                contract=self.contract,
-                creator=stream_created_event.creator,
-                stream_id=stream_created_event.stream_id,
-                transaction_hash=stream_created_event.transaction_hash,
+            yield Stream.from_event(
+                manager=self,
+                event=stream_created_event,
+                is_creation_event=True,
             )
 
-    async def poll_new_streams(self, **polling_kwargs) -> AsyncIterator[Stream]:
-        async for stream_created_event in async_wrap_iter(
-            self.contract.StreamCreated.poll_logs(**polling_kwargs)
-        ):
-            yield Stream(
-                contract=self.contract,
-                creator=stream_created_event.creator,
-                stream_id=stream_created_event.stream_id,
-                transaction_hash=stream_created_event.transaction_hash,
-            )
+    def active_streams(self) -> Iterator["Stream"]:
+        for stream in self.all_streams():
+            if stream.is_active:
+                yield stream
 
-    async def poll_cancelled_streams(self, **polling_kwargs) -> AsyncIterator[Stream]:
-        async for stream_cancelled_event in async_wrap_iter(
-            self.contract.StreamCancelled.poll_logs(**polling_kwargs)
-        ):
-            yield Stream(
-                contract=self.contract,
-                creator=stream_cancelled_event.creator,
-                stream_id=stream_cancelled_event.stream_id,
-            )
+    def unclaimed_streams(self) -> Iterator["Stream"]:
+        for stream in self.all_streams():
+            if not stream.is_active and stream.amount_unlocked > 0:
+                yield stream
+
+
+class Stream(BaseInterfaceModel):
+    manager: StreamManager
+    creator: AddressType
+    stream_id: int
+    creation_receipt: Optional[ReceiptAPI] = None
+    transaction_hash: Optional[HexBytes] = None
+
+    @validator("transaction_hash", pre=True)
+    def normalize_transaction_hash(cls, value: Any) -> Optional[HexBytes]:
+        if value:
+            return HexBytes(cls.conversion_manager.convert(value, bytes))
+
+        return value
+
+    @classmethod
+    def from_event(
+        cls,
+        manager: StreamManager,
+        event: ContractLog,
+        is_creation_event: bool = False,
+    ) -> "Stream":
+        return cls(
+            manager=manager,
+            creator=event.creator,
+            stream_id=event.stream_id,
+            transaction_hash=event.transaction_hash if is_creation_event else None,
+        )
+
+    def to_event(self) -> ContractLog:
+        return self.receipt.events.filter(self.manager.contract.StreamCreated)[0]
+
+    @property
+    def contract(self) -> ContractInstance:
+        return self.manager.contract
+
+    @property
+    def receipt(self) -> ReceiptAPI:
+        if self.creation_receipt:
+            return self.creation_receipt
+
+        if self.transaction_hash:
+            receipt = self.chain_manager.get_receipt(self.transaction_hash.hex())
+            self.creation_receipt = receipt
+            return receipt
+
+        raise MissingCreationReceipt()
+
+    def __repr__(self) -> str:
+        return (
+            f"<apepay_sdk.Stream address={self.contract.address} "
+            f"creator={self.creator} stream_id={self.stream_id}>"
+        )
+
+    @property
+    def info(self):
+        return self.contract.streams(self.creator, self.stream_id)
+
+    @cached_property
+    def token(self) -> ContractInstance:
+        # TODO: Fix this
+        return self.project_manager.TestToken.at(self.info.token)
+        # return self.chain_manager.contracts.instance_at(self.info.token)
+
+    @cached_property
+    def amount_per_second(self) -> int:
+        return self.info.amount_per_second
+
+    @cached_property
+    def start_time(self) -> datetime:
+        return datetime.fromtimestamp(self.info.start_time)
+
+    @cached_property
+    def reason(self) -> Union[HexBytes, str, dict]:
+        try:
+            reason_str = self.info.reason.decode("utf-8")
+
+        except Exception:
+            return self.info.reason
+
+        try:
+            return json.loads(reason_str)
+
+        except Exception:
+            return reason_str
+
+    @property
+    def last_pull(self) -> datetime:
+        return datetime.fromtimestamp(self.info.last_pull)
+
+    @property
+    def amount_unlocked(self) -> int:
+        return self.contract.amount_unlocked(self.creator, self.stream_id)
+
+    @property
+    def amount_left(self) -> int:
+        return self.info.funded_amount - self.amount_unlocked
+
+    @property
+    def time_left(self) -> timedelta:
+        return timedelta(seconds=self.contract.time_left(self.creator, self.stream_id))
+
+    @property
+    def status(self) -> Status:
+        return Status.from_time_left(self.time_left)
+
+    @property
+    def is_active(self) -> bool:
+        return self.status is not Status.INACTIVE
+
+    @property
+    def add_funds(self) -> ContractTransactionHandler:
+        return cast(
+            ContractTransactionHandler,
+            partial(self.contract.add_funds, self.creator, self.stream_id),
+        )
+
+    @property
+    def is_cancelable(self) -> bool:
+        return self.contract.stream_is_cancelable(self.creator, self.stream_id)
+
+    @property
+    def cancel(self) -> ContractTransactionHandler:
+        if not self.is_cancelable:
+            raise StreamNotCancellable(self.time_left)
+
+        return cast(
+            ContractTransactionHandler,
+            partial(self.contract.cancel_stream, self.stream_id),
+        )
+
+    @property
+    def withdraw(self) -> ContractTransactionHandler:
+        if not self.amount_unlocked > 0:
+            raise FundsNotWithdrawable()
+
+        return cast(
+            ContractTransactionHandler,
+            partial(self.contract.withdraw, self.creator, self.stream_id),
+        )
