@@ -2,7 +2,6 @@ import json
 from datetime import datetime, timedelta
 from functools import partial
 from typing import Any, Iterator, List, Optional, Union, cast, AsyncIterator
-from enum import Enum
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
@@ -19,30 +18,6 @@ from .exceptions import (
     StreamLifeInsufficient,
 )
 from .utils import async_wrap_iter, time_unit_to_timedelta
-
-WARNING_LEVEL = timedelta(minutes=1)  # days=2)
-CRITICAL_LEVEL = timedelta(seconds=5)  # hours=12)
-
-
-class Status(Enum):
-    NORMAL = "normal"
-    WARNING = "warning"
-    CRITICAL = "critical"
-    INACTIVE = "inactive"
-
-    @classmethod
-    def from_time_left(cls, time_left: timedelta) -> "Status":
-        if time_left > WARNING_LEVEL:
-            return cls.NORMAL
-
-        elif time_left > CRITICAL_LEVEL:
-            return cls.WARNING
-
-        elif time_left.total_seconds() > 0:
-            return cls.CRITICAL
-
-        else:
-            return cls.INACTIVE
 
 
 class Validator(BaseInterfaceModel):
@@ -313,12 +288,8 @@ class Stream(BaseInterfaceModel):
         return timedelta(seconds=self.contract.time_left(self.creator, self.stream_id))
 
     @property
-    def status(self) -> Status:
-        return Status.from_time_left(self.time_left)
-
-    @property
     def is_active(self) -> bool:
-        return self.status is not Status.INACTIVE
+        return self.time_left.total_seconds() > 0
 
     @property
     def add_funds(self) -> ContractTransactionHandler:
