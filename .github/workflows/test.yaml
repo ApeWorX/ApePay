@@ -42,8 +42,7 @@ jobs:
       - name: Install project
         run: poetry install --no-interaction
         
-      - name: Activate venv
-        run: source .venv/bin/activate
-        
       - name: Run Tests
-        run: ape test -s
+        run: |
+        source .venv/bin/activate
+        ape test -s
