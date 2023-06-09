@@ -70,11 +70,11 @@ event StreamCancelled:
     reason: Bytes[MAX_REASON_SIZE]
 
 
-event Withdrawn:
+event Claimed:
     creator: indexed(address)
     stream_id: indexed(uint256)
     stream_exhausted: indexed(bool)
-    withdrawal_amount: uint256
+    claimed_amount: uint256
 
 
 @external
@@ -236,19 +236,19 @@ def cancel_stream(
 
 
 @external
-def withdraw(creator: address, stream_id: uint256) -> uint256:
+def claim(creator: address, stream_id: uint256) -> uint256:
     funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
-    withdrawal_amount: uint256 = min(
+    claimed_amount: uint256 = min(
         self._amount_unlocked(creator, stream_id),
         funded_amount,
     )
 
     token: ERC20 = self.streams[creator][stream_id].token
-    assert token.transfer(self.owner, withdrawal_amount, default_return_value=True)
+    assert token.transfer(self.owner, claimed_amount, default_return_value=True)
 
-    self.streams[creator][stream_id].funded_amount = funded_amount - withdrawal_amount
+    self.streams[creator][stream_id].funded_amount = funded_amount - claimed_amount
     self.streams[creator][stream_id].last_pull = block.timestamp
 
-    log Withdrawn(creator, stream_id, funded_amount == withdrawal_amount, withdrawal_amount)
+    log Claimed(creator, stream_id, funded_amount == claimed_amount, claimed_amount)
 
-    return withdrawal_amount
+    return claimed_amount

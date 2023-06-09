@@ -22,9 +22,9 @@ class StreamNotCancellable(ApePayException):
         super().__init__(f"Stream not cancelable yet. Please wait: {time_left}")
 
 
-class FundsNotWithdrawable(ApePayException):
+class FundsNotClaimable(ApePayException):
     def __init__(self):
-        super().__init__("Stream has no funds left to withdraw.")
+        super().__init__("Stream has no funds left to claim.")
 
 
 class TokenNotAccepted(ApePayException, ValueError):

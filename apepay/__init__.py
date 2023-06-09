@@ -12,7 +12,7 @@ from pydantic import validator
 from .exceptions import (
     MissingCreationReceipt,
     StreamNotCancellable,
-    FundsNotWithdrawable,
+    FundsNotClaimable,
     ValidatorFailed,
     TokenNotAccepted,
     StreamLifeInsufficient,
@@ -313,11 +313,11 @@ class Stream(BaseInterfaceModel):
         )
 
     @property
-    def withdraw(self) -> ContractTransactionHandler:
+    def claim(self) -> ContractTransactionHandler:
         if not self.amount_unlocked > 0:
-            raise FundsNotWithdrawable()
+            raise FundsNotClaimable()
 
         return cast(
             ContractTransactionHandler,
-            partial(self.contract.withdraw, self.creator, self.stream_id),
+            partial(self.contract.claim, self.creator, self.stream_id),
         )
