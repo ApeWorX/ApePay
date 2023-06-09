@@ -130,6 +130,6 @@ async def stream_cancelled(event):
         stream_id=event.stream_id,
     )
     if app.signer and stream.amount_unlocked > 0:
-        stream.withdraw(sender=app.signer)
+        stream.claim(sender=app.signer)
 
     return {"claimed": stream.amount_unlocked}
