@@ -15,4 +15,5 @@ jobs:
       - uses: snok/install-poetry@v1
       - run: pip install "urllib3<2"  # HACK: poetry doesn't work with urllib3 2.x
       - run: poetry install --no-interaction
+      - run: pip freeze
       - run: ape test -s
