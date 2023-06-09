@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Any, Iterator, List, Optional, Union, cast, AsyncIterator
+from typing import Any, Iterator, List, Optional, Union, cast, AsyncIterator, Iterable
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
@@ -23,6 +23,9 @@ from .utils import async_wrap_iter, time_unit_to_timedelta
 class Validator(BaseInterfaceModel):
     contract: ContractInstance
 
+    def __hash__(self) -> int:
+        return self.contract.address.__hash__()
+
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Validator):
             return self.contract == other.contract
@@ -39,6 +42,9 @@ class Validator(BaseInterfaceModel):
 
         except ContractLogicError:
             return False
+
+
+_ValidatorItem = Union[Validator, ContractInstance, str, AddressType]
 
 
 class StreamManager(BaseInterfaceModel):
@@ -80,6 +86,50 @@ class StreamManager(BaseInterfaceModel):
                 break
 
         return validators
+
+    def _convert_to_address(self, item: _ValidatorItem) -> str:
+        if isinstance(item, Validator):
+            return item.contract.address
+        elif isinstance(item, ContractInstance):
+            return item.address
+        else:
+            return item
+
+    def set_validators(
+        self,
+        validators: List[_ValidatorItem],
+        **txn_kwargs,
+    ) -> ReceiptAPI:
+        if len(validators) > 20:
+            raise
+
+        return self.contract.set_validators(
+            [self._convert_to_address(v) for v in validators],
+            **txn_kwargs,
+        )
+
+    def add_validators(
+        self,
+        *new_validators: Iterable[_ValidatorItem],
+        **txn_kwargs,
+    ) -> ReceiptAPI:
+        return self.set_validators(
+            [*self.validators, *new_validators],
+            **txn_kwargs,
+        )
+
+    def remove_validators(
+        self,
+        *validators: Iterable[_ValidatorItem],
+        **txn_kwargs,
+    ) -> ReceiptAPI:
+        return self.set_validators(
+            list(
+                set(map(self._convert_to_address, self.validators))
+                - set(map(self._convert_to_address, validators))
+            ),
+            **txn_kwargs,
+        )
 
     def is_accepted(self, token: Union[ContractInstance, str, AddressType]):
         return self.contract.token_is_accepted(token)

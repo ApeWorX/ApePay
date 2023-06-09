@@ -15,6 +15,20 @@ def test_init(stream_manager, owner, validators, tokens):
         assert stream_manager.is_accepted(token)
 
 
+def test_set_validators(stream_manager, owner, create_validator):
+    new_validator = create_validator()
+
+    assert new_validator not in stream_manager.validators
+
+    stream_manager.add_validators(new_validator, sender=owner)
+
+    assert new_validator in stream_manager.validators
+
+    stream_manager.remove_validators(new_validator, sender=owner)
+
+    assert new_validator not in stream_manager.validators
+
+
 @pytest.mark.parametrize(
     "extra_args",
     [
