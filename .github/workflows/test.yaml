@@ -14,4 +14,5 @@ jobs:
       - uses: ApeWorX/github-action@v2
       - uses: snok/install-poetry@v1
       - run: poetry install --no-interaction
+      - run: pip install "urllib3<2"
       - run: ape test -s
