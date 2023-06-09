@@ -86,7 +86,9 @@ def test_create_stream(chain, payer, tokens, stream_manager, extra_args):
     assert stream.creator == payer
     assert stream.amount_per_second == amount_per_second
     assert stream.reason == extra_args.get("reason", "")
-    assert stream.start_time == pytest.approx(
-        datetime.fromtimestamp(start_time + extra_args.get("start_time", 0)),
-        abs=timedelta(seconds=1),  # NOTE: Sometimes it's off by a second
+    assert stream.start_time.timestamp() == pytest.approx(
+        datetime.fromtimestamp(
+            start_time + extra_args.get("start_time", 0)
+        ).timestamp(),
+        abs=1,  # NOTE: Sometimes it's off by a second
     )
