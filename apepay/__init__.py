@@ -5,7 +5,7 @@ from typing import Any, Iterator, List, Optional, Union, cast, AsyncIterator
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
-from ape.exceptions import ContractLogicError
+from ape.exceptions import ContractLogicError, DecodingError
 from ape.types import AddressType, HexBytes, ContractLog
 from ape.utils import BaseInterfaceModel, cached_property
 from pydantic import validator
@@ -74,7 +74,9 @@ class StreamManager(BaseInterfaceModel):
                         )
                     )
                 )
-            except ContractLogicError:
+
+            except (ContractLogicError, DecodingError):
+                # NOTE: Vyper returns no data if not a valid index
                 break
 
         return validators
