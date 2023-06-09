@@ -31,13 +31,13 @@ First, [install Ape](https://docs.apeworx.io/ape/stable/userguides/quickstart.ht
 Second, make sure to install the plugins:
 
 ```sh
-$ ape plugins install .
+$ ape plugins install . --upgrade
 ```
 
 Lastly, since this is an SDK package, install the SDK:
 
 ```sh
-$ poetry install .
+$ poetry install
 ```
 
 Then you are ready to contribute!
