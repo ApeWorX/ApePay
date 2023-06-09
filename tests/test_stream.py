@@ -29,6 +29,21 @@ def test_set_validators(stream_manager, owner, create_validator):
     assert new_validator not in stream_manager.validators
 
 
+def test_add_rm_tokens(stream_manager, owner, tokens, create_token):
+    new_token = create_token(owner)
+    assert new_token not in tokens
+
+    assert not stream_manager.is_accepted(new_token)
+
+    stream_manager.add_token(new_token, sender=owner)
+
+    assert stream_manager.is_accepted(new_token)
+
+    stream_manager.remove_token(new_token, sender=owner)
+
+    assert not stream_manager.is_accepted(new_token)
+
+
 @pytest.mark.parametrize(
     "extra_args",
     [

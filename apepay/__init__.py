@@ -131,6 +131,16 @@ class StreamManager(BaseInterfaceModel):
             **txn_kwargs,
         )
 
+    def add_token(
+        self, token: Union[ContractInstance, str, AddressType], **txn_kwargs
+    ) -> ReceiptAPI:
+        return self.contract.add_token(token, **txn_kwargs)
+
+    def remove_token(
+        self, token: Union[ContractInstance, str, AddressType], **txn_kwargs
+    ) -> ReceiptAPI:
+        return self.contract.remove_token(token, **txn_kwargs)
+
     def is_accepted(self, token: Union[ContractInstance, str, AddressType]):
         return self.contract.token_is_accepted(token)
 
