@@ -163,6 +163,9 @@ class StreamManager(BaseInterfaceModel):
             is_creation_event=True,
         )
 
+    def batch_withdraw(self, batches: List[dict], **txn_kwargs):
+        return self.contract.batch_withdraw(batches, **txn_kwargs)
+
     def streams_by_creator(self, creator: AddressType) -> Iterator["Stream"]:
         for stream_id in range(self.contract.num_streams(creator)):
             yield Stream(self, creator, stream_id)

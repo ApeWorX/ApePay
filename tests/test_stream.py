@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 import ape
 import pytest
-from apepay import exceptions as apepay_exc
+from apepay import exceptions as apepay_ex
 
 
 def test_init(stream_manager, owner, validators, tokens):
@@ -60,3 +60,31 @@ def test_create_stream(chain, payer, tokens, stream_manager, extra_args):
     assert stream.start_time == datetime.fromtimestamp(
         start_time + extra_args.get("start_time", 0)
     )
+
+def test_batch_withdraw(chain, accounts, owner, tokens, stream_manager):
+    if len(tokens) == 0:
+        pytest.skip("No valid tokens")
+    token = tokens[-1]
+    users = 2
+    stream_to_create = 3
+    batches = []
+    for i in range(1, users+1):
+        streams = []
+        payer = accounts[i]
+        for j in range(stream_to_create):
+            token.DEBUG_mint(payer, 10**20, sender=payer)
+            amount_per_second = int(token.balanceOf(payer) // 3) // int(
+                stream_manager.MIN_STREAM_LIFE.total_seconds()
+            )
+
+            token.approve(stream_manager.contract, 2**256 - 1, sender=payer)
+
+            stream = stream_manager.create(
+                token, amount_per_second, sender=payer
+            )
+            streams.append(stream.stream_id)
+        batches.append({"creator": payer, "stream_ids": streams})
+
+    chain.pending_timestamp += 3600 * 12
+    withdraw = stream_manager.batch_withdraw(batches, sender=owner)
+    assert len(withdraw.events) == stream_to_create * users
