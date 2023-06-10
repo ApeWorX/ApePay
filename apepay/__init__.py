@@ -28,10 +28,10 @@ class Validator(BaseInterfaceModel):
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Validator):
-            return self.contract == other.contract
+            return self.contract.address == other.contract.address
 
         elif isinstance(other, ContractInstance):
-            return self.contract == other
+            return self.contract.address == other.address
 
         return super().__eq__(other)
 
