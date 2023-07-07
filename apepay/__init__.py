@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Any, AsyncIterator, Iterable, Iterator, List, Optional, Union, cast
+from typing import Any, Iterable, Iterator, List, Optional, Union, cast
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
@@ -18,7 +18,7 @@ from .exceptions import (
     TokenNotAccepted,
     ValidatorFailed,
 )
-from .utils import async_wrap_iter, time_unit_to_timedelta
+from .utils import time_unit_to_timedelta
 
 
 class Validator(BaseInterfaceModel):
@@ -34,7 +34,8 @@ class Validator(BaseInterfaceModel):
         elif isinstance(other, ContractInstance):
             return self.contract.address == other.address
 
-        return super().__eq__(other)
+        # Try __eq__ from the other side.
+        return NotImplemented
 
     def validate(self, creator, token, amount_per_second, reason) -> bool:
         try:
