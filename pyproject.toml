@@ -7,12 +7,12 @@ license = "Apache 2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
-eth-ape = "^0.6.8"
+python = ">=3.8,<4"
+eth-ape = "^0.6.12"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
-silverback = "^0.1.0b1"
+silverback = "^0.1.0b6"
 
 [build-system]
 requires = ["poetry-core"]
