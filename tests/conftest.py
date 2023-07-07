@@ -1,4 +1,5 @@
 import pytest
+
 from apepay import StreamManager
 
 ONE_HOUR = 60 * 60

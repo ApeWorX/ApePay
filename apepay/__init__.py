@@ -1,21 +1,22 @@
 import json
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Any, Iterator, List, Optional, Union, cast, AsyncIterator, Iterable
+from typing import Any, AsyncIterator, Iterable, Iterator, List, Optional, Union, cast
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
 from ape.exceptions import ContractLogicError, DecodingError
-from ape.types import AddressType, HexBytes, ContractLog
+from ape.types import AddressType, ContractLog, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from pydantic import validator
+
 from .exceptions import (
-    MissingCreationReceipt,
-    StreamNotCancellable,
     FundsNotClaimable,
-    ValidatorFailed,
-    TokenNotAccepted,
+    MissingCreationReceipt,
     StreamLifeInsufficient,
+    StreamNotCancellable,
+    TokenNotAccepted,
+    ValidatorFailed,
 )
 from .utils import async_wrap_iter, time_unit_to_timedelta
 

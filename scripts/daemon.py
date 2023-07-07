@@ -1,11 +1,13 @@
 import asyncio
 import itertools
-from enum import Enum
 from datetime import timedelta
+from enum import Enum
+
+from silverback import SilverBackApp
 
 from apepay import Stream, StreamManager
+
 from .settings import Settings
-from silverback import SilverBackApp
 
 settings = Settings()
 
