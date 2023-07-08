@@ -12,8 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: foundry-rs/foundry-toolchain@v1
-      - uses: antazoey/github-action@fix/pip-cache
-        
+      - uses: ApeWorX/github-action@v2
       - run: pip install .
-      - run: pip freeze
-      - run: ape -v debug test -s --maxfail 1 --showinternal
+      - run: ape test -s
