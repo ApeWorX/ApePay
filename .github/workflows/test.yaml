@@ -15,3 +15,7 @@ jobs:
       - uses: ApeWorX/github-action@v2
       - run: pip install .
       - run: ape test -s
+      - name: Breakpoint to check the build results
+        uses: namespacelabs/breakpoint-action@v0
+        with:
+          duration: 30m
