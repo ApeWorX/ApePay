@@ -4,6 +4,9 @@ from datetime import timedelta
 from typing import AsyncIterator, Iterator
 
 
+TODO_UNDO = "TODO UNDO"
+
+
 def async_wrap_iter(it: Iterator) -> AsyncIterator:
     """Wrap blocking iterator into an asynchronous one"""
     loop = asyncio.get_event_loop()
