@@ -11,6 +11,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: foundry-rs/foundry-toolchain@v1
       - uses: ApeWorX/github-action@v2
       - run: pip install .
       - run: ape test -s

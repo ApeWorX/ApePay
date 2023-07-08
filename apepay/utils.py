@@ -1,6 +1,10 @@
-import asyncio, threading
-from typing import Iterator, AsyncIterator
+import asyncio
+import threading
 from datetime import timedelta
+from typing import AsyncIterator, Iterator
+
+
+TODO_UNDO = "TODO UNDO"
 
 
 def async_wrap_iter(it: Iterator) -> AsyncIterator:

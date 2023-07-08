@@ -1,4 +1,9 @@
 name: ApePay
 
 plugins:
+  - name: foundry
   - name: vyper
+
+ethereum:
+  local:
+    default_provider: foundry

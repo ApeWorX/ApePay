@@ -1,36 +1,41 @@
 import json
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Any, Iterator, List, Optional, Union, cast, AsyncIterator
+from typing import Any, Iterable, Iterator, List, Optional, Union, cast
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
-from ape.exceptions import ContractLogicError
-from ape.types import AddressType, HexBytes, ContractLog
+from ape.exceptions import ContractLogicError, DecodingError
+from ape.types import AddressType, ContractLog, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from pydantic import validator
+
 from .exceptions import (
-    MissingCreationReceipt,
-    StreamNotCancellable,
     FundsNotClaimable,
-    ValidatorFailed,
-    TokenNotAccepted,
+    MissingCreationReceipt,
     StreamLifeInsufficient,
+    StreamNotCancellable,
+    TokenNotAccepted,
+    ValidatorFailed,
 )
-from .utils import async_wrap_iter, time_unit_to_timedelta
+from .utils import time_unit_to_timedelta
 
 
 class Validator(BaseInterfaceModel):
     contract: ContractInstance
 
+    def __hash__(self) -> int:
+        return self.contract.address.__hash__()
+
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Validator):
-            return self.contract == other.contract
+            return self.contract.address == other.contract.address
 
         elif isinstance(other, ContractInstance):
-            return self.contract == other
+            return self.contract.address == other.address
 
-        return super().__eq__(other)
+        # Try __eq__ from the other side.
+        return NotImplemented
 
     def validate(self, creator, token, amount_per_second, reason) -> bool:
         try:
@@ -39,6 +44,9 @@ class Validator(BaseInterfaceModel):
 
         except ContractLogicError:
             return False
+
+
+_ValidatorItem = Union[Validator, ContractInstance, str, AddressType]
 
 
 class StreamManager(BaseInterfaceModel):
@@ -74,10 +82,66 @@ class StreamManager(BaseInterfaceModel):
                         )
                     )
                 )
-            except ContractLogicError:
+
+            except (ContractLogicError, DecodingError):
+                # NOTE: Vyper returns no data if not a valid index
                 break
 
         return validators
+
+    def _convert_to_address(self, item: _ValidatorItem) -> str:
+        if isinstance(item, Validator):
+            return item.contract.address
+        elif isinstance(item, ContractInstance):
+            return item.address
+        else:
+            return item
+
+    def set_validators(
+        self,
+        validators: List[_ValidatorItem],
+        **txn_kwargs,
+    ) -> ReceiptAPI:
+        if len(validators) >= 20:
+            raise Validator("Validators full")
+
+        return self.contract.set_validators(
+            [self._convert_to_address(v) for v in validators],
+            **txn_kwargs,
+        )
+
+    def add_validators(
+        self,
+        *new_validators: Iterable[_ValidatorItem],
+        **txn_kwargs,
+    ) -> ReceiptAPI:
+        return self.set_validators(
+            [*self.validators, *new_validators],
+            **txn_kwargs,
+        )
+
+    def remove_validators(
+        self,
+        *validators: Iterable[_ValidatorItem],
+        **txn_kwargs,
+    ) -> ReceiptAPI:
+        return self.set_validators(
+            list(
+                set(map(self._convert_to_address, self.validators))
+                - set(map(self._convert_to_address, validators))
+            ),
+            **txn_kwargs,
+        )
+
+    def add_token(
+        self, token: Union[ContractInstance, str, AddressType], **txn_kwargs
+    ) -> ReceiptAPI:
+        return self.contract.add_token(token, **txn_kwargs)
+
+    def remove_token(
+        self, token: Union[ContractInstance, str, AddressType], **txn_kwargs
+    ) -> ReceiptAPI:
+        return self.contract.remove_token(token, **txn_kwargs)
 
     def is_accepted(self, token: Union[ContractInstance, str, AddressType]):
         return self.contract.token_is_accepted(token)
