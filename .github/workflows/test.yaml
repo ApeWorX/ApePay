@@ -13,8 +13,5 @@ jobs:
       - uses: actions/checkout@v3
       - uses: foundry-rs/foundry-toolchain@v1
       - uses: ApeWorX/github-action@v2
-        with:
-          # TODO: Can remove any version after 0.6.12
-          ape-version-pin: git+https://github.com/ApeWorX/ape
       - run: pip install .
       - run: ape test -s
