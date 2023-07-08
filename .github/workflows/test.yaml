@@ -14,4 +14,5 @@ jobs:
       - uses: foundry-rs/foundry-toolchain@v1
       - uses: ApeWorX/github-action@v2
       - run: pip uninstall apepay -y && pip install .
-      - run: ape test -s
+      - run: pip freeze
+      - run: ape -v debug test -s --maxfail 1 --showinternal
