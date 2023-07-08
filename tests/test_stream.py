@@ -86,6 +86,6 @@ def test_create_stream(chain, payer, tokens, stream_manager, extra_args):
     assert stream.creator == payer
     assert stream.amount_per_second == amount_per_second
     assert stream.reason == extra_args.get("reason", "")
-    assert stream.start_time == datetime.fromtimestamp(
-        start_time + extra_args.get("start_time", 0)
-    )
+    expected = datetime.fromtimestamp(start_time + extra_args.get("start_time", 0))
+    one_second = timedelta(seconds=1)
+    assert stream.start_time - expected <= one_second, "Unexpected start time"

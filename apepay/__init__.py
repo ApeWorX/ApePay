@@ -10,14 +10,9 @@ from ape.types import AddressType, ContractLog, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from pydantic import validator
 
-from .exceptions import (
-    FundsNotClaimable,
-    MissingCreationReceipt,
-    StreamLifeInsufficient,
-    StreamNotCancellable,
-    TokenNotAccepted,
-    ValidatorFailed,
-)
+from .exceptions import (FundsNotClaimable, MissingCreationReceipt,
+                         StreamLifeInsufficient, StreamNotCancellable,
+                         TokenNotAccepted, ValidatorFailed)
 from .utils import time_unit_to_timedelta
 
 
