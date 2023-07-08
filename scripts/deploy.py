@@ -1,7 +1,6 @@
 import click
 from ape import networks, project
-from ape.cli import (NetworkBoundCommand, account_option, ape_cli_context,
-                     network_option)
+from ape.cli import NetworkBoundCommand, account_option, ape_cli_context, network_option
 from ape.types import HexBytes
 
 try:
