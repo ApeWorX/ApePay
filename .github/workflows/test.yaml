@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: foundry-rs/foundry-toolchain@v1
-      - uses: ApeWorX/github-action@fix/pip-cache
+      - uses: antazoey/github-action@fix/pip-cache
         
       - run: pip install .
       - run: pip freeze
