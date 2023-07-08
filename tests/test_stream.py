@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 import pytest
 
 from apepay import exceptions as apepay_exc
-from apepay.utils import TODO_UNDO
 
 
 def test_init(stream_manager, owner, validators, tokens):
