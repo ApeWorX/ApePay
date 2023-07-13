@@ -69,7 +69,8 @@ async def app_started(state):
         # Start watching all active streams and claim any completed but unclaimed streams
         *(
             create_task_by_status(stream)
-            for stream in itertools.chain(SM.active_streams(), SM.unclaimed_streams())
+            for stream in SM.all_streams()
+            if stream.is_active or stream.amount_unlocked > 0
         )
     )
 
