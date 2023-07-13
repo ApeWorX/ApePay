@@ -32,4 +32,5 @@ class Settings(BaseSettings):
             return int(multiplier) * time_unit_to_timedelta(time_unit)
 
     class Config:
+        env_prefix = "APEPAY_"
         case_sensitive = True
