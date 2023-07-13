@@ -1,14 +1,12 @@
 from datetime import timedelta
 from typing import Any
 
-from ape.types import AddressType
 from pydantic import BaseSettings, validator
 
 from apepay.utils import time_unit_to_timedelta
 
 
 class Settings(BaseSettings):
-    CONTRACT_ADDRESS: AddressType = "0x274b028b03A250cA03644E6c578D81f019eE1323"
     WARNING_LEVEL: timedelta = timedelta(days=2)
     CRITICAL_LEVEL: timedelta = timedelta(hours=12)
 

@@ -1,8 +1,10 @@
 import asyncio
-import itertools
+import click
+import os
 from datetime import timedelta
 from enum import Enum
 
+from ape.types import AddressType
 from silverback import SilverBackApp
 
 from apepay import Stream, StreamManager
@@ -33,8 +35,10 @@ class Status(Enum):
             return cls.INACTIVE
 
 
-# TODO: Load `address` from `os.environ`
-SM = StreamManager(address=settings.CONTRACT_ADDRESS)
+SM = StreamManager(
+    address=os.environ.get("APEPAY_CONTRACT_ADDRESS")
+    or click.prompt("What address to use?", type=AddressType)
+)
 
 app = SilverBackApp()
 
