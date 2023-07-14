@@ -73,7 +73,7 @@ class StreamManager(BaseInterfaceModel):
         if start_block == mid_block:
             for tx in self.chain_manager.blocks[mid_block].transactions:
                 if tx.receipt.contract_address == self.address:
-                    return self.chain_manager.get_receipt(tx.receipt.txn_hash)
+                    return tx.receipt
 
             raise  # cannot find receipt
 
@@ -93,7 +93,7 @@ class StreamManager(BaseInterfaceModel):
     def creation_block(self) -> int:
         # TODO: Get this into Ape core instead
         if not self.contract.receipt:
-            self.contract.receipt = self._get_contract_receipt()
+            return self._get_contract_receipt().block_number
 
         return self.contract.receipt.block_number
 
@@ -264,7 +264,7 @@ class StreamManager(BaseInterfaceModel):
 
     def streams_by_creator(self, creator: AddressType) -> Iterator["Stream"]:
         for stream_id in range(self.contract.num_streams(creator)):
-            yield Stream(self, creator, stream_id)
+            yield Stream(manager=self, creator=creator, stream_id=stream_id)
 
     def all_streams(self) -> Iterator["Stream"]:
         for stream_created_event in self.contract.StreamCreated.range(
