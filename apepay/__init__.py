@@ -58,9 +58,44 @@ class StreamManager(BaseInterfaceModel):
 
     @property
     def contract(self) -> ContractInstance:
-        # TODO: Fix this
-        return self.project_manager.StreamManager.at(self.address)
-        # return self.chain_manager.contracts.instance_at(self.address)
+        try:
+            return self.chain_manager.contracts.instance_at(self.address)
+        except Exception:
+            return self.project_manager.StreamManager.at(self.address)
+
+    def _get_contract_receipt(self, start_block=0, stop_block=None) -> ReceiptAPI:
+        if stop_block is None:
+            stop_block = self.chain_manager.blocks.head.number
+
+        mid_block = (stop_block - start_block) // 2 + start_block
+        # NOTE: biased towards mid_block == start_block
+
+        if start_block == mid_block:
+            for tx in self.chain_manager.blocks[mid_block].transactions:
+                if tx.receipt.contract_address == self.address:
+                    return tx.receipt
+
+            raise  # cannot find receipt
+
+        # HACK: until https://github.com/ApeWorX/ape/issues/1540
+        # elif self.provider.get_code(self.address, block_id=mid_block)
+        elif self.provider.web3.eth.get_code(self.address, block_identifier=mid_block):
+            return self._get_contract_receipt(
+                start_block=start_block, stop_block=mid_block
+            )
+
+        else:
+            return self._get_contract_receipt(
+                start_block=mid_block + 1, stop_block=stop_block
+            )
+
+    @cached_property
+    def creation_block(self) -> int:
+        # TODO: Get this into Ape core instead
+        if not self.contract.receipt:
+            return self._get_contract_receipt().block_number
+
+        return self.contract.receipt.block_number
 
     def __repr__(self) -> str:
         return f"<apepay_sdk.StreamManager address={self.address}>"
@@ -229,10 +264,12 @@ class StreamManager(BaseInterfaceModel):
 
     def streams_by_creator(self, creator: AddressType) -> Iterator["Stream"]:
         for stream_id in range(self.contract.num_streams(creator)):
-            yield Stream(self, creator, stream_id)
+            yield Stream(manager=self, creator=creator, stream_id=stream_id)
 
     def all_streams(self) -> Iterator["Stream"]:
-        for stream_created_event in self.contract.StreamCreated:
+        for stream_created_event in self.contract.StreamCreated.range(
+            self.creation_block, self.chain_manager.blocks.head.number
+        ):
             yield Stream.from_event(
                 manager=self,
                 event=stream_created_event,
@@ -332,7 +369,7 @@ class Stream(BaseInterfaceModel):
         try:
             return json.loads(reason_str)
 
-        except Exception:
+        except (Exception, json.JSONDecodeError):
             return reason_str
 
     @property
