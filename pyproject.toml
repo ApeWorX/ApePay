@@ -5,9 +5,8 @@ description = "Python SDK for ApePay"
 authors = ["ApeWorX LTD <admin@apeworx.io>"]
 license = "Apache 2.0"
 readme = "README.md"
-include = ["apepay"]
 packages = [
-    { include = "apepay" }
+    { include = "apepay", from = "src" }
 ]
 
 [tool.poetry.dependencies]
