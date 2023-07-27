@@ -8,6 +8,7 @@ from ape.contracts.base import ContractInstance, ContractTransactionHandler
 from ape.exceptions import ContractLogicError, DecodingError
 from ape.types import AddressType, ContractLog, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
+from ethpm_types import ContractType
 from pydantic import validator
 
 from .exceptions import (
@@ -51,6 +52,7 @@ _ValidatorItem = Union[Validator, ContractInstance, str, AddressType]
 
 class StreamManager(BaseInterfaceModel):
     address: AddressType
+    contract_type: Optional[ContractType] = None
 
     @validator("address", pre=True)
     def normalize_address(cls, value: Any) -> AddressType:
@@ -58,9 +60,13 @@ class StreamManager(BaseInterfaceModel):
 
     @property
     def contract(self) -> ContractInstance:
-        # TODO: Fix this
-        return self.project_manager.StreamManager.at(self.address)
-        # return self.chain_manager.contracts.instance_at(self.address)
+        return (
+            self.project_manager.StreamManager.at(self.address)
+            if "StreamManager" in self.project_manager.contracts
+            else self.chain_manager.contracts.instance_at(
+                self.address, contract_type=self.contract_type
+            )
+        )
 
     def __repr__(self) -> str:
         return f"<apepay_sdk.StreamManager address={self.address}>"
@@ -75,17 +81,18 @@ class StreamManager(BaseInterfaceModel):
 
         for idx in range(20):
             try:
-                validators.append(
-                    Validator(
-                        contract=self.project_manager.Validator.at(
-                            self.contract.validators(idx)
-                        )
-                    )
-                )
+                validator_address = self.contract.validators(idx)
 
             except (ContractLogicError, DecodingError):
                 # NOTE: Vyper returns no data if not a valid index
                 break
+
+            validator_contract = (
+                self.project_manager.Validator.at(validator_address)
+                if "Validator" in self.project_manager.contracts
+                else self.chain_manager.contracts.instance_at(validator_address)
+            )
+            validators.append(Validator(contract=validator_contract))
 
         return validators
 
@@ -169,6 +176,9 @@ class StreamManager(BaseInterfaceModel):
                 / time_unit_to_timedelta(time).total_seconds()
             )
 
+        if amount_per_second == 0:
+            raise ValueError("`amount_per_second` must be greater than 0.")
+
         args: List[Any] = [token, amount_per_second]
 
         if reason is not None:
@@ -215,9 +225,9 @@ class StreamManager(BaseInterfaceModel):
                 validator_args.append(b"")
             # Skip arg 4 (start_time)
 
-            for validator in self.validators:
-                if not validator.validate(*validator_args):
-                    raise ValidatorFailed(validator)
+            for _validator in self.validators:
+                if not _validator.validate(*validator_args):
+                    raise ValidatorFailed(_validator)
 
         tx = self.contract.create_stream(*args, **txn_kwargs)
         event = tx.events.filter(self.contract.StreamCreated)[0]
@@ -229,10 +239,12 @@ class StreamManager(BaseInterfaceModel):
 
     def streams_by_creator(self, creator: AddressType) -> Iterator["Stream"]:
         for stream_id in range(self.contract.num_streams(creator)):
-            yield Stream(self, creator, stream_id)
+            yield Stream(manager=self, creator=creator, stream_id=stream_id)
 
     def all_streams(self) -> Iterator["Stream"]:
-        for stream_created_event in self.contract.StreamCreated:
+        for stream_created_event in self.contract.StreamCreated.range(
+            self.contract.receipt.block_number, self.chain_manager.blocks.head.number
+        ):
             yield Stream.from_event(
                 manager=self,
                 event=stream_created_event,
@@ -332,7 +344,7 @@ class Stream(BaseInterfaceModel):
         try:
             return json.loads(reason_str)
 
-        except Exception:
+        except (Exception, json.JSONDecodeError):
             return reason_str
 
     @property

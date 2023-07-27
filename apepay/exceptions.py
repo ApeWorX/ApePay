@@ -11,9 +11,7 @@ class ApePayException(Exception):
 
 class MissingCreationReceipt(ApePayException, NotImplementedError):
     def __init__(self):
-        super().__init__(
-            "Missing creation transaction for stream. Functionality unavailabie."
-        )
+        super().__init__("Missing creation transaction for stream. Functionality unavailabie.")
 
 
 class StreamNotCancellable(ApePayException):

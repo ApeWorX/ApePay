@@ -117,8 +117,8 @@ def create_stream(
     reason: Bytes[MAX_REASON_SIZE] = b"",
     start_time: uint256 = block.timestamp,
 ) -> uint256:
-    assert self.token_is_accepted[token]
-    assert start_time <= block.timestamp
+    assert self.token_is_accepted[token]  # dev: token not accepted
+    assert start_time <= block.timestamp  # dev: start time < block
 
     funded_amount: uint256 = token.allowance(msg.sender, self)
     if funded_amount == max_value(uint256):
@@ -132,13 +132,13 @@ def create_stream(
             validator.validate(msg.sender, token.address, amount_per_second, reason),
         )
 
-    assert max_stream_life >= funded_amount / amount_per_second
+    assert max_stream_life >= funded_amount / amount_per_second  # dev: max stream life small
 
     prefunded_stream_life: uint256 = max(MIN_STREAM_LIFE, block.timestamp - start_time)
-    assert max_stream_life >= prefunded_stream_life
-    assert funded_amount >= prefunded_stream_life * amount_per_second
+    assert max_stream_life >= prefunded_stream_life  # dev: prefunded stream life large
+    assert funded_amount >= prefunded_stream_life * amount_per_second  # dev: not enough funds
 
-    assert token.transferFrom(msg.sender, self, funded_amount, default_return_value=True)
+    assert token.transferFrom(msg.sender, self, funded_amount, default_return_value=True)  # dev: transfer fail
 
     stream_id: uint256 = self.num_streams[msg.sender]
     self.streams[msg.sender][stream_id] = Stream({

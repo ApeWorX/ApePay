@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4"
-eth-ape = "^0.6.12"
+eth-ape = "^0.6.14"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
@@ -17,3 +17,17 @@ silverback = "^0.1.0b6"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+include = '\.pyi?$'
+exclude = 'node_modules|migrations|build/|buck-out/|dist/|_build/|\.git/|\.hg/|\.mypy_cache/|\.tox/|\.venv/'
+
+[tool.isort]
+line_length = 100
+force_grid_wrap = 0
+include_trailing_comma = true
+multi_line_output = 3
+use_parentheses = true
+src_paths = ["scripts", "tests", "apepay"]
