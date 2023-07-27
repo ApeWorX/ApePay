@@ -1,8 +1,10 @@
 import asyncio
-import itertools
+import os
 from datetime import timedelta
 from enum import Enum
 
+import click
+from ape.types import AddressType
 from silverback import SilverBackApp
 
 from apepay import Stream, StreamManager
@@ -33,8 +35,10 @@ class Status(Enum):
             return cls.INACTIVE
 
 
-# TODO: Load `address` from `os.environ`
-SM = StreamManager(address=settings.CONTRACT_ADDRESS)
+SM = StreamManager(
+    address=os.environ.get("APEPAY_CONTRACT_ADDRESS")
+    or click.prompt("What address to use?", type=AddressType)
+)
 
 app = SilverBackApp()
 
@@ -65,7 +69,8 @@ async def app_started(state):
         # Start watching all active streams and claim any completed but unclaimed streams
         *(
             create_task_by_status(stream)
-            for stream in itertools.chain(SM.active_streams(), SM.unclaimed_streams())
+            for stream in SM.all_streams()
+            if stream.is_active or stream.amount_unlocked > 0
         )
     )
 
@@ -103,9 +108,7 @@ async def stream_funding_normal_level(stream: Stream):
 async def stream_funding_warning_level(stream: Stream):
     while Status.from_time_left(stream.time_left) is Status.WARNING:
         # Wait for critical
-        await asyncio.sleep(
-            (stream.time_left - settings.CRITICAL_LEVEL).total_seconds()
-        )
+        await asyncio.sleep((stream.time_left - settings.CRITICAL_LEVEL).total_seconds())
 
     # Check if stream has been cancelled
     if Status.from_time_left(stream.time_left) is Status.CRITICAL:

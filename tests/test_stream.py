@@ -76,9 +76,7 @@ def test_create_stream(chain, payer, tokens, stream_manager, extra_args):
     with pytest.raises(apepay_exc.StreamLifeInsufficient):
         stream_manager.create(tokens[0], amount_per_second + 1, sender=payer)
 
-    stream = stream_manager.create(
-        tokens[0], amount_per_second, **extra_args, sender=payer
-    )
+    stream = stream_manager.create(tokens[0], amount_per_second, **extra_args, sender=payer)
     start_time = chain.blocks.head.timestamp
 
     assert stream.token == tokens[0]
