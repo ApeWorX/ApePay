@@ -11,5 +11,3 @@ __pycache__
 
 dist/
 .DS_Store
-
-data.sqlite
