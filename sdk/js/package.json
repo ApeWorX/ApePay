@@ -1,0 +1,21 @@
+{
+  "name": "@apeworx/apepay",
+  "version": "0.1.0-alpha.0",
+  "author": "ApeWorX LTD.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "homepage": "https://github.com/ApeWorX/ApePay",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ApeWorX/ApePay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ApeWorX/ApePay/issues"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "viem": "^1.5.2"
+  }
+}

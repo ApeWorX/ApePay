@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  py-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,4 +21,26 @@ jobs:
       - uses: foundry-rs/foundry-toolchain@v1
       - uses: ApeWorX/github-action@v2
       - run: pip install .
+      - run: ape compile --size
       - run: ape test -s
+      # Upload ape build files for JS testing
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build-folder
+          path: .build/*.json
+
+  js-test:
+    needs: py-test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      # Ape build artifacts used for JS testing
+      - uses: actions/download-artifact@v3
+        with:
+          name: build-folder
+          path: .build/
+      - run: npm install .
+      - run: npm run build --workspaces --if-present

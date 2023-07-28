@@ -1,0 +1,10 @@
+{
+  "name": "apepay-js-root",
+  "private": true,
+  "workspaces": [
+    "sdk/js"
+  ],
+  "dependencies": {
+    "typescript": "^5.1.6"
+  }
+}
