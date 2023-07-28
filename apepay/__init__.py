@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, timedelta
+from decimal import Decimal
 from functools import partial
 from typing import Any, Iterable, Iterator, List, Optional, Union, cast
 
@@ -328,6 +329,19 @@ class Stream(BaseInterfaceModel):
     @cached_property
     def amount_per_second(self) -> int:
         return self.info.amount_per_second
+
+    @property
+    def funding_rate(self) -> Decimal:
+        """
+        Funding rate, in tokens per second, of Stream in correct decimal form.
+        """
+        return Decimal(self.amount_per_second) / Decimal(10 ** self.token.decimals())
+
+    def funding_estimate(self, period: timedelta) -> int:
+        """
+        Useful for estimating how many tokens you need to add to extend for a specific time period.
+        """
+        return period.total_seconds() * self.amount_per_second
 
     @cached_property
     def start_time(self) -> datetime:
