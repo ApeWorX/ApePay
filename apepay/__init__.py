@@ -171,7 +171,6 @@ class StreamManager(BaseInterfaceModel):
 
         if isinstance(amount_per_second, str) and "/" in amount_per_second:
             value, time = amount_per_second.split("/")
-
             amount_per_second = int(
                 self.conversion_manager.convert(value.strip(), int)
                 / time_unit_to_timedelta(time).total_seconds()
