@@ -339,8 +339,7 @@ class Stream(BaseInterfaceModel):
         """
         return Decimal(self.amount_per_second) / Decimal(10 ** self.token.decimals())
 
-    @property
-    def funding_estimate(self, period: timedelta) -> int:
+    def estimate_funding(self, period: timedelta) -> int:
         """
         Useful for estimating how many tokens you need to add to extend for a specific time period.
         """
