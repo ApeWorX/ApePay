@@ -322,9 +322,11 @@ class Stream(BaseInterfaceModel):
 
     @cached_property
     def token(self) -> ContractInstance:
-        # TODO: Fix this
-        return self.project_manager.TestToken.at(self.info.token)
-        # return self.chain_manager.contracts.instance_at(self.info.token)
+        return (
+            self.project_manager.TestToken.at(self.info.token)
+            if "TestToken" in self.project_manager.contracts
+            else self.chain_manager.contracts.instance_at(self.info.token)
+        )
 
     @cached_property
     def amount_per_second(self) -> int:
