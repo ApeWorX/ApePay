@@ -39,12 +39,7 @@ def cli(cli_ctx, network, sm, token, ecosystem_name):
     token.approve(sm.contract, 2**256 - 1, sender=payer)
 
     # Use an application-specific reason.
-    reason = {
-        "ecosystem_name": ecosystem_name,
-        "block_height": 17743333,
-        "block_time": 15,
-        "bot_names": [],
-    }
+    reason = "1"
     minimum = int(sm.MIN_STREAM_LIFE.total_seconds())
     amt_per_sec = token.balanceOf(payer) // minimum
 
