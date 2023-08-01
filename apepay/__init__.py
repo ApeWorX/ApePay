@@ -171,7 +171,6 @@ class StreamManager(BaseInterfaceModel):
 
         if isinstance(amount_per_second, str) and "/" in amount_per_second:
             value, time = amount_per_second.split("/")
-
             amount_per_second = int(
                 self.conversion_manager.convert(value.strip(), int)
                 / time_unit_to_timedelta(time).total_seconds()
@@ -322,9 +321,11 @@ class Stream(BaseInterfaceModel):
 
     @cached_property
     def token(self) -> ContractInstance:
-        # TODO: Fix this
-        return self.project_manager.TestToken.at(self.info.token)
-        # return self.chain_manager.contracts.instance_at(self.info.token)
+        return (
+            self.project_manager.TestToken.at(self.info.token)
+            if "TestToken" in self.project_manager.contracts
+            else self.chain_manager.contracts.instance_at(self.info.token)
+        )
 
     @cached_property
     def amount_per_second(self) -> int:
@@ -337,7 +338,7 @@ class Stream(BaseInterfaceModel):
         """
         return Decimal(self.amount_per_second) / Decimal(10 ** self.token.decimals())
 
-    def funding_estimate(self, period: timedelta) -> int:
+    def estimate_funding(self, period: timedelta) -> int:
         """
         Useful for estimating how many tokens you need to add to extend for a specific time period.
         """

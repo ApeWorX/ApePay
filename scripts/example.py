@@ -2,6 +2,8 @@
 A simple example showing how to use ApePay in a script.
 """
 
+from datetime import timedelta
+
 import click
 from ape.cli import NetworkBoundCommand, ape_cli_context, network_option
 
@@ -29,26 +31,24 @@ def cli(cli_ctx, network, sm, token, ecosystem_name):
     # Make sure account can pay.
     token = cli_ctx.chain_manager.contracts.instance_at(token)
 
+    # Make sure your payer has 10k tokens.
     balance = token.balanceOf(payer)
-    desired_balance = 1_000_000
+    desired_balance = 10_000 * 10 ** token.decimals()
     if balance < desired_balance:
         difference = desired_balance - balance
         token.DEBUG_mint(payer, difference, sender=payer)
 
-    # Approve **entire balance** on apepay.
-    token.approve(sm.contract, 2**256 - 1, sender=payer)
+    # Approve the amount it costs for the deployment.
+    # In this demo, we know it will add up to 26 tokens.
+    cost_per_day = 26
+    cost = cost_per_day * 10 ** token.decimals()
+    token.approve(sm.contract, cost, sender=payer)
 
     # Use an application-specific reason.
-    reason = {
-        "ecosystem_name": ecosystem_name,
-        "block_height": 17743333,
-        "block_time": 15,
-        "bot_names": [],
-    }
-    minimum = int(sm.MIN_STREAM_LIFE.total_seconds())
-    amt_per_sec = token.balanceOf(payer) // minimum
+    reason = "1"
 
     # Create the stream.
+    amt_per_sec = cost // int(timedelta(days=1).total_seconds())
     stream = sm.create(token, amt_per_sec, reason=reason, sender=payer)
 
-    click.echo(stream)
+    click.echo(f"Stream '{stream.stream_id}' created successfully by '{stream.creator}'.")
