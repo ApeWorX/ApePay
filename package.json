@@ -2,9 +2,11 @@
   "name": "apepay-js-root",
   "private": true,
   "workspaces": [
-    "sdk/js"
+    "sdk/js",
+    "ui/lib"
   ],
   "dependencies": {
+    "@types/react": "^18.2.18",
     "typescript": "^5.1.6"
   }
 }
