@@ -42,12 +42,15 @@ def cli(cli_ctx, network, sm, token, ecosystem_name):
     # In this demo, we know it will add up to 26 tokens.
     token.approve(sm.contract, 2 ** 256 - 1, sender=payer)
     decimals = token.decimals()
-    amt = int(26 * 10 ** decimals / timedelta(days=1).total_seconds())
+
+    # 26 tokens per day
+    seconds = timedelta(days=1).total_seconds()
+    tokens = 26 * 10 ** decimals
 
     # Create the stream.
     stream = sm.create(
         token,
-        amt,
+        int(tokens / seconds),
         reason="1",  # The ID of the deployment as a string
         sender=payer,
     )
