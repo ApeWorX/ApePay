@@ -40,15 +40,19 @@ def cli(cli_ctx, network, sm, token, ecosystem_name):
 
     # Approve the amount it costs for the deployment.
     # In this demo, we know it will add up to 26 tokens.
-    cost_per_day = 26
-    cost = cost_per_day * 10 ** token.decimals()
-    token.approve(sm.contract, cost, sender=payer)
+    token.approve(sm.contract, 2 ** 256 - 1, sender=payer)
+    decimals = token.decimals()
 
-    # Use an application-specific reason.
-    reason = "1"
+    # 26 tokens per day
+    seconds = timedelta(days=1).total_seconds()
+    tokens = 26 * 10 ** decimals
 
     # Create the stream.
-    amt_per_sec = cost // int(timedelta(days=1).total_seconds())
-    stream = sm.create(token, amt_per_sec, reason=reason, sender=payer)
+    stream = sm.create(
+        token,
+        int(tokens / seconds),
+        reason="1",  # The ID of the deployment as a string
+        sender=payer,
+    )
 
     click.echo(f"Stream '{stream.stream_id}' created successfully by '{stream.creator}'.")
