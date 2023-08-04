@@ -1,18 +1,16 @@
 {
-    "abi": [
-        {
-            "name": "validate",
-            "type": "function",
-            "inputs": [
-                {"name": "creator", "type": "address"},
-                {"name": "token: ", "type": "address"},
-                {"name": "amount_per_second", "type": "uint256"},
-                {"name": "reason", "type": "bytes"}
-            ],
-            "outputs": [
-                {"name": "max_stream_life", "type": "uint256"}
-            ],
-            "stateMutability": "nonpayable"
-        }
-    ]
+  "abi": [
+    {
+      "name": "validate",
+      "type": "function",
+      "inputs": [
+        { "name": "creator", "type": "address" },
+        { "name": "token: ", "type": "address" },
+        { "name": "amount_per_second", "type": "uint256" },
+        { "name": "reason", "type": "bytes" }
+      ],
+      "outputs": [{ "name": "max_stream_life", "type": "uint256" }],
+      "stateMutability": "nonpayable"
+    }
+  ]
 }
