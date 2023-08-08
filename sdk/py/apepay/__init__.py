@@ -342,7 +342,7 @@ class Stream(BaseInterfaceModel):
         """
         Useful for estimating how many tokens you need to add to extend for a specific time period.
         """
-        return period.total_seconds() * self.amount_per_second
+        return int(period.total_seconds() * self.amount_per_second)
 
     @cached_property
     def start_time(self) -> datetime:
