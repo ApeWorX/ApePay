@@ -53,6 +53,7 @@ const CreateStream = (props: CreateStreamProps) => {
 
   const { config: approvalConfig } = usePrepareContractWrite({
     address: props.tokenAddress,
+    value: BigInt(0),
     abi: [
       {
         name: "approve",
