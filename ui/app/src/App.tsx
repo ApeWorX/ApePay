@@ -1,7 +1,9 @@
 import React from "react";
+import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
-import { CreateStream } from "@apeworx/apepay-react";
+import { Stream } from "@apeworx/apepay";
+import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
 
@@ -22,7 +24,7 @@ function App() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          height: "90vh",
+          height: "30vh",
         }}
       >
         <CreateStream
@@ -33,6 +35,28 @@ function App() {
           registerStream={(s) => console.log(s)}
         />
       </div>
+      <ul
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "20vh",
+        }}
+      >
+        <li>
+          <StreamStatus
+            stream={
+              new Stream(
+                "0xb5ED1eF2a90527b402Cd7e7d415027CB94E1Db4E",
+                "0x1C277bD41A276F87D3E92bccD50c7364aa2FFc69",
+                3,
+                usePublicClient(),
+                useWalletClient()?.data as WalletClient,
+              )
+            }
+          />
+        </li>
+      </ul>
     </>
   );
 }
