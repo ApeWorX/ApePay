@@ -83,8 +83,11 @@ const CreateStream = (props: CreateStreamProps) => {
 
   return (
     <div id="CreateStream">
-      {/* Display: What is the product they are paying for? With what token? */}
-      {props.cart && props.cart}
+      <div>
+        {/* Display: What is the product they are paying for? With what token? */}
+        {/* @ts-ignore */}
+        {props.cart && props.cart}
+      </div>
 
       {/* Part 1: The user needs to decide how long they want the stream to run for  */}
       <div id="CreateStream-lifetime">
