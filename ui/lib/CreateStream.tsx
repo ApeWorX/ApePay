@@ -72,15 +72,13 @@ const CreateStream = (props: CreateStreamProps) => {
     args: [sm.address, selectedTime * props.amountPerSecond],
   });
   const { write: approveStream } = useContractWrite(approvalConfig);
-  const createStream = async () => {
-    const stream = await sm.create(
+  const createStream = () => {
+    // NOTE: This function should move away from this component
+    sm.create(
       props.tokenAddress,
       props.amountPerSecond,
       props.reasonCode
-    );
-
-    // NOTE: This function should move away from this component
-    props.registerStream(stream);
+    ).then(props.registerStream)
   };
 
   return (

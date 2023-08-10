@@ -152,17 +152,17 @@ export default class StreamManager {
       })) as bigint,
     );
       
-    const hash = await this.walletClient?.writeContract({
-      chain: null,
-      address: this.address,
-      abi: StreamManagerContractType.abi as Abi,
-      functionName: "create_stream",
-      args,
-      account,
-    });
+    // const hash = await this.walletClient?.writeContract({
+    //   chain: null,
+    //   address: this.address,
+    //   abi: StreamManagerContractType.abi as Abi,
+    //   functionName: "create_stream",
+    //   args,
+    //   account,
+    // });
 
-    if (hash === undefined)
-      throw new Error("Error while processing trasactions");
+    // if (hash === undefined)
+    //   throw new Error("Error while processing trasactions");
 
     return new Stream(
       this.address,
