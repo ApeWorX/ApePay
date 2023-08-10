@@ -5,7 +5,7 @@ import {
   Hash,
   Log,
   PublicClient,
-  TransactionReceipt,
+  stringToHex,
   WalletClient,
 } from "viem";
 import StreamManagerContractType from "../../.build/StreamManager.json";
@@ -134,13 +134,12 @@ export default class StreamManager {
       accountOverride || (this.walletClient?.account?.address ?? "0x0");
     // NOTE: 0x0 shouldn't ever be the value of `account` because of the above error
 
-    const args: Array<number | string | Address> = [token, amountPerSecond];
-
+    const args: Array<number | string | Address | ByteArray> = [token, amountPerSecond];
     if (startTime) {
-      args.push(reason || ""); // NOTE: Needs to make sure to have 4 args
+      args.push(reason ? stringToHex(reason) : ""); // NOTE: Needs to make sure to have 4 args
       args.push(startTime);
     } else if (reason) {
-      args.push(reason);
+      args.push(stringToHex(reason));
     }
 
     // NOTE: Must be before transaction since it increments `num_streams`
@@ -152,7 +151,7 @@ export default class StreamManager {
         args: [account],
       })) as bigint,
     );
-
+      
     const hash = await this.walletClient?.writeContract({
       chain: null,
       address: this.address,
