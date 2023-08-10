@@ -2,15 +2,15 @@ import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import partial
-from typing import Any, Iterable, Iterator, List, Optional, Union, cast
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Union, cast
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
-from ape.exceptions import ContractLogicError, DecodingError
+from ape.exceptions import CompilerError, ContractLogicError, DecodingError, ProjectError
 from ape.types import AddressType, ContractLog, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from ethpm_types import ContractType
-from pydantic import validator
+from pydantic import ValidationError, validator
 
 from .exceptions import (
     FundsNotClaimable,
@@ -59,11 +59,18 @@ class StreamManager(BaseInterfaceModel):
     def normalize_address(cls, value: Any) -> AddressType:
         return cls.conversion_manager.convert(value, AddressType)
 
+    @cached_property
+    def _local_contracts(self) -> Dict[str, ContractType]:
+        try:
+            return self.project_manager.contracts
+        except (CompilerError, ProjectError, ValidationError):
+            return {}
+
     @property
     def contract(self) -> ContractInstance:
         return (
             self.project_manager.StreamManager.at(self.address)
-            if "StreamManager" in self.project_manager.contracts
+            if "StreamManager" in self._local_contracts
             else self.chain_manager.contracts.instance_at(
                 self.address, contract_type=self.contract_type
             )
@@ -90,7 +97,7 @@ class StreamManager(BaseInterfaceModel):
 
             validator_contract = (
                 self.project_manager.Validator.at(validator_address)
-                if "Validator" in self.project_manager.contracts
+                if "Validator" in self._local_contracts
                 else self.chain_manager.contracts.instance_at(validator_address)
             )
             validators.append(Validator(contract=validator_contract))
@@ -230,7 +237,7 @@ class StreamManager(BaseInterfaceModel):
                     raise ValidatorFailed(_validator)
 
         tx = self.contract.create_stream(*args, **txn_kwargs)
-        event = tx.events.filter(self.contract.StreamCreated)[0]
+        event = tx.events.filter(self.contract.StreamCreated)[-1]
         return Stream.from_event(
             manager=self,
             event=event,

@@ -1,9 +1,8 @@
 from datetime import timedelta
 from typing import Any
 
-from pydantic import BaseSettings, validator
-
 from apepay.utils import time_unit_to_timedelta
+from pydantic import BaseSettings, validator
 
 
 class Settings(BaseSettings):
