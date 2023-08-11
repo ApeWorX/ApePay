@@ -12,6 +12,10 @@ dist/
 
 # Javascript
 node_modules/
+js-dist/
+ui/lib/*.js
+ui/app/src/*.js
+sdk/js/index.js
 
 # testing
 coverage/

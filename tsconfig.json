@@ -12,9 +12,9 @@
     "allowJs": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true
-  },
+    "skipLibCheck": true,
+    "outDir": "js-dist",
+},
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }
