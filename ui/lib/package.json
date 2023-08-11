@@ -24,8 +24,9 @@
     "wagmi": "^1.3.9"
   },
     "files": [
+    ".build/*.json",
     "dist/",
-    "*.tsx",
+    "*.ts",
     "*.js"
   ]
 }
