@@ -30,7 +30,7 @@ jobs:
           path: .build/*.json
 
   js-test:
-    needs: py-test
+    needs: py-test 
 
     runs-on: ubuntu-latest
 
