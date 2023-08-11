@@ -20,6 +20,7 @@
     "viem": "^1.5.2"
   },
   "files": [
-    ".build/*.json"
+    ".build/*.json",
+    "*.ts"
   ]
 }
