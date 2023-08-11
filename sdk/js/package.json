@@ -13,7 +13,7 @@
     "url": "https://github.com/ApeWorX/ApePay/issues"
   },
   "scripts": {
-    "prebuild": "cd ../../ && ape compile && cp -R .build sdk/js",
+    "prebuild": "cd ../../ && (ape compile && cp -R .build sdk/js) || (if [ -d .build ]; then cp -R .build sdk/js; else echo 'Error: .build directory not found'; exit 1; fi)",
     "build": "npm run prebuild && tsc"
   },
   "dependencies": {
