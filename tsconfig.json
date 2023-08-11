@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
+    "declaration": true,
     "module": "commonjs",
     "jsx": "react-jsx",
     "lib": ["dom", "dom.iterable", "esnext"],

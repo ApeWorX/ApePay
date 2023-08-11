@@ -1,9 +1,10 @@
 {
   "name": "@apeworx/apepay",
-  "version": "0.1.0-alpha.8",
+  "version": "0.1.0-alpha.9",
   "author": "ApeWorX LTD.",
   "license": "Apache-2.0",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "homepage": "https://github.com/ApeWorX/ApePay",
   "repository": {
     "type": "git",
@@ -13,7 +14,7 @@
     "url": "https://github.com/ApeWorX/ApePay/issues"
   },
   "scripts": {
-    "build_contracts": "pushd ../../ && (ape compile) || (if [ -d .build ]; then cp -R .build sdk/js; else echo 'Error: .build directory not found'; exit 1; fi)",
+    "build_contracts": "pushd ../../ && cp -R .build sdk/js",
     "build": "npm run build_contracts && tsc",
     "prepack": "cp -R ../../js-dist/sdk/js dist/"
   },
@@ -21,7 +22,6 @@
     "viem": "^1.5.2"
   },
   "files": [
-    ".build/*.json",
     "dist/",
     "README.md"
   ]
