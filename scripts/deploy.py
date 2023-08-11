@@ -23,21 +23,7 @@ def cli():
 @click.option("--blueprint", default=None)
 def factory(cli_ctx, account, network, blueprint):
     if not blueprint:
-        blueprint_bytecode = b"\xFE\x71\x00" + HexBytes(  # ERC5202 preamble
-            project.StreamManager.contract_type.deployment_bytecode.bytecode
-        )
-        # the length of the deployed code in bytes
-        len_bytes = len(blueprint_bytecode).to_bytes(2, "big")
-        blueprint = account.call(
-            networks.ecosystem.create_transaction(
-                # copy <blueprint_bytecode> to memory and `RETURN` it per EVM creation semantics
-                # PUSH2 <len> RETURNDATASIZE DUP2 PUSH1 10 RETURNDATASIZE CODECOPY RETURN
-                data=b"\x61"
-                + len_bytes
-                + b"\x3d\x81\x60\x0a\x3d\x39\xf3"
-                + blueprint_bytecode
-            )
-        ).contract_address
+        blueprint = project.StreamFactory.declare(sender=account).contract_address
         cli_ctx.logger.success(
             f"Blueprint 'StreamManager' deployed to: {click.style(blueprint, bold=True)}"
         )
