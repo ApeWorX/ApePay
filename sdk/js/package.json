@@ -13,8 +13,8 @@
     "url": "https://github.com/ApeWorX/ApePay/issues"
   },
   "scripts": {
-    "build": "tsc",
-    "prepack": "cd ../../ && ape compile && cp -R .build sdk/js"
+    "prebuild": "cd ../../ && ape compile && cp -R .build sdk/js",
+    "build": "npm run prebuild && tsc"
   },
   "dependencies": {
     "viem": "^1.5.2"
