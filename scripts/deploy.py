@@ -1,7 +1,8 @@
 import click
-from ape import networks, project
+from ape import networks, project, Contract
 from ape.cli import NetworkBoundCommand, account_option, ape_cli_context, network_option
 from ape.types import HexBytes
+from ape_ethereum.ecosystem import keccak
 
 try:
     from ape_tokens import tokens as token_lookup
@@ -21,14 +22,60 @@ def cli():
 @network_option()
 @ape_cli_context()
 @click.option("--blueprint", default=None)
-def factory(cli_ctx, account, network, blueprint):
-    if not blueprint:
-        blueprint = project.StreamFactory.declare(sender=account).contract_address
-        cli_ctx.logger.success(
-            f"Blueprint 'StreamManager' deployed to: {click.style(blueprint, bold=True)}"
-        )
+@click.option("--create2", default=None, help="A string tag for the create2 deployment salt")
+def factory(cli_ctx, account, network, blueprint, create2):
+    if create2:
+        # NOTE: This is the deployment address listed on the create2 deployer's github:
+        # https://github.com/pcaversaccio/create2deployer/tree/main#deployments-create2deployer
+        # TODO: Add SDK for create2 deployer
+        create2_deployer = Contract("0x13b0D85CcB8bf860b6b79AF3029fCA081AE9beF2")
+        salt = keccak(text=create2)
 
-    account.deploy(project.StreamFactory, blueprint, publish=click.confirm("Publish"))
+        if not blueprint:
+            blueprint_initcode = cli_ctx.provider.network.ecosystem.encode_contract_blueprint(
+                project.StreamManager.contract_type
+            ).data
+            blueprint = create2_deployer.computeAddress(salt, keccak(blueprint_initcode))
+            if not click.confirm(f"Deploy StreamManager blueprint to '{blueprint}'"):
+                return  # user abort
+
+            create2_deployer.deploy(
+                0,  # msg.value
+                salt,
+                blueprint_initcode,
+                sender=account,
+            )
+            cli_ctx.logger.success(
+                f"Blueprint 'StreamManager' deployed to: {click.style(blueprint, bold=True)}"
+            )
+            cli_ctx.chain_manager.contracts.cache_blueprint(
+                blueprint, project.StreamManager.contract_type
+            )
+
+        factory_initcode = project.StreamFactory.constructor.serialize_transaction(blueprint).data
+        factory_address = create2_deployer.computeAddress(salt, keccak(factory_initcode))
+
+        if click.confirm(f"Deploy StreamFactory to '{factory_address}'"):
+            create2_deployer.deploy(
+                0,  # msg.value
+                salt,
+                factory_initcode,
+                sender=account,
+            )
+            factory = project.StreamFactory.at(factory_address)
+
+            if click.confirm("Publish"):
+                cli_ctx.project_manager.track_deployment(factory)
+                cli_ctx.provider.network.publish_contract(factory.address)
+
+    else:
+        if not blueprint:
+            blueprint = project.StreamFactory.declare(sender=account).contract_address
+            cli_ctx.logger.success(
+                f"Blueprint 'StreamManager' deployed to: {click.style(blueprint, bold=True)}"
+            )
+
+        account.deploy(project.StreamFactory, blueprint, publish=click.confirm("Publish"))
 
 
 @cli.command(cls=NetworkBoundCommand, short_help="Deploy the StreamManager contract")
