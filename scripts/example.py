@@ -6,7 +6,6 @@ from datetime import timedelta
 
 import click
 from ape.cli import NetworkBoundCommand, ape_cli_context, network_option
-
 from apepay import StreamManager
 
 

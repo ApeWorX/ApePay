@@ -285,7 +285,9 @@ class Stream(BaseInterfaceModel):
 
     @validator("creator", pre=True)
     def validate_addresses(cls, value):
-        return value if isinstance(value, str) else cls.conversion_manager.convert(value, AddressType)
+        return (
+            value if isinstance(value, str) else cls.conversion_manager.convert(value, AddressType)
+        )
 
     @classmethod
     def from_event(
