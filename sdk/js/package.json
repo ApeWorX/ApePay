@@ -1,6 +1,6 @@
 {
   "name": "@apeworx/apepay",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.4",
   "author": "ApeWorX LTD.",
   "license": "Apache-2.0",
   "type": "module",
@@ -18,5 +18,5 @@
   "dependencies": {
     "viem": "^1.5.2"
   },
-  "files": ["../../.build"]
+  "files": [".build"]
 }

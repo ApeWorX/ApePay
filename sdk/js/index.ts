@@ -2,7 +2,6 @@ import {
   Abi,
   Address,
   ByteArray,
-  Hash,
   Log,
   PublicClient,
   stringToHex,
@@ -184,7 +183,9 @@ export default class StreamManager {
           (log: Log) =>
             new Stream(
               log.address,
+              // @ts-ignore
               log.topics[2] as Address, // creator
+              // @ts-ignore
               Number(log.topics[3]), // streamId
               this.publicClient,
               this.walletClient,
