@@ -2,6 +2,7 @@ import click
 from ape import networks, project, Contract
 from ape.cli import NetworkBoundCommand, account_option, ape_cli_context, network_option
 from ape.types import HexBytes
+from ape.exceptions import ApeException
 from ape_ethereum.ecosystem import keccak
 
 try:
@@ -79,13 +80,15 @@ def factory(cli_ctx, account, network, blueprint, create2):
 
 
 @cli.command(cls=NetworkBoundCommand, short_help="Deploy the StreamManager contract")
+@ape_cli_context()
 @account_option()
 @network_option()
+@click.option("--factory", default=None)
 @click.option("--owner", default=None)
 @click.option("--min-stream-life", type=int, default=60 * 60)
 @click.option("--validator", "validators", multiple=True, default=[])
 @click.argument("tokens", nargs=-1)
-def manager(account, network, owner, min_stream_life, validators, tokens):
+def manager(cli_ctx, account, network, factory, owner, min_stream_life, validators, tokens):
     if len(tokens) > 20:
         raise click.BadArgumentUsage("Doesn't accept more than 20 tokens")
 
@@ -99,11 +102,31 @@ def manager(account, network, owner, min_stream_life, validators, tokens):
         except KeyError:
             token_addresses.append(token)
 
-    account.deploy(
-        project.StreamManager,
-        owner or account,
-        min_stream_life,
-        list(validators),
-        token_addresses,
-        publish=click.confirm("Publish"),
-    )
+    if factory := project.StreamFactory.at(factory):
+        if owner:
+            raise click.BadArgumentUsage("Cannot use 'owner' with 'factory'")
+
+        if min_stream_life != 60 * 60:
+            raise click.BadArgumentUsage("Cannot use custom 'min_stream_life'")
+
+        tx = factory.create(list(validators), token_addresses, sender=account)
+        try:
+            manager = project.StreamManager.at(tx.return_value)
+        except ApeException:
+            manager = project.StreamManager.at(factory.deployments(account))
+
+        cli_ctx.logger.success(f"StreamManager deployed to '{manager.address}'.")
+
+        if click.confirm("Publish"):
+            cli_ctx.project_manager.track_deployment(manager)
+            cli_ctx.provider.network.publish_contract(manager.address)
+
+    else:
+        account.deploy(
+            project.StreamManager,
+            owner or account,
+            min_stream_life,
+            list(validators),
+            token_addresses,
+            publish=click.confirm("Publish"),
+        )
