@@ -1,6 +1,6 @@
 {
   "name": "@apeworx/apepay",
-  "version": "0.1.0-alpha.9",
+  "version": "0.1.0-alpha.10",
   "author": "ApeWorX LTD.",
   "license": "Apache-2.0",
   "type": "module",
@@ -16,7 +16,8 @@
   "scripts": {
     "build_contracts": "pushd ../../ && cp -R .build sdk/js",
     "build": "npm run build_contracts && tsc",
-    "prepack": "cp -R ../../js-dist/sdk/js dist/"
+    "prepack": "cp -R ../../js-dist/sdk/js dist/ && cp -r ../../js-dist/*.* dist/",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "viem": "^1.5.2"

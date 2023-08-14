@@ -32,7 +32,7 @@ export class Stream {
     creator: Address,
     streamId: number,
     publicClient: PublicClient,
-    walletClient?: WalletClient,
+    walletClient?: WalletClient
   ) {
     this.address = address;
     this.creator = creator;
@@ -49,7 +49,7 @@ export class Stream {
         abi: StreamManagerContractType.abi as Abi,
         functionName: "time_left",
         args: [this.creator, this.streamId],
-      })) as bigint,
+      })) as bigint
     );
   }
 
@@ -84,7 +84,7 @@ export default class StreamManager {
   constructor(
     address: Address,
     publicClient: PublicClient,
-    walletClient?: WalletClient,
+    walletClient?: WalletClient
   ) {
     this.address = address;
 
@@ -115,7 +115,7 @@ export default class StreamManager {
         address: this.address,
         abi: StreamManagerContractType.abi as Abi,
         functionName: "MIN_STREAM_LIFE",
-      })) as bigint,
+      })) as bigint
     );
   }
 
@@ -124,7 +124,7 @@ export default class StreamManager {
     amountPerSecond: number,
     reason?: string,
     startTime?: number,
-    accountOverride?: Address,
+    accountOverride?: Address
   ): Promise<Stream> {
     if (!accountOverride && !this.walletClient?.account)
       throw new Error("No account");
@@ -151,7 +151,7 @@ export default class StreamManager {
         abi: StreamManagerContractType.abi as Abi,
         functionName: "num_streams",
         args: [account],
-      })) as bigint,
+      })) as bigint
     );
 
     const hash = await this.walletClient?.writeContract({
@@ -171,13 +171,13 @@ export default class StreamManager {
       account,
       streamId,
       this.publicClient,
-      this.walletClient,
+      this.walletClient
     );
   }
 
   onStreamCreated(
     handleStream: (stream: Stream) => null,
-    creator?: Address,
+    creator?: Address
   ): void {
     const onLogs = (logs: Log[]) => {
       logs
@@ -191,8 +191,8 @@ export default class StreamManager {
               // @ts-ignore
               Number(log.topics[3]), // streamId
               this.publicClient,
-              this.walletClient,
-            ),
+              this.walletClient
+            )
         )
         .forEach(handleStream);
     };
