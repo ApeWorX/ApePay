@@ -1,6 +1,6 @@
 {
   "name": "@apeworx/apepay",
-  "version": "0.1.0-alpha.11",
+  "version": "0.1.0-alpha.12",
   "author": "ApeWorX LTD.",
   "license": "Apache-2.0",
   "type": "module",
@@ -14,9 +14,7 @@
     "url": "https://github.com/ApeWorX/ApePay/issues"
   },
   "scripts": {
-    "build_contracts": "pushd ../../ && cp -R .build sdk/js",
-    "build": "npm run build_contracts && tsc",
-    "prepack": "cp -R ../../js-dist/sdk/js dist/ && cp -r ../../js-dist/*.{ts,js} dist/ && rm -rf dist/js",
+    "build": "tsc && vite build && pushd ../../ && cp -R .build sdk/js/dist && popd",
     "clean": "rm -rf dist"
   },
   "dependencies": {
@@ -25,5 +23,7 @@
   "files": [
     "dist/",
     "README.md"
-  ]
+  ],
+  "main": "./dist/apepay.umd.cjs",
+  "module": "./dist/apepay.js"
 }
