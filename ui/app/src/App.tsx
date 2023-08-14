@@ -51,7 +51,7 @@ function App() {
                 "0x1C277bD41A276F87D3E92bccD50c7364aa2FFc69",
                 3,
                 usePublicClient(),
-                useWalletClient()?.data as WalletClient,
+                useWalletClient()?.data as WalletClient
               )
             }
           />

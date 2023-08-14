@@ -1,6 +1,6 @@
 {
   "name": "@apeworx/apepay",
-  "version": "0.1.0-alpha.12",
+  "version": "0.1.0-alpha.13",
   "author": "ApeWorX LTD.",
   "license": "Apache-2.0",
   "type": "module",
@@ -14,8 +14,9 @@
     "url": "https://github.com/ApeWorX/ApePay/issues"
   },
   "scripts": {
-    "build": "tsc && vite build && pushd ../../ && cp -R .build sdk/js/dist && popd",
-    "clean": "rm -rf dist"
+    "build": "cp -R ../../.build . && tsc && vite build",
+    "clean": "rm -rf dist",
+    "prepack": "cp -R .build dist"
   },
   "dependencies": {
     "viem": "^1.5.2"

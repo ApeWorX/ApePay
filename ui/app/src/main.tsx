@@ -12,7 +12,7 @@ import App from "./App";
 const { chains, publicClient } = configureChains(
   // NOTE: Testnet deployment on Sepolia
   [arbitrum, optimism, polygon, sepolia],
-  [publicProvider()],
+  [publicProvider()]
 );
 
 const { connectors } = getDefaultWallets({
@@ -34,5 +34,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <App />
       </RainbowKitProvider>
     </WagmiConfig>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

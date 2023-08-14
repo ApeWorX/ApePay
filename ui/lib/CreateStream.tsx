@@ -32,7 +32,7 @@ const CreateStream = (props: CreateStreamProps) => {
   });
   // TODO: handle `isError`, `isLoading`
   const maxTime = Number(
-    (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond),
+    (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond)
   );
 
   // TODO: Handle if the user has no token balance
@@ -42,7 +42,7 @@ const CreateStream = (props: CreateStreamProps) => {
     Array.from(Array(maxTimeDays).keys()).map((v: number) => [
       v + 1,
       `${v + 1}`,
-    ]),
+    ])
   );
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
@@ -50,7 +50,7 @@ const CreateStream = (props: CreateStreamProps) => {
     props.streamManagerAddress,
     // TODO: handle `isError`, `isLoading`
     usePublicClient(),
-    useWalletClient()?.data as WalletClient,
+    useWalletClient()?.data as WalletClient
   );
 
   const { config: approvalConfig } = usePrepareContractWrite({
@@ -75,7 +75,7 @@ const CreateStream = (props: CreateStreamProps) => {
   const createStream = () => {
     // NOTE: This function should move away from this component
     sm.create(props.tokenAddress, props.amountPerSecond, props.reasonCode).then(
-      props.registerStream,
+      props.registerStream
     );
   };
 
@@ -109,9 +109,9 @@ const CreateStream = (props: CreateStreamProps) => {
           {`Approve ${(
             (selectedTime * props.amountPerSecond) /
             Math.pow(10, tokenData?.decimals || 0)
-          ).toFixed(
-            Math.min(tokenData?.decimals || 0, 3),
-          )} ${tokenData?.symbol}`}
+          ).toFixed(Math.min(tokenData?.decimals || 0, 3))} ${
+            tokenData?.symbol
+          }`}
         </button>
       </div>
       <br />
