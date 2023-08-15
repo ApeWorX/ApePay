@@ -32,7 +32,7 @@ function App() {
           tokenAddress={"0xbc083D97825DA7f7182F37fcEc51818E196aF1FF"}
           amountPerSecond={100000000000000}
           reasonCode={"1"}
-          registerStream={(s) => console.log(s)}
+          registerStream={(s: Stream) => console.log(s)}
         />
       </div>
       <ul

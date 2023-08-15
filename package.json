@@ -1,5 +1,6 @@
 {
   "name": "apepay-js-root",
+  "version": "0.1.0-alpha.0",
   "private": true,
   "workspaces": [
     "sdk/js",
@@ -27,6 +28,10 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "prettier": "^3.0.1",
     "typescript": "^5.1.6",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "vite-plugin-dts": "^3.5.2"
+  },
+  "devDependencies": {
+    "json": "^11.0.0"
   }
 }

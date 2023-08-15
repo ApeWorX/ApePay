@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from "react";
+import { useState, ReactNode } from "react";
 import Slider from "rc-slider";
 import { Address, WalletClient } from "viem";
 import {
