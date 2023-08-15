@@ -24,7 +24,8 @@ def cli():
 @ape_cli_context()
 @click.option("--blueprint", default=None)
 @click.option("--create2", default=None, help="A string tag for the create2 deployment salt")
-def factory(cli_ctx, account, network, blueprint, create2):
+@click.option("--publish", is_flag=True)
+def factory(cli_ctx, account, network, blueprint, create2, publish):
     if create2:
         # NOTE: This is the deployment address listed on the create2 deployer's github:
         # https://github.com/pcaversaccio/create2deployer/tree/main#deployments-create2deployer
@@ -65,7 +66,7 @@ def factory(cli_ctx, account, network, blueprint, create2):
             )
             factory = project.StreamFactory.at(factory_address)
 
-            if click.confirm("Publish"):
+            if publish:
                 cli_ctx.project_manager.track_deployment(factory)
                 cli_ctx.provider.network.publish_contract(factory.address)
 
@@ -76,7 +77,7 @@ def factory(cli_ctx, account, network, blueprint, create2):
                 f"Blueprint 'StreamManager' deployed to: {click.style(blueprint, bold=True)}"
             )
 
-        account.deploy(project.StreamFactory, blueprint, publish=click.confirm("Publish"))
+        account.deploy(project.StreamFactory, blueprint, publish=publish)
 
 
 @cli.command(cls=NetworkBoundCommand, short_help="Deploy the StreamManager contract")
@@ -87,8 +88,11 @@ def factory(cli_ctx, account, network, blueprint, create2):
 @click.option("--owner", default=None)
 @click.option("--min-stream-life", type=int, default=60 * 60)
 @click.option("--validator", "validators", multiple=True, default=[])
+@click.option("--publish", is_flag=True)
 @click.argument("tokens", nargs=-1)
-def manager(cli_ctx, account, network, factory, owner, min_stream_life, validators, tokens):
+def manager(
+    cli_ctx, account, network, factory, owner, min_stream_life, validators, publish, tokens
+):
     if len(tokens) > 20:
         raise click.BadArgumentUsage("Doesn't accept more than 20 tokens")
 
@@ -117,7 +121,7 @@ def manager(cli_ctx, account, network, factory, owner, min_stream_life, validato
 
         cli_ctx.logger.success(f"StreamManager deployed to '{manager.address}'.")
 
-        if click.confirm("Publish"):
+        if publish:
             cli_ctx.project_manager.track_deployment(manager)
             cli_ctx.provider.network.publish_contract(manager.address)
 
@@ -128,5 +132,5 @@ def manager(cli_ctx, account, network, factory, owner, min_stream_life, validato
             min_stream_life,
             list(validators),
             token_addresses,
-            publish=click.confirm("Publish"),
+            publish=publish,
         )
