@@ -102,7 +102,7 @@ def manager(cli_ctx, account, network, factory, owner, min_stream_life, validato
         except KeyError:
             token_addresses.append(token)
 
-    if factory := project.StreamFactory.at(factory):
+    if factory := factory and project.StreamFactory.at(factory):
         if owner:
             raise click.BadArgumentUsage("Cannot use 'owner' with 'factory'")
 
