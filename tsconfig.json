@@ -15,8 +15,8 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "outDir": "js-dist",
-},
+    "outDir": "js-dist"
+  },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "js-dist"]
 }
