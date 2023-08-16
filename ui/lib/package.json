@@ -1,6 +1,6 @@
 {
   "name": "@apeworx/apepay-react",
-  "version": "0.1.0-alpha.9",
+  "version": "0.1.0-beta.0",
   "author": "ApeWorX LTD.",
   "license": "Apache-2.0",
   "type": "module",
