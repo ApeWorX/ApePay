@@ -14,9 +14,8 @@
     "url": "https://github.com/ApeWorX/ApePay/issues"
   },
   "scripts": {
-    "build": "cp -R ../../.build . && tsc && vite build",
-    "clean": "rm -rf dist",
-    "prepack": "cp -R .build dist"
+    "build": "cp -R ../../.build . && tsc && vite build && cp -R .build dist",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "viem": "^1.5.2"
