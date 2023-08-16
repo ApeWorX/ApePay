@@ -1,6 +1,5 @@
 {
   "name": "apepay-js-root",
-  "version": "0.1.0-alpha.0",
   "private": true,
   "workspaces": [
     "sdk/js",
