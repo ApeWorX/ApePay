@@ -1,8 +1,9 @@
 import json
+import importlib
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import partial
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Union, cast
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Union, cast, ClassVar
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
@@ -15,7 +16,7 @@ from ape.exceptions import (
 )
 from ape.types import AddressType, ContractLog, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
-from ethpm_types import ContractType
+from ethpm_types import ContractType, PackageManifest
 from pydantic import ValidationError, validator
 
 from .exceptions import (
@@ -60,26 +61,47 @@ _ValidatorItem = Union[Validator, ContractInstance, str, AddressType]
 class StreamManager(BaseInterfaceModel):
     address: AddressType
     contract_type: Optional[ContractType] = None
+    _local_contracts: ClassVar[Dict[str, ContractType]]
 
     @validator("address", pre=True)
     def normalize_address(cls, value: Any) -> AddressType:
         return cls.conversion_manager.convert(value, AddressType)
 
-    @cached_property
-    def _local_contracts(self) -> Dict[str, ContractType]:
+    @validator("contract_type", pre=True, always=True)
+    def fetch_contract_type(cls, value: Any, values: Dict[str, Any]) -> Optional[ContractType]:
+        # 0. If pre-loaded, default to that type
+        if value:
+            return value
+
+        # 1. If building locally, use that
         try:
-            return self.project_manager.contracts
+            if contract_type := cls.project_manager.contracts.get("StreamManager"):
+                cls._local_contracts = cls.project_manager.contracts
+                return contract_type
+
         except (CompilerError, ProjectError, ValidationError):
-            return {}
+            pass
+
+        # 2. If contract cache has it, use that
+        try:
+            if values.get("address") and (
+                contract_type := cls.chain_manager.contracts.get(values.get("address"))
+            ):
+                return contract_type
+
+        except Exception:
+            pass
+
+        # 3. Most expensive way is through package resources
+        cls._local_contracts = PackageManifest.parse_file(
+            importlib.resources.files("apepay") / "manifest.json"
+        ).contract_types
+        return cls._local_contracts.get("StreamManager")
 
     @property
     def contract(self) -> ContractInstance:
-        return (
-            self.project_manager.StreamManager.at(self.address)
-            if "StreamManager" in self._local_contracts
-            else self.chain_manager.contracts.instance_at(
-                self.address, contract_type=self.contract_type
-            )
+        return self.chain_manager.contracts.instance_at(
+            self.address, contract_type=self.contract_type
         )
 
     def __repr__(self) -> str:
