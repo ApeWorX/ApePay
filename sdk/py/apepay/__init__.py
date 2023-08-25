@@ -250,7 +250,7 @@ class StreamManager(BaseInterfaceModel):
 
     def all_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
         for stream_created_event in self.contract.StreamCreated.range(
-            start_block or self.contract.receipt.block_number,
+            start_block if start_block is not None else self.contract.receipt.block_number,
             self.chain_manager.blocks.head.number,
         ):
             yield Stream.from_event(
