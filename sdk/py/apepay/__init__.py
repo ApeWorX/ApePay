@@ -260,7 +260,7 @@ class StreamManager(BaseInterfaceModel):
             )
 
     def active_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
-        for stream in self.all_streams(start_block):
+        for stream in self.all_streams(start_block=start_block):
             if stream.is_active:
                 yield stream
 
