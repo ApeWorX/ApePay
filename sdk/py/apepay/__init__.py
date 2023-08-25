@@ -248,9 +248,10 @@ class StreamManager(BaseInterfaceModel):
         for stream_id in range(self.contract.num_streams(creator)):
             yield Stream(manager=self, creator=creator, stream_id=stream_id)
 
-    def all_streams(self) -> Iterator["Stream"]:
+    def all_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
         for stream_created_event in self.contract.StreamCreated.range(
-            self.contract.receipt.block_number, self.chain_manager.blocks.head.number
+            start_block if start_block is not None else self.contract.receipt.block_number,
+            self.chain_manager.blocks.head.number,
         ):
             yield Stream.from_event(
                 manager=self,
@@ -258,13 +259,13 @@ class StreamManager(BaseInterfaceModel):
                 is_creation_event=True,
             )
 
-    def active_streams(self) -> Iterator["Stream"]:
-        for stream in self.all_streams():
+    def active_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
+        for stream in self.all_streams(start_block=start_block):
             if stream.is_active:
                 yield stream
 
-    def unclaimed_streams(self) -> Iterator["Stream"]:
-        for stream in self.all_streams():
+    def unclaimed_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
+        for stream in self.all_streams(start_block=start_block):
             if not stream.is_active and stream.amount_unlocked > 0:
                 yield stream
 
