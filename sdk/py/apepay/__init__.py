@@ -6,7 +6,13 @@ from typing import Any, Dict, Iterable, Iterator, List, Optional, Union, cast
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
-from ape.exceptions import CompilerError, ContractLogicError, DecodingError, ProjectError
+from ape.exceptions import (
+    CompilerError,
+    ContractLogicError,
+    DecodingError,
+    ProjectError,
+    ContractNotFoundError,
+)
 from ape.types import AddressType, ContractLog, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from ethpm_types import ContractType
@@ -335,11 +341,18 @@ class Stream(BaseInterfaceModel):
 
     @cached_property
     def token(self) -> ContractInstance:
-        return (
-            self.project_manager.TestToken.at(self.info.token)
-            if "TestToken" in self.project_manager.contracts
-            else self.chain_manager.contracts.instance_at(self.info.token)
-        )
+        if "TestToken" in self.project_manager.contracts:
+            return self.project_manager.TestToken.at(self.info.token)
+
+        try:
+            return self.chain_manager.contracts.instance_at(self.info.token)
+        except ContractNotFoundError as err:
+            try:
+                from ape_tokens.managers import ERC20
+
+                return self.chain_manager.contracts.instance_at(self.info.token, contract_type=ERC20)
+            except ImportError:
+                raise err
 
     @cached_property
     def amount_per_second(self) -> int:
