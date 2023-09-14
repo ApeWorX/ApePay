@@ -430,6 +430,17 @@ class Stream(BaseInterfaceModel):
         return timedelta(seconds=self.contract.time_left(self.creator, self.stream_id))
 
     @property
+    def total_time(self) -> timedelta:
+        info = self.info  # NOTE: Avoid calling contract twice
+        return (
+            # NOTE: `last_pull == start_time` if never pulled
+            datetime.fromtimestamp(info.last_pull)
+            - datetime.fromtimestamp(info.start_time)
+            # NOTE: Measure time-duration of unclaimed amount remaining (locked and unlocked)
+            + timedelta(seconds=int(info.funded_amount / info.amount_per_second))
+        )
+
+    @property
     def is_active(self) -> bool:
         return self.time_left.total_seconds() > 0
 
