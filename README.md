@@ -20,8 +20,8 @@ TODOs:
 
 - [x] Initial implementation
 - [ ] Documentation
-- [ ] Live testing on Sepolia
-- [ ] Production deployment on Arbitrum
+- [x] Live testing on Sepolia
+- [x] Production deployment on Arbitrum
 - [ ] Frontend management console, for managing subscriptions
 
 ### Setup
@@ -34,7 +34,17 @@ Second, make sure to install the plugins:
 $ ape plugins install . --upgrade
 ```
 
-Lastly, since this is an SDK package, install the SDK:
+Next, prior to installing the SDK package, you have to compile the project:
+
+```sh
+$ ape compile
+```
+
+```note
+The SDK package relies on a soft link in [`./sdk/py/apepay/manifest.json`](./sdk/py/apepay/manifest.json)
+```
+
+Lastly, install the SDK package via:
 
 ```sh
 $ poetry install
