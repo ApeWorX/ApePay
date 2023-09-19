@@ -23,7 +23,7 @@ jobs:
       # Upload ape build files for testing
       - uses: actions/upload-artifact@v3
         with:
-          name: build-folder
+          name: ape-build-folder
           path: .build/*.json
 
   py-test:
@@ -38,7 +38,7 @@ jobs:
       # Ape build artifacts used for JS testing
       - uses: actions/download-artifact@v3
         with:
-          name: build-folder
+          name: ape-build-folder
           path: .build/
       # TODO: Until `ApeWorX/github-action` supports poetry install
       - run: pip install .
@@ -55,7 +55,7 @@ jobs:
       # Ape build artifacts used for JS testing
       - uses: actions/download-artifact@v3
         with:
-          name: build-folder
+          name: ape-build-folder
           path: .build/
       - run: npm install .
       - run: npm run build --workspaces --if-present
