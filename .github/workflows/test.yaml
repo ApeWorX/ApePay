@@ -13,24 +13,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ApeWorX/github-action@v2
+      - run: ape compile --size
+      # Upload ape build files for testing
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build-folder
+          path: .build/*.json
+
   py-test:
+    needs: build
+
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
       - uses: foundry-rs/foundry-toolchain@v1
       - uses: ApeWorX/github-action@v2
-      - run: ape compile --size
-      - run: pip install .
-      - run: ape test -s
-      # Upload ape build files for JS testing
-      - uses: actions/upload-artifact@v3
+      # Ape build artifacts used for JS testing
+      - uses: actions/download-artifact@v3
         with:
           name: build-folder
-          path: .build/*.json
+          path: .build/
+      # TODO: Until `ApeWorX/github-action` supports poetry install
+      - run: pip install .
+      - run: ape test -s
 
   js-test:
-    needs: py-test
+    needs: build
 
     runs-on: ubuntu-latest
 
