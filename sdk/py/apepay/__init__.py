@@ -68,7 +68,7 @@ class StreamManager(BaseInterfaceModel):
         return cls.conversion_manager.convert(value, AddressType)
 
     @validator("contract_type", pre=True, always=True)
-    def fetch_contract_type(cls, value: Any, values: Dict[str, Any]) -> Optional[ContractType]:
+    def fetch_contract_type(cls, value: Any, values: Dict[str, Any]) -> ContractType:
         # 0. If pre-loaded, default to that type
         if value:
             return value
@@ -96,7 +96,7 @@ class StreamManager(BaseInterfaceModel):
         cls._local_contracts = PackageManifest.parse_file(
             importlib.resources.files("apepay") / "manifest.json"
         ).contract_types
-        return cls._local_contracts.get("StreamManager")
+        return cls._local_contracts["StreamManager"]
 
     @property
     def contract(self) -> ContractInstance:
@@ -372,7 +372,9 @@ class Stream(BaseInterfaceModel):
             try:
                 from ape_tokens.managers import ERC20
 
-                return self.chain_manager.contracts.instance_at(self.info.token, contract_type=ERC20)
+                return self.chain_manager.contracts.instance_at(
+                    self.info.token, contract_type=ERC20
+                )
             except ImportError:
                 raise err
 
