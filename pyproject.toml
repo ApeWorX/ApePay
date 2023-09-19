@@ -5,6 +5,7 @@ description = "Python SDK for ApePay"
 authors = ["ApeWorX LTD <admin@apeworx.io>"]
 license = "Apache 2.0"
 readme = "README.md"
+include = ["sdk/py/apepay/manifest.json"]
 packages = [
     { include = "apepay", from = "sdk/py" },
 ]
@@ -15,7 +16,7 @@ eth-ape = "^0.6.14"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
-silverback = "^0.1.0b6"
+silverback = "^0.1.0b10"
 
 [build-system]
 requires = ["poetry-core"]
