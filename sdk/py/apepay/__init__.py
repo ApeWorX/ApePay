@@ -85,7 +85,7 @@ class StreamManager(BaseInterfaceModel):
         # 2. If contract cache has it, use that
         try:
             if values.get("address") and (
-                contract_type := cls.chain_manager.contracts.get(values.get("address"))
+                contract_type := cls.chain_manager.contracts.get(values["address"])
             ):
                 return contract_type
 
