@@ -24,7 +24,7 @@ TODOs:
 - [x] Production deployment on Arbitrum
 - [ ] Frontend management console, for managing subscriptions
 
-### Setup
+### Setup (Python)
 
 First, [install Ape](https://docs.apeworx.io/ape/stable/userguides/quickstart.html#installation)
 
@@ -51,6 +51,42 @@ $ poetry install
 ```
 
 Then you are ready to contribute!
+
+### Setup (JS)
+
+In order to contribute to the JS SDK and React component library, or to build the demo app, you need to first follow the [Python Setup instructions](#setup-python) to compile the smart contract package.
+
+Next, you need install the node packages for development:
+
+```sh
+$ npm install
+```
+
+In order to work on the React component library, you need to compile the JS SDK:
+
+```sh
+$ npm run build --workspace=sdk/js
+```
+
+In order to work on the Demo app, you need to compile the JS SDK (like above) as well as compile the React component library:
+
+```sh
+$ npm run build --workspace=ui/lib
+```
+
+Then you are ready to contribute!
+
+To run the demo app in development mode, do the following:
+
+```sh
+$ npm run dev --workspace=ui/app
+```
+
+To build the demo app for production, do the following:
+
+```sh
+$ npm run build --workspace=ui/app
+```
 
 ### Testing
 
