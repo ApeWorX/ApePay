@@ -1,5 +1,11 @@
-import React from "react";
-import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
+import React, { useState, useEffect } from "react";
+import {
+  usePublicClient,
+  useWalletClient,
+  WalletClient,
+  useAccount,
+} from "wagmi";
+import { fetchBalance } from "@wagmi/core";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import { Stream } from "@apeworx/apepay";
@@ -8,6 +14,18 @@ import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
 import "rc-slider/assets/index.css";
 
 function App() {
+  const [balance, setBalance] = useState(null);
+  const account = useAccount();
+
+  useEffect(() => {
+    if (account && account.address) {
+      (async () => {
+        const balanceData = await fetchBalance({ address: account.address });
+        setBalance(balanceData);
+      })();
+    }
+  }, [account]);
+
   return (
     <>
       <div
@@ -18,6 +36,13 @@ function App() {
         }}
       >
         <ConnectButton />
+      </div>
+      <div>
+        {balance && (
+          <p>
+            Current user balance: {balance.formatted} {balance.symbol}
+          </p>
+        )}
       </div>
       <div
         style={{
@@ -51,7 +76,7 @@ function App() {
                 "0x1C277bD41A276F87D3E92bccD50c7364aa2FFc69",
                 3,
                 usePublicClient(),
-                useWalletClient()?.data as WalletClient,
+                useWalletClient()?.data as WalletClient
               )
             }
           />
