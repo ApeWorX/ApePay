@@ -22,6 +22,7 @@ export interface CreateStreamProps {
   reasonCode: string;
   cart?: ReactNode;
   registerStream: (stream: Stream) => void;
+  setTransactionAmount: number;
 }
 
 const CreateStream = (props: CreateStreamProps) => {
@@ -32,7 +33,7 @@ const CreateStream = (props: CreateStreamProps) => {
   });
   // TODO: handle `isError`, `isLoading`
   const maxTime = Number(
-    (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond),
+    (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond)
   );
 
   // TODO: Handle if the user has no token balance
@@ -42,7 +43,7 @@ const CreateStream = (props: CreateStreamProps) => {
     Array.from(Array(maxTimeDays).keys()).map((v: number) => [
       v + 1,
       `${v + 1}`,
-    ]),
+    ])
   );
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
@@ -50,7 +51,7 @@ const CreateStream = (props: CreateStreamProps) => {
     props.streamManagerAddress,
     // TODO: handle `isError`, `isLoading`
     usePublicClient(),
-    useWalletClient()?.data as WalletClient,
+    useWalletClient()?.data as WalletClient
   );
 
   const { config: approvalConfig } = usePrepareContractWrite({
@@ -75,9 +76,19 @@ const CreateStream = (props: CreateStreamProps) => {
   const createStream = () => {
     // NOTE: This function should move away from this component
     sm.create(props.tokenAddress, props.amountPerSecond, props.reasonCode).then(
-      props.registerStream,
+      props.registerStream
     );
   };
+
+
+  // Calculate transaction amount to be passed as props
+  const calculatedAmount = (
+    (selectedTime * props.amountPerSecond) /
+    Math.pow(10, tokenData?.decimals || 0)
+  ).toFixed(
+    Math.min(tokenData?.decimals || 0, 3)
+  );
+  props.setTransactionAmount(calculatedAmount);
 
   return (
     <div id="CreateStream">
@@ -86,7 +97,6 @@ const CreateStream = (props: CreateStreamProps) => {
         {/* @ts-ignore */}
         {props.cart && props.cart}
       </div>
-
       {/* Part 1: The user needs to decide how long they want the stream to run for  */}
       <div id="CreateStream-lifetime">
         <Slider
@@ -102,7 +112,6 @@ const CreateStream = (props: CreateStreamProps) => {
         />
       </div>
       <br />
-
       {/* Part 2: The user approves exactly X tokens, corresponding to stream life   */}
       <div id="CreateStream-approve">
         <button disabled={!approveStream} onClick={() => approveStream?.()}>
@@ -110,12 +119,11 @@ const CreateStream = (props: CreateStreamProps) => {
             (selectedTime * props.amountPerSecond) /
             Math.pow(10, tokenData?.decimals || 0)
           ).toFixed(
-            Math.min(tokenData?.decimals || 0, 3),
+            Math.min(tokenData?.decimals || 0, 3)
           )} ${tokenData?.symbol}`}
         </button>
       </div>
       <br />
-
       {/* Part 3: The user creates their stream, using the given reason/product code */}
       <div id="CreateStream-create">
         <button onClick={createStream}>
