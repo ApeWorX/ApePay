@@ -6,7 +6,7 @@ from enum import Enum
 import click
 from ape.types import AddressType
 from apepay import Stream, StreamManager
-from silverback import SilverBackApp
+from silverback import SilverbackApp
 
 from .settings import Settings
 
@@ -39,7 +39,7 @@ SM = StreamManager(
     or click.prompt("What address to use?", type=AddressType)
 )
 
-app = SilverBackApp()
+app = SilverbackApp()
 
 
 async def create_task_by_status(stream: Stream):
