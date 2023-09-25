@@ -168,7 +168,7 @@ const CreateStream = (props: CreateStreamProps) => {
       return (
         <div id="CreateStream">
           <p> Not enough tokens to pay for stream</p>
-          <button onclick="window.location.href='https://app.uniswap.org/'">
+          <button onClick="window.location.href='https://app.uniswap.org/'">
             Go to Uniswap
           </button>
         </div>
