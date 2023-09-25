@@ -26,9 +26,9 @@ export interface CreateStreamProps {
 }
 
 const CreateStream = (props: CreateStreamProps) => {
-  const [balance, setBalance] = useState(null);
-  const [tokenBalance, setTokenBalance] = useState(null);
-  const [gasPrice, setGasPrice] = useState(null);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null);
+  const [gasPrice, setGasPrice] = useState<number | null>(null);
   const { data, isError, isLoading } = useFeeData();
   const { address } = useAccount();
 
@@ -146,7 +146,9 @@ const CreateStream = (props: CreateStreamProps) => {
         <div id="CreateStream">
           <p> Not enough native tokens to pay for transaction fees</p>
           <button
-            onClick={() => (window.location.href = "https://hop.exchange/")}
+            onClick={(e) => {
+              window.location.href = "https://hop.exchange/";
+            }}
           >
             Go to Hop Exchange
           </button>
@@ -168,7 +170,11 @@ const CreateStream = (props: CreateStreamProps) => {
       return (
         <div id="CreateStream">
           <p> Not enough tokens to pay for stream</p>
-          <button onClick="window.location.href='https://app.uniswap.org/'">
+          <button
+            onClick={(e) => {
+              window.location.href = "https://app.uniswap.org/";
+            }}
+          >
             Go to Uniswap
           </button>
         </div>
