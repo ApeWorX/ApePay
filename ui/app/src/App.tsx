@@ -39,28 +39,6 @@ function App() {
           registerStream={(s: Stream) => console.log(s)}
         />
       </div>
-      {/* <ul
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "20vh",
-        }}
-      >
-        <li>
-          <StreamStatus
-            stream={
-              new Stream(
-                "0xb5ED1eF2a90527b402Cd7e7d415027CB94E1Db4E",
-                "0x1C277bD41A276F87D3E92bccD50c7364aa2FFc69",
-                3,
-                usePublicClient(),
-                useWalletClient()?.data as WalletClient
-              )
-            }
-          />
-        </li>
-      </ul> */}
     </>
   );
 }

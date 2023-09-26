@@ -26,22 +26,28 @@ export interface CreateStreamProps {
 }
 
 const CreateStream = (props: CreateStreamProps) => {
-  const [balance, setBalance] = useState<number | null>(null);
+  const [nativeBalance, setNativeBalance] = useState<number | null>(null);
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
   const [gasPrice, setGasPrice] = useState<number | null>(null);
-  const { data, isError, isLoading } = useFeeData();
+  const { data } = useFeeData();
   const { address } = useAccount();
 
-  // Set balances for native and stream tokens
+  // Set balances for native tokens
   useEffect(() => {
     if (address) {
       (async () => {
-        // Fetch and set native balance as integer
-        const balanceData = await fetchBalance({ address });
-        if (balanceData && balanceData.formatted !== undefined) {
-          setBalance(Number(balanceData.formatted));
+        const nativeBalanceData = await fetchBalance({ address });
+        if (nativeBalanceData && nativeBalanceData.formatted !== undefined) {
+          setNativeBalance(Number(nativeBalanceData.formatted));
         }
-        // Fetch and set token balance as integer
+      })();
+    }
+  }, [address]);
+
+  // Set balances for stream tokens
+  useEffect(() => {
+    if (address) {
+      (async () => {
         const tokenBalanceData = await fetchBalance({
           address,
           token: props.tokenAddress,
@@ -60,7 +66,7 @@ const CreateStream = (props: CreateStreamProps) => {
     } else {
       setGasPrice(null);
     }
-  }, [data, isError, isLoading]);
+  }, [data]);
 
   const { data: tokenData } = useBalance({
     address,
@@ -130,24 +136,27 @@ const CreateStream = (props: CreateStreamProps) => {
     setIsApproved(true);
   };
 
+
   const renderBalanceCheck = () => {
     // Step 1: Check gas and native token balance
-    if (gasPrice === null || balance === null) {
+    if (gasPrice === null || nativeBalance === null) {
       return (
         <div id="CreateStream">
-          <p>(Step 1/2) Checking gas and native token balance...</p>
+          <p>Checking gas and native token balance...</p>
         </div>
       );
     }
 
-    // Step 2: Check if there are enough native tokens for fees
-    if (gasPrice >= balance) {
+    // Step 2: Check if there are enough native tokens for fees;
+    // gasPrice is altered as we're comparing gwei to eth; WIP
+    // TODO: get closer to real life estimation of fees
+    if (gasPrice / 100000 >= nativeBalance) {
       return (
         <div id="CreateStream">
           <p> Not enough native tokens to pay for transaction fees</p>
           <button
             onClick={(e) => {
-              window.location.href = "https://hop.exchange/";
+              window.open("https://hop.exchange/", "_blank");
             }}
           >
             Go to Hop Exchange
@@ -160,7 +169,7 @@ const CreateStream = (props: CreateStreamProps) => {
     if (transactionAmount === null || tokenBalance === null) {
       return (
         <div id="CreateStream">
-          <p>(Step 2/2) Checking stream token balance...</p>
+          <p>Checking stream token balance...</p>
         </div>
       );
     }
@@ -172,7 +181,7 @@ const CreateStream = (props: CreateStreamProps) => {
           <p> Not enough tokens to pay for stream</p>
           <button
             onClick={(e) => {
-              window.location.href = "https://app.uniswap.org/";
+              window.open("https://app.uniswap.org/", "_blank");
             }}
           >
             Go to Uniswap
