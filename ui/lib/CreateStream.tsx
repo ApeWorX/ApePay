@@ -124,9 +124,14 @@ const CreateStream = (props: CreateStreamProps) => {
     write: approveStream,
   } = useContractWrite(approvalConfig);
 
+  // random string for the demo;
+  const renderReasonCode = () => {
+    return Math.random().toString(36).substring(7);
+  };
+
   const createStream = async () => {
-    // Trigger function to get reason string
-    const reasonString = props.renderReasonCode();
+    // Trigger function to get reason string (to be updated with props.renderReasonCode)
+    const reasonString = renderReasonCode();
     // Send and wait for stream open to complete
     const stream = await sm.create(
       props.tokenAddress,
