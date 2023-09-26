@@ -29,10 +29,10 @@ const CreateStream = (props: CreateStreamProps) => {
   const [nativeBalance, setNativeBalance] = useState<number | null>(null);
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
   const [gasPrice, setGasPrice] = useState<number | null>(null);
-  const { data } = useFeeData();
+  const { data: feeData } = useFeeData();
   const { address } = useAccount();
 
-  // Set balances for native tokens
+  // Get balances for native tokens
   useEffect(() => {
     if (address) {
       (async () => {
@@ -44,7 +44,7 @@ const CreateStream = (props: CreateStreamProps) => {
     }
   }, [address]);
 
-  // Set balances for stream tokens
+  // Get balances for stream tokens
   useEffect(() => {
     if (address) {
       (async () => {
@@ -61,12 +61,16 @@ const CreateStream = (props: CreateStreamProps) => {
 
   // Get gas price
   useEffect(() => {
-    if (data && data.formatted && data.formatted.gasPrice !== undefined) {
-      setGasPrice(Number(data.formatted.gasPrice));
+    if (
+      feeData &&
+      feeData.formatted &&
+      feeData.formatted.gasPrice !== undefined
+    ) {
+      setGasPrice(Number(feeData.formatted.gasPrice));
     } else {
       setGasPrice(null);
     }
-  }, [data]);
+  }, [feeData]);
 
   const { data: tokenData } = useBalance({
     address,
@@ -113,12 +117,24 @@ const CreateStream = (props: CreateStreamProps) => {
     functionName: "approve",
     args: [sm.address, selectedTime * props.amountPerSecond],
   });
-  const { write: approveStream } = useContractWrite(approvalConfig);
-  const createStream = () => {
-    // NOTE: This function should move away from this component
-    sm.create(props.tokenAddress, props.amountPerSecond, props.reasonCode).then(
-      props.registerStream
+  const {
+    isLoading,
+    isSuccess,
+    isError,
+    write: approveStream,
+  } = useContractWrite(approvalConfig);
+
+  const createStream = async () => {
+    // Trigger function to get reason string
+    const reasonString = props.renderReasonCode();
+    // Send and wait for stream open to complete
+    const stream = await sm.create(
+      props.tokenAddress,
+      props.amountPerSecond,
+      reasonString
     );
+    // then update props.registerStream
+    props.registerStream(stream);
   };
 
   // Set transaction amount
@@ -129,35 +145,58 @@ const CreateStream = (props: CreateStreamProps) => {
     ).toFixed(Math.min(tokenData?.decimals || 0, 3))
   );
 
-  // Open stream button only if Approve button has been clicked
-  const [isApproved, setIsApproved] = useState(false);
-  const onApproveClick = () => {
-    approveStream?.();
-    setIsApproved(true);
+  // Set card steps logic
+  const [selectedToken, setSelectedToken] = useState("USDC");
+  const [currentStep, setCurrentStep] = useState(0);
+  const validateStep1 = () => {
+    if (selectedToken) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      alert("Please select a valid payment token.");
+    }
+  };
+  const validateStep2 = () => {
+    setCurrentStep(currentStep + 1);
   };
 
+  const Step1 = () => {
+    return (
+      <div>
+        <h3>Review Cart and Select Payment Token</h3>
+        <div>
+          {/* @ts-ignore */}
+          {props.cart && props.cart}
+        </div>
+        <select
+          value={selectedToken}
+          onChange={(e) => setSelectedToken(e.target.value)}
+        >
+          <option value="USDC">USDC</option>
+          <option value="">Matic (Coming soon)</option>
+          <option value="">ETH (Coming soon)</option>
+        </select>
+        <button onClick={validateStep1}>Next</button>
+      </div>
+    );
+  };
 
-  const renderBalanceCheck = () => {
-    // Step 1: Check gas and native token balance
+  const Step2 = () => {
+    // 1: Check if gas price and native balance are still loading
     if (gasPrice === null || nativeBalance === null) {
       return (
-        <div id="CreateStream">
+        <div>
           <p>Checking gas and native token balance...</p>
         </div>
       );
     }
 
-    // Step 2: Check if there are enough native tokens for fees;
-    // gasPrice is altered as we're comparing gwei to eth; WIP
-    // TODO: get closer to real life estimation of fees
-    if (gasPrice / 100000 >= nativeBalance) {
+    // 2: Check for enough native tokens for transaction fees
+    if (gasPrice / 1000 >= nativeBalance) {
       return (
-        <div id="CreateStream">
-          <p> Not enough native tokens to pay for transaction fees</p>
+        <div>
+          <h3>Not enough native tokens to pay for transaction fee</h3>
           <button
-            onClick={(e) => {
-              window.open("https://hop.exchange/", "_blank");
-            }}
+            onClick={() => window.open("https://hop.exchange/", "_blank")}
           >
             Go to Hop Exchange
           </button>
@@ -165,24 +204,22 @@ const CreateStream = (props: CreateStreamProps) => {
       );
     }
 
-    // Step 3: Check stream token balance
+    // 3: Check if the transaction amount and token balance are still loading
     if (transactionAmount === null || tokenBalance === null) {
       return (
-        <div id="CreateStream">
+        <div>
           <p>Checking stream token balance...</p>
         </div>
       );
     }
 
-    // Step 4: Check if the user has enough stream tokens
+    // 4: Check for enough of the selected token for the stream
     if (transactionAmount >= tokenBalance) {
       return (
-        <div id="CreateStream">
-          <p> Not enough tokens to pay for stream</p>
+        <div>
+          <h3>Not enough tokens to pay for stream</h3>
           <button
-            onClick={(e) => {
-              window.open("https://app.uniswap.org/", "_blank");
-            }}
+            onClick={() => window.open("https://app.uniswap.org/", "_blank")}
           >
             Go to Uniswap
           </button>
@@ -190,15 +227,10 @@ const CreateStream = (props: CreateStreamProps) => {
       );
     }
 
-    // Step 5: If all checks pass, show the modal
+    // 5: If all checks pass, show the slider for stream length
     return (
-      <div id="CreateStream">
-        <div>
-          {/* Display: What is the product they are paying for? With what token? */}
-          {/* @ts-ignore */}
-          {props.cart && props.cart}
-        </div>
-        {/* Part 1: The user needs to decide how long they want the stream to run for  */}
+      <div>
+        <h3>Select Stream Length & approve transaction</h3>
         <div id="CreateStream-lifetime">
           <Slider
             min={1}
@@ -213,27 +245,65 @@ const CreateStream = (props: CreateStreamProps) => {
           />
         </div>
         <br />
-        {/* Part 2: The user approves exactly X tokens, corresponding to stream life   */}
         <div id="CreateStream-approve">
-          <button disabled={!approveStream} onClick={onApproveClick}>
+          <button
+            onClick={approveStream}
+            disabled={isSuccess}
+            style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
+          >
             {`Approve ${transactionAmount} ${tokenData?.symbol}`}
           </button>
+          {isLoading && (
+            <div>
+              Waiting for transaction confirmation to proceed to next step
+            </div>
+          )}
+          {isError && <div>Transaction Error.</div>}
+          {isSuccess && (
+            <div>
+              <h3>
+                Transaction has been confirmed. You can proceed to deployment.
+              </h3>
+              <button onClick={validateStep2}>Next</button>
+            </div>
+          )}
         </div>
-        <br />
-        {/* Part 3: The user creates their stream, using the given reason/product code */}
-        <div id="CreateStream-create">
-          <button disabled={!isApproved} onClick={createStream}>
-            {`Open Stream for ${selectedTime / SECS_PER_DAY} day${
-              selectedTime !== SECS_PER_DAY ? "s" : ""
-            }`}
-          </button>
-        </div>
-        <br />
       </div>
     );
   };
 
-  return <div>{renderBalanceCheck()}</div>;
+  const Step3 = () => {
+    return (
+      <div id="CreateStream-create">
+        <h3>Review params & Open Stream</h3>
+        <div>
+          <p>
+            <strong>Stream Manager Address:</strong>{" "}
+            {props.streamManagerAddress}
+          </p>
+          <p>
+            <strong>Token Address:</strong> {props.tokenAddress}
+          </p>
+          <p>
+            <strong>Amount Per Second:</strong> {props.amountPerSecond}
+          </p>
+        </div>
+        <button onClick={createStream}>
+          {`Open Stream for ${selectedTime / SECS_PER_DAY} day${
+            selectedTime !== SECS_PER_DAY ? "s" : ""
+          }`}
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {currentStep === 0 && <Step1 />}
+      {currentStep === 1 && <Step2 />}
+      {currentStep === 2 && <Step3 />}
+    </div>
+  );
 };
 
 export default CreateStream;
