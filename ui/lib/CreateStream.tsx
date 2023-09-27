@@ -34,7 +34,7 @@ const CreateStream = (props: CreateStreamProps) => {
 
   // Get balances for native tokens (or set to 1 after 5 seconds and keep fetching)
   useEffect(() => {
-    let balanceCountdown;
+    let balanceCountdown: NodeJS.Timeout;
     let balanceCountdownTriggered = false;
 
     if (address) {
@@ -62,7 +62,7 @@ const CreateStream = (props: CreateStreamProps) => {
 
   // Get balances for stream tokens (or set to transactionamount+1 after 5 seconds and keep fetching)
   useEffect(() => {
-    let tokenCountdown;
+    let tokenCountdown: NodeJS.Timeout;
     let tokenCountdownTriggered = false;
 
     tokenCountdown = setTimeout(() => {
@@ -90,7 +90,7 @@ const CreateStream = (props: CreateStreamProps) => {
 
   // Get gas price (or set to 0 after 5 seconds and keep fetching)
   useEffect(() => {
-    let gasCountdown;
+    let gasCountdown: NodeJS.Timeout;
     let gasCountdownTriggered = false;
 
     gasCountdown = setTimeout(() => {
