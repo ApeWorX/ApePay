@@ -151,8 +151,20 @@ const CreateStream = (props: CreateStreamProps) => {
   );
 
   // Set card steps logic
-  const [selectedToken, setSelectedToken] = useState("USDC");
+  const [selectedToken, setSelectedToken] = useState(null);
+  const [tokens, setTokens] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    const fetchTokens = async () => {
+      const response = await fetch("./TokenList.json");
+      const data = await response.json();
+      setTokens(data.tokens);
+    };
+
+    fetchTokens();
+  }, []);
+
   const validateStep1 = () => {
     if (selectedToken) {
       setCurrentStep(currentStep + 1);
@@ -176,9 +188,11 @@ const CreateStream = (props: CreateStreamProps) => {
           value={selectedToken}
           onChange={(e) => setSelectedToken(e.target.value)}
         >
-          <option value="USDC">USDC</option>
-          <option value="">Matic (Coming soon)</option>
-          <option value="">ETH (Coming soon)</option>
+          {tokens.map((token) => (
+            <option key={token.address} value={token.address}>
+              {token.symbol}
+            </option>
+          ))}
         </select>
         <button onClick={validateStep1}>Next</button>
       </div>
@@ -225,7 +239,11 @@ const CreateStream = (props: CreateStreamProps) => {
           <h3>Not enough tokens to pay for stream</h3>
           <button
             onClick={() => {
-              const uniswapURL = `https://app.uniswap.org/#/swap?outputCurrency=${props.tokenAddress}&exactAmount=${transactionAmount - tokenBalance}&exactField=output`;
+              const uniswapURL = `https://app.uniswap.org/#/swap?outputCurrency=${
+                props.tokenAddress
+              }&exactAmount=${
+                transactionAmount - tokenBalance
+              }&exactField=output`;
               window.open(uniswapURL, "_blank");
             }}
           >
