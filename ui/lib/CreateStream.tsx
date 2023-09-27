@@ -32,44 +32,86 @@ const CreateStream = (props: CreateStreamProps) => {
   const { data: feeData } = useFeeData();
   const { address } = useAccount();
 
-  // Get balances for native tokens
+  // Get balances for native tokens (or set to 1 after 5 seconds and keep fetching)
   useEffect(() => {
+    let balanceCountdown;
+    let balanceCountdownTriggered = false;
+
     if (address) {
+      balanceCountdown = setTimeout(() => {
+        setNativeBalance(1);
+        balanceCountdownTriggered = true;
+      }, 5000);
+
       (async () => {
         const nativeBalanceData = await fetchBalance({ address });
         if (nativeBalanceData && nativeBalanceData.formatted !== undefined) {
+          if (!balanceCountdownTriggered) {
+            clearTimeout(balanceCountdown);
+          }
+
           setNativeBalance(Number(nativeBalanceData.formatted));
         }
       })();
     }
+
+    return () => {
+      clearTimeout(balanceCountdown);
+    };
   }, [address]);
 
-  // Get balances for stream tokens
+  // Get balances for stream tokens (or set to transactionamount+1 after 5 seconds and keep fetching)
   useEffect(() => {
-    if (address) {
-      (async () => {
-        const tokenBalanceData = await fetchBalance({
-          address,
-          token: props.tokenAddress,
-        });
-        if (tokenBalanceData && tokenBalanceData.formatted !== undefined) {
-          setTokenBalance(Number(tokenBalanceData.formatted));
+    let tokenCountdown;
+    let tokenCountdownTriggered = false;
+
+    tokenCountdown = setTimeout(() => {
+      setTokenBalance(1);
+      tokenCountdownTriggered = true;
+    }, 5000);
+
+    (async () => {
+      const tokenBalanceData = await fetchBalance({
+        address,
+        token: props.tokenAddress,
+      });
+      if (tokenBalanceData && tokenBalanceData.formatted !== undefined) {
+        if (!tokenCountdownTriggered) {
+          clearTimeout(tokenCountdown);
         }
-      })();
-    }
+        setTokenBalance(Number(tokenBalanceData.formatted));
+      }
+    })();
+
+    return () => {
+      clearTimeout(tokenCountdown);
+    };
   }, [address]);
 
-  // Get gas price
+  // Get gas price (or set to 0 after 5 seconds and keep fetching)
   useEffect(() => {
+    let gasCountdown;
+    let gasCountdownTriggered = false;
+
+    gasCountdown = setTimeout(() => {
+      setGasPrice(1);
+      gasCountdownTriggered = true;
+    }, 5000);
+
     if (
       feeData &&
       feeData.formatted &&
       feeData.formatted.gasPrice !== undefined
     ) {
+      if (!gasCountdownTriggered) {
+        clearTimeout(gasCountdown);
+      }
       setGasPrice(Number(feeData.formatted.gasPrice));
-    } else {
-      setGasPrice(null);
     }
+
+    return () => {
+      clearTimeout(gasCountdown);
+    };
   }, [feeData]);
 
   const { data: tokenData } = useBalance({
@@ -92,6 +134,7 @@ const CreateStream = (props: CreateStreamProps) => {
   );
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
+  console.log(gasPrice + "nat " + nativeBalance + "tok" + tokenBalance);
   const sm = new StreamManager(
     props.streamManagerAddress,
     // TODO: handle `isError`, `isLoading`
@@ -151,10 +194,13 @@ const CreateStream = (props: CreateStreamProps) => {
   );
 
   // Set card steps logic
-  const [selectedToken, setSelectedToken] = useState(null);
+  const [selectedToken, setSelectedToken] = useState(
+    "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
+  );
   const [tokens, setTokens] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
 
+  // Fetch tokens from JSON
   useEffect(() => {
     const fetchTokens = async () => {
       const response = await fetch("./TokenList.json");
