@@ -70,18 +70,20 @@ const CreateStream = (props: CreateStreamProps) => {
       tokenCountdownTriggered = true;
     }, 5000);
 
-    (async () => {
-      const tokenBalanceData = await fetchBalance({
-        address,
-        token: props.tokenAddress,
-      });
-      if (tokenBalanceData && tokenBalanceData.formatted !== undefined) {
-        if (!tokenCountdownTriggered) {
-          clearTimeout(tokenCountdown);
+    if (address) {
+      (async () => {
+        const tokenBalanceData = await fetchBalance({
+          address,
+          token: props.tokenAddress,
+        });
+        if (tokenBalanceData && tokenBalanceData.formatted !== undefined) {
+          if (!tokenCountdownTriggered) {
+            clearTimeout(tokenCountdown);
+          }
+          setTokenBalance(Number(tokenBalanceData.formatted));
         }
-        setTokenBalance(Number(tokenBalanceData.formatted));
-      }
-    })();
+      })();
+    }
 
     return () => {
       clearTimeout(tokenCountdown);
