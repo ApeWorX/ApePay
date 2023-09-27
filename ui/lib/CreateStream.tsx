@@ -224,7 +224,10 @@ const CreateStream = (props: CreateStreamProps) => {
         <div>
           <h3>Not enough tokens to pay for stream</h3>
           <button
-            onClick={() => window.open("https://app.uniswap.org/", "_blank")}
+            onClick={() => {
+              const uniswapURL = `https://app.uniswap.org/#/swap?outputCurrency=${props.tokenAddress}&exactAmount=${transactionAmount - tokenBalance}&exactField=output`;
+              window.open(uniswapURL, "_blank");
+            }}
           >
             Go to Uniswap
           </button>
@@ -277,20 +280,19 @@ const CreateStream = (props: CreateStreamProps) => {
     );
   };
 
+  const daysPaid = transactionAmount / props.amountPerSecond;
+
   const Step3 = () => {
     return (
       <div id="CreateStream-create">
         <h3>Review params & Open Stream</h3>
         <div>
           <p>
-            <strong>Stream Manager Address:</strong>{" "}
-            {props.streamManagerAddress}
+            <strong>Total approval amount:</strong> {transactionAmount}{" "}
+            {tokenData?.symbol}
           </p>
           <p>
-            <strong>Token Address:</strong> {props.tokenAddress}
-          </p>
-          <p>
-            <strong>Amount Per Second:</strong> {props.amountPerSecond}
+            <strong>Days paid:</strong> {daysPaid}
           </p>
         </div>
         <button onClick={createStream}>
