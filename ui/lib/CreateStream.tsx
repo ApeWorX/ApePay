@@ -42,7 +42,7 @@ const CreateStream = (props: CreateStreamProps) => {
       balanceCountdown = setTimeout(() => {
         setNativeBalance(1);
         balanceCountdownTriggered = true;
-      }, 5000);
+      }, 2000);
 
       (async () => {
         const nativeBalanceData = await fetchBalance({ address });
@@ -69,7 +69,7 @@ const CreateStream = (props: CreateStreamProps) => {
       tokenCountdown = setTimeout(() => {
         setTokenBalance(1);
         tokenCountdownTriggered = true;
-      }, 5000);
+      }, 2000);
 
       (async () => {
         const tokenBalanceData = await fetchBalance({
@@ -98,7 +98,7 @@ const CreateStream = (props: CreateStreamProps) => {
     gasCountdown = setTimeout(() => {
       setGasPrice(1);
       gasCountdownTriggered = true;
-    }, 5000);
+    }, 2000);
 
     if (
       feeData &&
@@ -188,21 +188,37 @@ const CreateStream = (props: CreateStreamProps) => {
   });
 
   // random string for the demo;
-  const renderReasonCode = () => {
+  const renderReasonCode = async () => {
     return Math.random().toString(36).substring(7);
   };
 
-  const createStream = async () => {
-    // Trigger function to get reason string (to be updated with props.renderReasonCode)
-    const reasonString = renderReasonCode();
-    // Send and wait for stream open to complete
-    const stream = await sm.create(
-      props.tokenAddress,
-      props.amountPerSecond,
-      reasonString
-    );
-    // then update props.registerStream
-    props.registerStream(stream);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [processTxError, setProcessTxError] = useState(null);
+  const [isProcessed, setIsProcessed] = useState<boolean>(false);
+
+  const createStream = () => {
+    setIsProcessing(true);
+
+    renderReasonCode()
+      .then((reasonString) => {
+        return sm
+          .create(props.tokenAddress, props.amountPerSecond, reasonString)
+          .then((result) => {
+            props.registerStream(result);
+            setIsProcessing(false);
+            setIsProcessed(true);
+          })
+          .catch((error) => {
+            setProcessTxError(error);
+            setIsProcessing(false);
+            setIsProcessed(false);
+          });
+      })
+      .catch((error) => {
+        setProcessTxError(error);
+        setIsProcessing(false);
+        setIsProcessed(false);
+      });
   };
 
   // Set transaction amount
@@ -390,6 +406,9 @@ const CreateStream = (props: CreateStreamProps) => {
             selectedTime !== SECS_PER_DAY ? "s" : ""
           }`}
         </button>
+        {isProcessing && <div> Processing </div>}
+        {processTxError && <div>Error: {processTxError.message}</div>}
+        {isProcessed && <div> Stream has been created. </div>}
       </div>
     );
   };
