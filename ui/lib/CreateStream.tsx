@@ -9,6 +9,7 @@ import {
   usePrepareContractWrite,
   useContractWrite,
   useFeeData,
+  useWaitForTransaction,
 } from "wagmi";
 import { fetchBalance } from "@wagmi/core";
 import StreamManager, { Stream } from "@apeworx/apepay";
@@ -49,7 +50,6 @@ const CreateStream = (props: CreateStreamProps) => {
           if (!balanceCountdownTriggered) {
             clearTimeout(balanceCountdown);
           }
-
           setNativeBalance(Number(nativeBalanceData.formatted));
         }
       })();
@@ -65,12 +65,12 @@ const CreateStream = (props: CreateStreamProps) => {
     let tokenCountdown: NodeJS.Timeout;
     let tokenCountdownTriggered = false;
 
-    tokenCountdown = setTimeout(() => {
-      setTokenBalance(1);
-      tokenCountdownTriggered = true;
-    }, 5000);
-
     if (address) {
+      tokenCountdown = setTimeout(() => {
+        setTokenBalance(1);
+        tokenCountdownTriggered = true;
+      }, 5000);
+
       (async () => {
         const tokenBalanceData = await fetchBalance({
           address,
@@ -136,7 +136,8 @@ const CreateStream = (props: CreateStreamProps) => {
   );
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
-  console.log(gasPrice + "nat " + nativeBalance + "tok" + tokenBalance);
+  console.log(gasPrice / 10000 + "nat " + nativeBalance + "tok" + tokenBalance);
+
   const sm = new StreamManager(
     props.streamManagerAddress,
     // TODO: handle `isError`, `isLoading`
@@ -162,12 +163,31 @@ const CreateStream = (props: CreateStreamProps) => {
     functionName: "approve",
     args: [sm.address, selectedTime * props.amountPerSecond],
   });
+
   const {
+    data,
     isLoading,
+    // isSuccess: Make sure transaction has been approved by user (used to get tx hash)
     isSuccess,
     isError,
     write: approveStream,
   } = useContractWrite(approvalConfig);
+
+  // Then make sure transaction has been processed once it has been approved by user
+  const [txHash, setTxHash] = useState(null);
+  useEffect(() => {
+    if (isSuccess && data?.hash) {
+      setTxHash(data?.hash);
+    }
+  }, [isSuccess, data?.hash]);
+
+  const {
+    error: txError,
+    isSuccess: txSuccess,
+    isLoading: txLoading,
+  } = useWaitForTransaction({
+    hash: txHash,
+  });
 
   // random string for the demo;
   const renderReasonCode = () => {
@@ -196,6 +216,7 @@ const CreateStream = (props: CreateStreamProps) => {
   );
 
   // Set card steps logic
+  // Set default selected token to USDC
   const [selectedToken, setSelectedToken] = useState(
     "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
   );
@@ -263,7 +284,7 @@ const CreateStream = (props: CreateStreamProps) => {
     }
 
     // 2: Check for enough native tokens for transaction fees
-    if (gasPrice / 1000 >= nativeBalance) {
+    if (gasPrice / 10000 >= nativeBalance) {
       return (
         <div>
           <h3>Not enough native tokens to pay for transaction fee</h3>
@@ -332,16 +353,19 @@ const CreateStream = (props: CreateStreamProps) => {
           >
             {`Approve ${transactionAmount} ${tokenData?.symbol}`}
           </button>
-          {isLoading && (
+          {isLoading && <div>Waiting for your confirmation</div>}
+          {isError && <div>You did not confirm the transaction</div>}
+          {txLoading && (
             <div>
-              Waiting for transaction confirmation to proceed to next step
+              Transaction approved; now waiting for transaction to be processed!
             </div>
           )}
-          {isError && <div>Transaction Error.</div>}
-          {isSuccess && (
+          {txError && <div>Transaction process error.</div>}
+          {txSuccess && (
             <div>
               <h3>
-                Transaction has been confirmed. You can proceed to deployment.
+                Transaction has been confirmed and processed. You can proceed to
+                deployment.
               </h3>
               <button onClick={validateStep2}>Next</button>
             </div>
