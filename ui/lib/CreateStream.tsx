@@ -247,6 +247,11 @@ const CreateStream = (props: CreateStreamProps) => {
   const validateStep2 = () => {
     setCurrentStep(currentStep + 1);
   };
+  useEffect(() => {
+    if (txSuccess) {
+      validateStep2();
+    }
+  }, [txSuccess]);
 
   const Step1 = () => {
     return (
@@ -355,19 +360,11 @@ const CreateStream = (props: CreateStreamProps) => {
           {isError && <div>You did not confirm the transaction</div>}
           {txLoading && (
             <div>
-              Transaction approved; now waiting for transaction to be processed!
+              Transaction approved; You will be redirected once it has been
+              processed.
             </div>
           )}
           {txError && <div>Transaction process error.</div>}
-          {txSuccess && (
-            <div>
-              <h3>
-                Transaction has been confirmed and processed. You can proceed to
-                deployment.
-              </h3>
-              <button onClick={validateStep2}>Next</button>
-            </div>
-          )}
         </div>
       </div>
     );
