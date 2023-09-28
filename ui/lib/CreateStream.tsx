@@ -193,7 +193,7 @@ const CreateStream = (props: CreateStreamProps) => {
   };
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [processTxError, setProcessTxError] = useState(null);
+  const [processTxError, setProcessTxError] = useState<Error | null>(null);
   const [isProcessed, setIsProcessed] = useState<boolean>(false);
 
   const createStream = () => {
