@@ -9,7 +9,7 @@
       "symbol": "USDC.e"
     },
     {
-      "chainId": 58008,
+      "chainId": 42161,
       "address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
       "name": "USDCoin",
       "decimals": 6,
