@@ -134,3 +134,11 @@ def manager(
             token_addresses,
             publish=publish,
         )
+
+
+@cli.command(cls=NetworkBoundCommand, short_help="Deploy a Mock token")
+@ape_cli_context()
+@account_option()
+@network_option()
+def token(cli_ctx, account, network):
+    account.deploy(project.TestToken)
