@@ -21,9 +21,9 @@ export interface CreateStreamProps {
   // TODO: Support dynamically fetching list of accepted tokens in sdk::StreamManager
   tokenAddress: Address;
   amountPerSecond: number;
-  reasonCode: string;
   cart?: ReactNode;
   registerStream: (stream: Stream) => void;
+  renderReasonCode: () => Promise<string>;
 }
 
 const CreateStream = (props: CreateStreamProps) => {
@@ -187,11 +187,6 @@ const CreateStream = (props: CreateStreamProps) => {
     hash: txHash as `0x${string}`,
   });
 
-  // random string for the demo;
-  const renderReasonCode = async () => {
-    return Math.random().toString(36).substring(7);
-  };
-
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processTxError, setProcessTxError] = useState<Error | null>(null);
   const [isProcessed, setIsProcessed] = useState<boolean>(false);
@@ -199,8 +194,10 @@ const CreateStream = (props: CreateStreamProps) => {
   const createStream = () => {
     setIsProcessing(true);
 
-    renderReasonCode()
+    props
+      .renderReasonCode()
       .then((reasonString) => {
+        console.log("Reason Code: ", reasonString);
         return sm
           .create(props.tokenAddress, props.amountPerSecond, reasonString)
           .then((result) => {

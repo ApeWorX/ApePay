@@ -10,6 +10,13 @@ import CreateStream from "../../../ui/lib/CreateStream";
 import "rc-slider/assets/index.css";
 
 function App() {
+
+    // random string for the demo;
+    const renderReasonCode = async () => {
+      return Math.random().toString(36).substring(7);
+    };
+
+
   return (
     <>
       {/* LOG IN WITH WALLET */}
@@ -35,8 +42,8 @@ function App() {
           streamManagerAddress={"0xb5ED1eF2a90527b402Cd7e7d415027CB94E1Db4E"}
           tokenAddress={"0x0579FC0e764E7CC10c7175533B1330B184B8D505"}
           amountPerSecond={100000000000000}
-          reasonCode={"1"}
           registerStream={(s: Stream) => console.log(s)}
+          renderReasonCode={renderReasonCode}
         />
       </div>
     </>
