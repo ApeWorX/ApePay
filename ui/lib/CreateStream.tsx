@@ -184,7 +184,7 @@ const CreateStream = (props: CreateStreamProps) => {
     isSuccess: txSuccess,
     isLoading: txLoading,
   } = useWaitForTransaction({
-    hash: txHash,
+    hash: txHash as `0x${string}`,
   });
 
   // random string for the demo;
