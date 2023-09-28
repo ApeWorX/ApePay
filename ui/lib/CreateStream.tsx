@@ -136,8 +136,6 @@ const CreateStream = (props: CreateStreamProps) => {
   );
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
-  console.log(gasPrice / 10000 + "nat " + nativeBalance + "tok" + tokenBalance);
-
   const sm = new StreamManager(
     props.streamManagerAddress,
     // TODO: handle `isError`, `isLoading`
@@ -174,7 +172,7 @@ const CreateStream = (props: CreateStreamProps) => {
   } = useContractWrite(approvalConfig);
 
   // Then make sure transaction has been processed once it has been approved by user
-  const [txHash, setTxHash] = useState(null);
+  const [txHash, setTxHash] = useState<string | undefined>(undefined);
   useEffect(() => {
     if (isSuccess && data?.hash) {
       setTxHash(data?.hash);
