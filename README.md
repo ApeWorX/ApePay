@@ -118,6 +118,16 @@ To deploy the StreamFactory (for production use), run:
 $ ape run deploy factory
 ```
 
+To deploy a Token (for testing use only), run:
+
+```sh
+$ ape run deploy token
+```
+
+```note
+This test token has an unauthenticated mint, please do not use in production!
+```
+
 To run the demo ApePay cluster daemon, first run a node like `anvil`:
 
 ```sh
