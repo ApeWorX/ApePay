@@ -16,7 +16,7 @@
       "symbol": "USDC"
     },
     {
-      "chainId": 1,
+      "chainId": 58008,
       "address": "0x0579FC0e764E7CC10c7175533B1330B184B8D505",
       "name": "ChaosnetToken",
       "decimals": 18,
