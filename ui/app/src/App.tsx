@@ -1,6 +1,5 @@
-import React from "react";
+import  { React, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-
 import { Stream } from "@apeworx/apepay";
 
 // import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
@@ -10,12 +9,24 @@ import CreateStream from "../../../ui/lib/CreateStream";
 import "rc-slider/assets/index.css";
 
 function App() {
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [processTxError, setProcessTxError] = useState<Error | null>(null);
+  const [isProcessed, setIsProcessed] = useState<boolean>(false);
 
-    // random string for the demo;
-    const renderReasonCode = async () => {
-      return Math.random().toString(36).substring(7);
-    };
+  const handleTransactionStatus = (
+    processing: boolean,
+    processed: boolean,
+    error: Error | null
+  ) => {
+    setIsProcessing(processing);
+    setIsProcessed(processed);
+    setProcessTxError(error);
+  };
 
+  // random string for the demo;
+  const renderReasonCode = async () => {
+    return Math.random().toString(36).substring(7);
+  };
 
   return (
     <>
@@ -28,6 +39,20 @@ function App() {
         }}
       >
         <ConnectButton />
+      </div>
+
+      {/* Transaction Status Display */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "10vh",
+        }}
+      >
+        {isProcessing && <p>Processing Transaction... </p>}
+        {isProcessed && <p>Transaction Successful!</p>}
+        {processTxError && <p>Error: {processTxError.message}</p>}
       </div>
 
       <div
@@ -44,6 +69,7 @@ function App() {
           amountPerSecond={100000000000000}
           registerStream={(s: Stream) => console.log(s)}
           renderReasonCode={renderReasonCode}
+          handleTransactionStatus={handleTransactionStatus}
         />
       </div>
     </>

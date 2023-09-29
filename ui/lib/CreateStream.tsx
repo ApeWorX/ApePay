@@ -24,6 +24,7 @@ export interface CreateStreamProps {
   cart?: ReactNode;
   registerStream: (stream: Stream) => void;
   renderReasonCode: () => Promise<string>;
+  handleTransactionStatus: (processing: boolean, processed: boolean, error: Error | null) => void;
 }
 
 const CreateStream = (props: CreateStreamProps) => {
@@ -187,34 +188,24 @@ const CreateStream = (props: CreateStreamProps) => {
     hash: txHash as `0x${string}`,
   });
 
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [processTxError, setProcessTxError] = useState<Error | null>(null);
-  const [isProcessed, setIsProcessed] = useState<boolean>(false);
-
   const createStream = () => {
-    setIsProcessing(true);
+    props.handleTransactionStatus(true, false, null);
 
     props
       .renderReasonCode()
       .then((reasonString) => {
-        console.log("Reason Code: ", reasonString);
         return sm
           .create(props.tokenAddress, props.amountPerSecond, reasonString)
           .then((result) => {
             props.registerStream(result);
-            setIsProcessing(false);
-            setIsProcessed(true);
+            props.handleTransactionStatus(false, true, null);
           })
           .catch((error) => {
-            setProcessTxError(error);
-            setIsProcessing(false);
-            setIsProcessed(false);
+            props.handleTransactionStatus(false, false, error);
           });
       })
       .catch((error) => {
-        setProcessTxError(error);
-        setIsProcessing(false);
-        setIsProcessed(false);
+        props.handleTransactionStatus(false, false, error);
       });
   };
 
@@ -403,9 +394,6 @@ const CreateStream = (props: CreateStreamProps) => {
             selectedTime !== SECS_PER_DAY ? "s" : ""
           }`}
         </button>
-        {isProcessing && <div> Processing </div>}
-        {processTxError && <div>Error: {processTxError.message}</div>}
-        {isProcessed && <div> Stream has been created. </div>}
       </div>
     );
   };
