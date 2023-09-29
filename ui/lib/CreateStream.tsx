@@ -24,7 +24,11 @@ export interface CreateStreamProps {
   cart?: ReactNode;
   registerStream: (stream: Stream) => void;
   renderReasonCode: () => Promise<string>;
-  handleTransactionStatus: (processing: boolean, processed: boolean, error: Error | null) => void;
+  handleTransactionStatus: (
+    processing: boolean,
+    processed: boolean,
+    error: Error | null
+  ) => void;
 }
 
 const CreateStream = (props: CreateStreamProps) => {
@@ -34,58 +38,73 @@ const CreateStream = (props: CreateStreamProps) => {
   const { data: feeData } = useFeeData();
   const { address } = useAccount();
 
-  // Get balances for native tokens (or set to 1 after 5 seconds and keep fetching)
+  // Get balances for native tokens (or set to 1 after 2 seconds and keep fetching)
   useEffect(() => {
     let balanceCountdown: NodeJS.Timeout;
     let balanceCountdownTriggered = false;
 
+    // Check if an address exists to proceed with fetching the balance
     if (address) {
+      // Initiate a countdown timer that sets native balance to 1 after 2 seconds
+      // if fetching balance takes too long
       balanceCountdown = setTimeout(() => {
         setNativeBalance(1);
         balanceCountdownTriggered = true;
       }, 2000);
 
-      (async () => {
-        const nativeBalanceData = await fetchBalance({ address });
-        if (nativeBalanceData && nativeBalanceData.formatted !== undefined) {
-          if (!balanceCountdownTriggered) {
-            clearTimeout(balanceCountdown);
+      // Use fetchBalance function to asynchronously get the native token balance for the address
+      fetchBalance({ address })
+        .then((nativeBalanceData) => {
+          if (nativeBalanceData && nativeBalanceData.formatted !== undefined) {
+            // If the countdown hasn't triggered yet, clear the countdown
+            if (!balanceCountdownTriggered) {
+              clearTimeout(balanceCountdown);
+            }
+            setNativeBalance(Number(nativeBalanceData.formatted));
           }
-          setNativeBalance(Number(nativeBalanceData.formatted));
-        }
-      })();
+        })
+        .catch((error) => {
+          console.error("Error fetching balance:", error);
+        });
     }
 
+    // Cleanup function to clear any pending countdowns
     return () => {
       clearTimeout(balanceCountdown);
     };
   }, [address]);
 
-  // Get balances for stream tokens (or set to transactionamount+1 after 5 seconds and keep fetching)
+  // Get balances for stream tokens (or set to transactionamount + 1 after 2 seconds and keep fetching)
   useEffect(() => {
     let tokenCountdown: NodeJS.Timeout;
     let tokenCountdownTriggered = false;
 
+    // Initiate a countdown timer to set token balance to transactionAmount + 1
+    // if fetching the token balance takes too long
     if (address) {
       tokenCountdown = setTimeout(() => {
-        setTokenBalance(1);
+        setTokenBalance(transactionAmount + 1);
         tokenCountdownTriggered = true;
       }, 2000);
 
-      (async () => {
-        const tokenBalanceData = await fetchBalance({
-          address,
-          token: props.tokenAddress,
-        });
-        if (tokenBalanceData && tokenBalanceData.formatted !== undefined) {
-          if (!tokenCountdownTriggered) {
-            clearTimeout(tokenCountdown);
+      fetchBalance({
+        address,
+        token: props.tokenAddress,
+      })
+        .then((tokenBalanceData) => {
+          if (tokenBalanceData && tokenBalanceData.formatted !== undefined) {
+            // Cancel the countdown if it hasn't triggered yet
+            if (!tokenCountdownTriggered) {
+              clearTimeout(tokenCountdown);
+            }
+            setTokenBalance(Number(tokenBalanceData.formatted));
           }
-          setTokenBalance(Number(tokenBalanceData.formatted));
-        }
-      })();
+        })
+        .catch((error) => {
+          console.error("Error fetching token balance:", error);
+        });
     }
-
+    // Cleanup function to clear any pending countdowns
     return () => {
       clearTimeout(tokenCountdown);
     };
@@ -96,22 +115,26 @@ const CreateStream = (props: CreateStreamProps) => {
     let gasCountdown: NodeJS.Timeout;
     let gasCountdownTriggered = false;
 
+    // Initiate a countdown timer to set gas price to 1 after 2 seconds
+    // if fetching the gas price takes too long
     gasCountdown = setTimeout(() => {
       setGasPrice(1);
       gasCountdownTriggered = true;
     }, 2000);
 
+    // Check if the feeData object and its properties are available
     if (
       feeData &&
       feeData.formatted &&
       feeData.formatted.gasPrice !== undefined
     ) {
+      // If the countdown hasn't been triggered yet, cancel it
       if (!gasCountdownTriggered) {
         clearTimeout(gasCountdown);
       }
       setGasPrice(Number(feeData.formatted.gasPrice));
     }
-
+    // Cleanup function to clear any pending countdowns
     return () => {
       clearTimeout(gasCountdown);
     };
@@ -217,7 +240,6 @@ const CreateStream = (props: CreateStreamProps) => {
     ).toFixed(Math.min(tokenData?.decimals || 0, 3))
   );
 
-  // Set card steps logic
   // Set default selected token to USDC
   const [selectedToken, setSelectedToken] = useState(
     "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
@@ -228,7 +250,6 @@ const CreateStream = (props: CreateStreamProps) => {
     symbol: string;
   };
   const [tokens, setTokens] = useState<Token[]>([]);
-  const [currentStep, setCurrentStep] = useState(0);
 
   // Fetch tokens from JSON
   useEffect(() => {
@@ -240,22 +261,6 @@ const CreateStream = (props: CreateStreamProps) => {
 
     fetchTokens();
   }, []);
-
-  const validateStep1 = () => {
-    if (selectedToken) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      alert("Please select a valid payment token.");
-    }
-  };
-  const validateStep2 = () => {
-    setCurrentStep(currentStep + 1);
-  };
-  useEffect(() => {
-    if (txSuccess) {
-      validateStep2();
-    }
-  }, [txSuccess]);
 
   const Step1 = () => {
     return (
@@ -275,7 +280,7 @@ const CreateStream = (props: CreateStreamProps) => {
             </option>
           ))}
         </select>
-        <button onClick={validateStep1}>Next</button>
+        <button onClick={() => validateStep(1)}>Next</button>
       </div>
     );
   };
@@ -374,8 +379,6 @@ const CreateStream = (props: CreateStreamProps) => {
     );
   };
 
-  const daysPaid = transactionAmount / props.amountPerSecond;
-
   const Step3 = () => {
     return (
       <div id="CreateStream-create">
@@ -384,9 +387,6 @@ const CreateStream = (props: CreateStreamProps) => {
           <p>
             <strong>Total approval amount:</strong> {transactionAmount}{" "}
             {tokenData?.symbol}
-          </p>
-          <p>
-            <strong>Days paid:</strong> {daysPaid}
           </p>
         </div>
         <button onClick={createStream}>
@@ -398,13 +398,44 @@ const CreateStream = (props: CreateStreamProps) => {
     );
   };
 
-  return (
-    <div>
-      {currentStep === 0 && <Step1 />}
-      {currentStep === 1 && <Step2 />}
-      {currentStep === 2 && <Step3 />}
-    </div>
-  );
+  const [currentStep, setCurrentStep] = useState(0);
+  const validateStep = (step: number) => {
+    switch (step) {
+      case 1:
+        if (selectedToken) {
+          setCurrentStep(currentStep + 1);
+        } else {
+          alert("Please select a valid payment token.");
+        }
+        break;
+      case 2:
+        setCurrentStep(currentStep + 1);
+        break;
+    }
+  };
+
+  // Monitor transaction to move to step 2 if transaction successful
+  useEffect(() => {
+    if (txSuccess) {
+      validateStep(2);
+    }
+  }, [txSuccess]);
+
+  // Switch logic to accompany the user when processing his transaction
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 0:
+        return <Step1 />;
+      case 1:
+        return <Step2 />;
+      case 2:
+        return <Step3 />;
+      default:
+        return null;
+    }
+  };
+
+  return <>{renderCurrentStep()}</>;
 };
 
 export default CreateStream;
