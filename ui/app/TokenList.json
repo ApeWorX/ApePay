@@ -16,18 +16,11 @@
       "symbol": "USDC"
     },
     {
-      "chainId": 58008,
+      "chainId": 11155111,
       "address": "0x0579FC0e764E7CC10c7175533B1330B184B8D505",
       "name": "ChaosnetToken",
       "decimals": 18,
       "symbol": "CHAOS"
-    },
-    {
-      "chainId": 11155111,
-      "address": "0x000",
-      "name": "Sepolia Test",
-      "decimals": 18,
-      "symbol": "SEP"
     }
   ]
 }
