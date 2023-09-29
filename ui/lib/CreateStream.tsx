@@ -10,9 +10,11 @@ import {
   useContractWrite,
   useFeeData,
   useWaitForTransaction,
+  useNetwork,
 } from "wagmi";
 import { fetchBalance } from "@wagmi/core";
 import StreamManager, { Stream } from "@apeworx/apepay";
+import { TokenInfo } from "@uniswap/token-lists";
 
 const SECS_PER_DAY = 24 * 60 * 60;
 
@@ -29,6 +31,9 @@ export interface CreateStreamProps {
     processed: boolean,
     error: Error | null
   ) => void;
+  selectedToken: string;
+  setSelectedToken: (address: string) => void;
+  tokenList: TokenInfo[];
 }
 
 const CreateStream = (props: CreateStreamProps) => {
@@ -37,6 +42,7 @@ const CreateStream = (props: CreateStreamProps) => {
   const [gasPrice, setGasPrice] = useState<number | null>(null);
   const { data: feeData } = useFeeData();
   const { address } = useAccount();
+  const { chain } = useNetwork();
 
   // Get balances for native tokens (or set to 1 after 2 seconds and keep fetching)
   useEffect(() => {
@@ -240,28 +246,13 @@ const CreateStream = (props: CreateStreamProps) => {
     ).toFixed(Math.min(tokenData?.decimals || 0, 3))
   );
 
-  // Set default selected token to USDC
-  const [selectedToken, setSelectedToken] = useState(
-    "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
-  );
+  // Get your current chainID
+  let targetChainId: number | undefined;
+  if (chain) {
+    targetChainId = chain.id;
+  }
 
-  type Token = {
-    address: string;
-    symbol: string;
-  };
-  const [tokens, setTokens] = useState<Token[]>([]);
-
-  // Fetch tokens from JSON
-  useEffect(() => {
-    const fetchTokens = async () => {
-      const response = await fetch("./TokenList.json");
-      const data = await response.json();
-      setTokens(data.tokens);
-    };
-
-    fetchTokens();
-  }, []);
-
+  // Select the payment token among tokens with the same chainID
   const Step1 = () => {
     return (
       <div>
@@ -271,14 +262,16 @@ const CreateStream = (props: CreateStreamProps) => {
           {props.cart && props.cart}
         </div>
         <select
-          value={selectedToken}
-          onChange={(e) => setSelectedToken(e.target.value)}
+          value={props.selectedToken}
+          onChange={(e) => props.setSelectedToken(e.target.value)}
         >
-          {tokens.map((token) => (
-            <option key={token.address} value={token.address}>
-              {token.symbol}
-            </option>
-          ))}
+          {props.tokenList
+            .filter((token) => token.chainId === targetChainId)
+            .map((token) => (
+              <option key={token.address} value={token.address}>
+                {token.symbol}
+              </option>
+            ))}
         </select>
         <button onClick={() => validateStep(1)}>Next</button>
       </div>
@@ -402,7 +395,7 @@ const CreateStream = (props: CreateStreamProps) => {
   const validateStep = (step: number) => {
     switch (step) {
       case 1:
-        if (selectedToken) {
+        if (props.selectedToken) {
           setCurrentStep(currentStep + 1);
         } else {
           alert("Please select a valid payment token.");

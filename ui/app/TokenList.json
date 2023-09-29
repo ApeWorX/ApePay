@@ -21,6 +21,13 @@
       "name": "ChaosnetToken",
       "decimals": 18,
       "symbol": "CHAOS"
+    },
+    {
+      "chainId": 11155111,
+      "address": "0x000",
+      "name": "Sepolia Test",
+      "decimals": 18,
+      "symbol": "SEP"
     }
   ]
 }
