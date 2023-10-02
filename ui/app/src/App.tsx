@@ -80,7 +80,7 @@ function App() {
         }}
       >
         <CreateStream
-          streamManagerAddress={"0xb5ED1eF2a90527b402Cd7e7d415027CB94E1Db4E"}
+          streamManagerAddress={"0x3543Faeeddb7bAbCbBB216B3627f9c5E0C39CE41"}
           amountPerSecond={100000000000000}
           registerStream={(s: Stream) => console.log(s)}
           renderReasonCode={renderReasonCode}
