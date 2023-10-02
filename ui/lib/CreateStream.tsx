@@ -221,7 +221,7 @@ const CreateStream = (props: CreateStreamProps) => {
     props
       .renderReasonCode()
       .then((reasonString) => {
-        return sm
+        sm
           .create(selectedToken as `0x${string}`, props.amountPerSecond, reasonString)
           .then((result) => {
             props.registerStream(result);
