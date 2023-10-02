@@ -13,24 +13,12 @@ import "rc-slider/assets/index.css";
 
 function App() {
   const [tokenList, setTokenList] = useState<TokenInfo[]>([]);
-  // set a default that will be overwritten when fetching the json
-  const [selectedToken, setSelectedToken] = useState<string>("0x7F5c764cBc14f9669B88837ca1490cCa17c31607");
 
   useEffect(() => {
     const fetchTokens = async () => {
       const response = await fetch("./TokenList.json");
       const data = await response.json();
       setTokenList(data.tokens);
-
-      // Set default token via the fetched list (here USDC)
-      const defaultToken = data.tokens.find(
-        (token: TokenInfo) =>
-          token.address === "0x7F5c764cBc14f9669B88837ca1490cCa17c31607"
-      );
-
-      if (defaultToken) {
-        setSelectedToken(defaultToken.address);
-      }
     };
 
     fetchTokens();
@@ -93,13 +81,10 @@ function App() {
       >
         <CreateStream
           streamManagerAddress={"0xb5ED1eF2a90527b402Cd7e7d415027CB94E1Db4E"}
-          tokenAddress={"0x0579FC0e764E7CC10c7175533B1330B184B8D505"}
           amountPerSecond={100000000000000}
           registerStream={(s: Stream) => console.log(s)}
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}
-          selectedToken={selectedToken}
-          setSelectedToken={setSelectedToken}
           tokenList={tokenList}
         />
       </div>

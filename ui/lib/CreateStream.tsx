@@ -20,8 +20,7 @@ const SECS_PER_DAY = 24 * 60 * 60;
 
 export interface CreateStreamProps {
   streamManagerAddress: Address;
-  // TODO: Support dynamically fetching list of accepted tokens in sdk::StreamManager
-  tokenAddress: Address;
+  tokenList: TokenInfo[];
   amountPerSecond: number;
   cart?: ReactNode;
   registerStream: (stream: Stream) => void;
@@ -31,9 +30,6 @@ export interface CreateStreamProps {
     processed: boolean,
     error: Error | null
   ) => void;
-  selectedToken: string;
-  setSelectedToken: (address: string) => void;
-  tokenList: TokenInfo[];
 }
 
 const CreateStream = (props: CreateStreamProps) => {
@@ -43,8 +39,14 @@ const CreateStream = (props: CreateStreamProps) => {
   const { data: feeData } = useFeeData();
   const { address } = useAccount();
   const { chain } = useNetwork();
+  const [selectedToken, setSelectedToken] = useState<string | null>(null);
 
-  // Get balances for native tokens (or set to 1 after 2 seconds and keep fetching)
+  const { data: tokenData } = useBalance({
+    address,
+    token: selectedToken as `0x${string}`,
+  });
+
+  // Get balances for native tokens (or set to 1 after 8 seconds and keep fetching)
   useEffect(() => {
     let balanceCountdown: NodeJS.Timeout;
     let balanceCountdownTriggered = false;
@@ -56,7 +58,7 @@ const CreateStream = (props: CreateStreamProps) => {
       balanceCountdown = setTimeout(() => {
         setNativeBalance(1);
         balanceCountdownTriggered = true;
-      }, 2000);
+      }, 8000);
 
       // Use fetchBalance function to asynchronously get the native token balance for the address
       fetchBalance({ address })
@@ -73,7 +75,6 @@ const CreateStream = (props: CreateStreamProps) => {
           console.error("Error fetching balance:", error);
         });
     }
-
     // Cleanup function to clear any pending countdowns
     return () => {
       clearTimeout(balanceCountdown);
@@ -87,15 +88,16 @@ const CreateStream = (props: CreateStreamProps) => {
 
     // Initiate a countdown timer to set token balance to transactionAmount + 1
     // if fetching the token balance takes too long
-    if (address) {
+    if (address && selectedToken) {
       tokenCountdown = setTimeout(() => {
         setTokenBalance(transactionAmount + 1);
         tokenCountdownTriggered = true;
-      }, 2000);
+      }, 8000);
 
+      if (address && selectedToken) {
       fetchBalance({
         address,
-        token: props.tokenAddress,
+        token: selectedToken as `0x${string}`,
       })
         .then((tokenBalanceData) => {
           if (tokenBalanceData && tokenBalanceData.formatted !== undefined) {
@@ -109,24 +111,25 @@ const CreateStream = (props: CreateStreamProps) => {
         .catch((error) => {
           console.error("Error fetching token balance:", error);
         });
-    }
+    }}
+
     // Cleanup function to clear any pending countdowns
     return () => {
       clearTimeout(tokenCountdown);
     };
-  }, [address]);
+  }, [address, selectedToken]);
 
   // Get gas price (or set to 0 after 5 seconds and keep fetching)
   useEffect(() => {
     let gasCountdown: NodeJS.Timeout;
     let gasCountdownTriggered = false;
 
-    // Initiate a countdown timer to set gas price to 1 after 2 seconds
+    // Initiate a countdown timer to set gas price to 1 after 8 seconds
     // if fetching the gas price takes too long
     gasCountdown = setTimeout(() => {
       setGasPrice(1);
       gasCountdownTriggered = true;
-    }, 2000);
+    }, 8000);
 
     // Check if the feeData object and its properties are available
     if (
@@ -145,11 +148,6 @@ const CreateStream = (props: CreateStreamProps) => {
       clearTimeout(gasCountdown);
     };
   }, [feeData]);
-
-  const { data: tokenData } = useBalance({
-    address,
-    token: props.tokenAddress,
-  });
 
   // TODO: handle `isError`, `isLoading`
   const maxTime = Number(
@@ -174,7 +172,7 @@ const CreateStream = (props: CreateStreamProps) => {
   );
 
   const { config: approvalConfig } = usePrepareContractWrite({
-    address: props.tokenAddress,
+    address: selectedToken as `0x${string}`,
     value: BigInt(0),
     abi: [
       {
@@ -224,7 +222,7 @@ const CreateStream = (props: CreateStreamProps) => {
       .renderReasonCode()
       .then((reasonString) => {
         return sm
-          .create(props.tokenAddress, props.amountPerSecond, reasonString)
+          .create(selectedToken as `0x${string}`, props.amountPerSecond, reasonString)
           .then((result) => {
             props.registerStream(result);
             props.handleTransactionStatus(false, true, null);
@@ -246,11 +244,17 @@ const CreateStream = (props: CreateStreamProps) => {
     ).toFixed(Math.min(tokenData?.decimals || 0, 3))
   );
 
+
   // Get your current chainID
   let targetChainId: number | undefined;
   if (chain) {
     targetChainId = chain.id;
   }
+
+  // reset selectedToken if chainId changes
+  useEffect(() => {
+    setSelectedToken(null);
+  }, [targetChainId]);
 
   // Select the payment token among tokens with the same chainID
   const Step1 = () => {
@@ -262,9 +266,14 @@ const CreateStream = (props: CreateStreamProps) => {
           {props.cart && props.cart}
         </div>
         <select
-          value={props.selectedToken}
-          onChange={(e) => props.setSelectedToken(e.target.value)}
+          value={selectedToken || "Select a token"}
+          onChange={(e) => setSelectedToken(e.target.value)}
         >
+          {selectedToken === null && (
+            <option disabled value="Select a token">
+              Select a token
+            </option>
+          )}
           {props.tokenList
             .filter((token) => token.chainId === targetChainId)
             .map((token) => (
@@ -293,6 +302,9 @@ const CreateStream = (props: CreateStreamProps) => {
       return (
         <div>
           <h3>Not enough native tokens to pay for transaction fee</h3>
+          <p>
+            Your native token balance is: {nativeBalance}
+          </p>
           <button
             onClick={() => window.open("https://hop.exchange/", "_blank")}
           >
@@ -316,12 +328,12 @@ const CreateStream = (props: CreateStreamProps) => {
       return (
         <div>
           <h3>Not enough tokens to pay for stream</h3>
-          <p> Your token balance is: {tokenBalance} {tokenData?.symbol}</p>
+          <p>
+            Your token balance is: {tokenBalance} {tokenData?.symbol}
+          </p>
           <button
             onClick={() => {
-              const uniswapURL = `https://app.uniswap.org/#/swap?outputCurrency=${
-                props.tokenAddress
-              }&exactAmount=${
+              const uniswapURL = `https://app.uniswap.org/#/swap?outputCurrency=${selectedToken}&exactAmount=${
                 transactionAmount - tokenBalance
               }&exactField=output`;
               window.open(uniswapURL, "_blank");
@@ -396,7 +408,7 @@ const CreateStream = (props: CreateStreamProps) => {
   const validateStep = (step: number) => {
     switch (step) {
       case 1:
-        if (props.selectedToken) {
+        if (selectedToken) {
           setCurrentStep(currentStep + 1);
         } else {
           alert("Please select a valid payment token.");
