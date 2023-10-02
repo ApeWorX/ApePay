@@ -8,21 +8,12 @@ import { TokenInfo } from '@uniswap/token-lists';
 // import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
 import { StreamStatus } from "@apeworx/apepay-react";
 import CreateStream from "../../../ui/lib/CreateStream";
+import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
 
 function App() {
-  const [tokenList, setTokenList] = useState<TokenInfo[]>([]);
-
-  useEffect(() => {
-    const fetchTokens = async () => {
-      const response = await fetch("./TokenList.json");
-      const data = await response.json();
-      setTokenList(data.tokens);
-    };
-
-    fetchTokens();
-  }, []);
+  const tokenList: TokenInfo[] = config.tokens;
 
   // Manage status of stream transaction
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -80,7 +71,7 @@ function App() {
         }}
       >
         <CreateStream
-          streamManagerAddress={"0x3543Faeeddb7bAbCbBB216B3627f9c5E0C39CE41"}
+          streamManagerAddress={config.streamManagerAddress as `0x${string}`}
           amountPerSecond={100000000000000}
           registerStream={(s: Stream) => console.log(s)}
           renderReasonCode={renderReasonCode}
