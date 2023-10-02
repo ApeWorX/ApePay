@@ -316,6 +316,7 @@ const CreateStream = (props: CreateStreamProps) => {
       return (
         <div>
           <h3>Not enough tokens to pay for stream</h3>
+          <p> Your token balance is: {tokenBalance} {tokenData?.symbol}</p>
           <button
             onClick={() => {
               const uniswapURL = `https://app.uniswap.org/#/swap?outputCurrency=${
