@@ -4,8 +4,15 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
 
+
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Stream } from "@apeworx/apepay";
-import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
+import { TokenInfo } from '@uniswap/token-lists';
+
+// import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
+import { StreamStatus } from "@apeworx/apepay-react";
+import CreateStream from "../../../ui/lib/CreateStream";
+import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
 import "./styles.css";
@@ -32,6 +39,7 @@ function App() {
     );
   };
 
+
   // Manage status of stream transaction
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processTxError, setProcessTxError] = useState<Error | null>(null);
@@ -54,6 +62,7 @@ function App() {
 
   return (
     <>
+      {/* LOG IN WITH WALLET */}
       <div
         style={{
           display: "flex",
@@ -80,12 +89,13 @@ function App() {
         {processTxError && <p>Error: {processTxError.message}</p>}
       </div>
 
+
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          height: "30vh",
+          height: "10vh",
         }}
       >
         <CreateStream
@@ -99,29 +109,26 @@ function App() {
           tokenList={tokenList}
           cart={<Cart />}
         />
+
       </div>
-      <ul
+
+      <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          height: "20vh",
+          height: "30vh",
         }}
       >
-        <li>
-          <StreamStatus
-            stream={
-              new Stream(
-                "0xb5ED1eF2a90527b402Cd7e7d415027CB94E1Db4E",
-                "0x1C277bD41A276F87D3E92bccD50c7364aa2FFc69",
-                3,
-                usePublicClient(),
-                useWalletClient()?.data as WalletClient,
-              )
-            }
-          />
-        </li>
-      </ul>
+        <CreateStream
+          streamManagerAddress={config.streamManagerAddress as `0x${string}`}
+          amountPerSecond={100000000000000}
+          registerStream={(s: Stream) => console.log(s)}
+          renderReasonCode={renderReasonCode}
+          handleTransactionStatus={handleTransactionStatus}
+          tokenList={tokenList}
+        />
+      </div>
     </>
   );
 }
