@@ -1,15 +1,43 @@
 import React from "react";
-import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useState, useEffect } from "react";
 
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Stream } from "@apeworx/apepay";
-import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
+import { TokenInfo } from '@uniswap/token-lists';
+
+// import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
+import { StreamStatus } from "@apeworx/apepay-react";
+import CreateStream from "../../../ui/lib/CreateStream";
+import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
 
 function App() {
+  const tokenList: TokenInfo[] = config.tokens;
+
+  // Manage status of stream transaction
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [processTxError, setProcessTxError] = useState<Error | null>(null);
+  const [isProcessed, setIsProcessed] = useState<boolean>(false);
+
+  const handleTransactionStatus = (
+    processing: boolean,
+    processed: boolean,
+    error: Error | null
+  ) => {
+    setIsProcessing(processing);
+    setIsProcessed(processed);
+    setProcessTxError(error);
+  };
+
+  // random string for the demo;
+  const renderReasonCode = async () => {
+    return Math.random().toString(36).substring(7);
+  };
+
   return (
     <>
+      {/* LOG IN WITH WALLET */}
       <div
         style={{
           display: "flex",
@@ -19,6 +47,21 @@ function App() {
       >
         <ConnectButton />
       </div>
+
+      {/* Transaction Status Display */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "10vh",
+        }}
+      >
+        {isProcessing && <p>Processing Transaction... </p>}
+        {isProcessed && <p>Transaction Successful!</p>}
+        {processTxError && <p>Error: {processTxError.message}</p>}
+      </div>
+
       <div
         style={{
           display: "flex",
@@ -28,35 +71,14 @@ function App() {
         }}
       >
         <CreateStream
-          streamManagerAddress={"0xb5ED1eF2a90527b402Cd7e7d415027CB94E1Db4E"}
-          tokenAddress={"0xbc083D97825DA7f7182F37fcEc51818E196aF1FF"}
+          streamManagerAddress={config.streamManagerAddress as `0x${string}`}
           amountPerSecond={100000000000000}
-          reasonCode={"1"}
           registerStream={(s: Stream) => console.log(s)}
+          renderReasonCode={renderReasonCode}
+          handleTransactionStatus={handleTransactionStatus}
+          tokenList={tokenList}
         />
       </div>
-      <ul
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "20vh",
-        }}
-      >
-        <li>
-          <StreamStatus
-            stream={
-              new Stream(
-                "0xb5ED1eF2a90527b402Cd7e7d415027CB94E1Db4E",
-                "0x1C277bD41A276F87D3E92bccD50c7364aa2FFc69",
-                3,
-                usePublicClient(),
-                useWalletClient()?.data as WalletClient,
-              )
-            }
-          />
-        </li>
-      </ul>
     </>
   );
 }
