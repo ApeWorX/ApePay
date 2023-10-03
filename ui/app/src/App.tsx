@@ -1,12 +1,8 @@
 import React from "react";
-import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useState } from "react";
 import { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
-
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Stream } from "@apeworx/apepay";
-import { TokenInfo } from '@uniswap/token-lists';
 
 // import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
 import { StreamStatus } from "@apeworx/apepay-react";
