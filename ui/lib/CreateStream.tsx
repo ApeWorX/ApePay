@@ -16,6 +16,7 @@ import { fetchBalance } from "@wagmi/core";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
 
+
 const SECS_PER_DAY = 24 * 60 * 60;
 
 export interface CreateStreamProps {
@@ -81,7 +82,7 @@ const CreateStream = (props: CreateStreamProps) => {
     };
   }, [address]);
 
-  // Get balances for stream tokens (or set to transactionamount + 1 after 2 seconds and keep fetching)
+  // Get balances for stream tokens (or set to transactionamount * 10 after 2 seconds and keep fetching)
   useEffect(() => {
     let tokenCountdown: NodeJS.Timeout;
     let tokenCountdownTriggered = false;
@@ -90,28 +91,29 @@ const CreateStream = (props: CreateStreamProps) => {
     // if fetching the token balance takes too long
     if (address && selectedToken) {
       tokenCountdown = setTimeout(() => {
-        setTokenBalance(transactionAmount + 1);
+        setTokenBalance(transactionAmount * 10);
         tokenCountdownTriggered = true;
       }, 8000);
 
       if (address && selectedToken) {
-      fetchBalance({
-        address,
-        token: selectedToken as `0x${string}`,
-      })
-        .then((tokenBalanceData) => {
-          if (tokenBalanceData && tokenBalanceData.formatted !== undefined) {
-            // Cancel the countdown if it hasn't triggered yet
-            if (!tokenCountdownTriggered) {
-              clearTimeout(tokenCountdown);
-            }
-            setTokenBalance(Number(tokenBalanceData.formatted));
-          }
+        fetchBalance({
+          address,
+          token: selectedToken as `0x${string}`,
         })
-        .catch((error) => {
-          console.error("Error fetching token balance:", error);
-        });
-    }}
+          .then((tokenBalanceData) => {
+            if (tokenBalanceData && tokenBalanceData.formatted !== undefined) {
+              // Cancel the countdown if it hasn't triggered yet
+              if (!tokenCountdownTriggered) {
+                clearTimeout(tokenCountdown);
+              }
+              setTokenBalance(Number(tokenBalanceData.formatted));
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching token balance:", error);
+          });
+      }
+    }
 
     // Cleanup function to clear any pending countdowns
     return () => {
@@ -215,24 +217,31 @@ const CreateStream = (props: CreateStreamProps) => {
     hash: txHash as `0x${string}`,
   });
 
+  const [buttonCreateClicked, setButtonCreateClicked] = useState(false);
   const createStream = () => {
+    setButtonCreateClicked(true);
     props.handleTransactionStatus(true, false, null);
 
     props
       .renderReasonCode()
       .then((reasonString) => {
-        sm
-          .create(selectedToken as `0x${string}`, props.amountPerSecond, reasonString)
+        sm.create(
+          selectedToken as `0x${string}`,
+          props.amountPerSecond,
+          reasonString
+        )
           .then((result) => {
             props.registerStream(result);
             props.handleTransactionStatus(false, true, null);
           })
           .catch((error) => {
             props.handleTransactionStatus(false, false, error);
+            setButtonCreateClicked(false);
           });
       })
       .catch((error) => {
         props.handleTransactionStatus(false, false, error);
+        setButtonCreateClicked(false);
       });
   };
 
@@ -243,7 +252,6 @@ const CreateStream = (props: CreateStreamProps) => {
       Math.pow(10, tokenData?.decimals || 0)
     ).toFixed(Math.min(tokenData?.decimals || 0, 3))
   );
-
 
   // Get your current chainID
   let targetChainId: number | undefined;
@@ -260,29 +268,33 @@ const CreateStream = (props: CreateStreamProps) => {
   const Step1 = () => {
     return (
       <div>
-        <h3>Review Cart and Select Payment Token</h3>
-        <div>
-          {/* @ts-ignore */}
-          {props.cart && props.cart}
-        </div>
-        <select
-          value={selectedToken || "Select a token"}
-          onChange={(e) => setSelectedToken(e.target.value)}
-        >
-          {selectedToken === null && (
-            <option disabled value="Select a token">
-              Select a token
-            </option>
-          )}
-          {props.tokenList
-            .filter((token) => token.chainId === targetChainId)
-            .map((token) => (
-              <option key={token.address} value={token.address}>
-                {token.symbol}
+        <div className="cart-body">{props.cart && props.cart}</div>
+        <div className="payment-flow">
+          <select
+            className="select-token-dropdown"
+            value={selectedToken || "Select Payment Token"}
+            onChange={(e) => setSelectedToken(e.target.value)}
+          >
+            {selectedToken === null && (
+              <option disabled value="Select Payment Token">
+                Select a token
               </option>
-            ))}
-        </select>
-        <button onClick={() => validateStep(1)}>Next</button>
+            )}
+            {props.tokenList
+              .filter((token) => token.chainId === targetChainId)
+              .map((token) => (
+                <option key={token.address} value={token.address}>
+                  {token.symbol}
+                </option>
+              ))}
+          </select>
+          <button
+            className="button-validate-select-token"
+            onClick={() => validateStep(1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
     );
   };
@@ -292,7 +304,12 @@ const CreateStream = (props: CreateStreamProps) => {
     if (gasPrice === null || nativeBalance === null) {
       return (
         <div>
-          <p>Checking gas and native token balance...</p>
+          <div className="cart-body">{props.cart && props.cart}</div>
+          <div className="payment-flow">
+            <div className="loading-message-balance">
+              Checking gas and native token balance...
+            </div>
+          </div>
         </div>
       );
     }
@@ -301,15 +318,19 @@ const CreateStream = (props: CreateStreamProps) => {
     if (gasPrice / 10000 >= nativeBalance) {
       return (
         <div>
-          <h3>Not enough native tokens to pay for transaction fee</h3>
-          <p>
-            Your native token balance is: {nativeBalance}
-          </p>
-          <button
-            onClick={() => window.open("https://hop.exchange/", "_blank")}
-          >
-            Go to Hop Exchange
-          </button>
+          <div className="cart-body">{props.cart && props.cart}</div>
+          <div className="payment-flow">
+            <div className="error-message-balance">
+              <p>Not enough native tokens to pay for transaction fee</p>
+              <p>Your native token balance is: {nativeBalance}</p>
+            </div>
+            <button
+              className="button-redirect-hop"
+              onClick={() => window.open("https://hop.exchange/", "_blank")}
+            >
+              Go to Hop Exchange
+            </button>
+          </div>
         </div>
       );
     }
@@ -318,7 +339,12 @@ const CreateStream = (props: CreateStreamProps) => {
     if (transactionAmount === null || tokenBalance === null) {
       return (
         <div>
-          <p>Checking stream token balance...</p>
+          <div className="cart-body">{props.cart && props.cart}</div>
+          <div className="payment-flow">
+            <div className="loading-message-token-balance">
+              Checking stream token balance...
+            </div>
+          </div>
         </div>
       );
     }
@@ -327,20 +353,26 @@ const CreateStream = (props: CreateStreamProps) => {
     if (transactionAmount >= tokenBalance) {
       return (
         <div>
-          <h3>Not enough tokens to pay for stream</h3>
-          <p>
-            Your token balance is: {tokenBalance} {tokenData?.symbol}
-          </p>
-          <button
-            onClick={() => {
-              const uniswapURL = `https://app.uniswap.org/#/swap?outputCurrency=${selectedToken}&exactAmount=${
-                transactionAmount - tokenBalance
-              }&exactField=output`;
-              window.open(uniswapURL, "_blank");
-            }}
-          >
-            Go to Uniswap
-          </button>
+          <div className="cart-body">{props.cart && props.cart}</div>
+          <div className="payment-flow">
+            <div className="error-message-balance">
+              <p>Not enough tokens to pay for stream</p>
+              <p>
+                Your token balance is: {tokenBalance}&nbsp;{tokenData?.symbol}
+              </p>
+            </div>
+            <button
+              className="button-redirect-uniswap"
+              onClick={() => {
+                const uniswapURL = `https://app.uniswap.org/#/swap?outputCurrency=${selectedToken}&exactAmount=${
+                  transactionAmount - tokenBalance
+                }&exactField=output`;
+                window.open(uniswapURL, "_blank");
+              }}
+            >
+              Go to Uniswap
+            </button>
+          </div>
         </div>
       );
     }
@@ -348,9 +380,10 @@ const CreateStream = (props: CreateStreamProps) => {
     // 5: If all checks pass, show the slider for stream length
     return (
       <div>
-        <h3>Select Stream Length & approve transaction</h3>
-        <div id="CreateStream-lifetime">
+        <div className="cart-body">{props.cart && props.cart}</div>
+        <div className="payment-flow">
           <Slider
+            className="slider-select-time"
             min={1}
             marks={marks}
             max={maxTimeDays}
@@ -361,25 +394,35 @@ const CreateStream = (props: CreateStreamProps) => {
               typeof value === "number" && setSelectedTime(SECS_PER_DAY * value)
             }
           />
-        </div>
-        <br />
-        <div id="CreateStream-approve">
           <button
+            className="button-validate-transaction"
             onClick={approveStream}
             disabled={isSuccess}
             style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
           >
-            {`Approve ${transactionAmount} ${tokenData?.symbol}`}
+            {`Approve ${transactionAmount}`}&nbsp;{`${tokenData?.symbol}`}
           </button>
-          {isLoading && <div>Waiting for your confirmation</div>}
-          {isError && <div>You did not confirm the transaction</div>}
-          {txLoading && (
-            <div>
-              Transaction approved; You will be redirected once it has been
-              processed.
+          {isLoading && (
+            <div className="validate-transaction-message">
+              Waiting for your confirmation.
             </div>
           )}
-          {txError && <div>Transaction process error.</div>}
+          {isError && (
+            <div className="validate-transaction-message">
+              You did not confirm the transaction.
+            </div>
+          )}
+          {txLoading && (
+            <div className="validate-transaction-message">
+              Transaction approved: you will be redirected once it has been
+              processed...
+            </div>
+          )}
+          {txError && (
+            <div className="validate-transaction-message">
+              Transaction process error.
+            </div>
+          )}
         </div>
       </div>
     );
@@ -387,19 +430,23 @@ const CreateStream = (props: CreateStreamProps) => {
 
   const Step3 = () => {
     return (
-      <div id="CreateStream-create">
-        <h3>Review params & Open Stream</h3>
-        <div>
-          <p>
-            <strong>Total approval amount:</strong> {transactionAmount}{" "}
-            {tokenData?.symbol}
-          </p>
+      <div>
+        <div className="cart-body">{props.cart && props.cart}</div>
+        <div className="payment-flow">
+          <div className="create-stream-approval-message">
+            {`Total approval amount: ${transactionAmount}`}&nbsp;
+            {`${tokenData?.symbol}`}
+          </div>
+          <button
+            className="button-create-stream"
+            onClick={createStream}
+            disabled={buttonCreateClicked}
+          >
+            {`Open Stream for ${selectedTime / SECS_PER_DAY} day${
+              selectedTime !== SECS_PER_DAY ? "s" : ""
+            }`}
+          </button>
         </div>
-        <button onClick={createStream}>
-          {`Open Stream for ${selectedTime / SECS_PER_DAY} day${
-            selectedTime !== SECS_PER_DAY ? "s" : ""
-          }`}
-        </button>
       </div>
     );
   };

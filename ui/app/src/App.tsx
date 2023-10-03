@@ -1,5 +1,8 @@
 import React from "react";
-import { useState, useEffect } from "react";
+import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { Stream } from "@apeworx/apepay";
+import { TokenInfo } from "@uniswap/token-lists";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Stream } from "@apeworx/apepay";
@@ -11,9 +14,29 @@ import CreateStream from "../../../ui/lib/CreateStream";
 import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
+import "./styles.css";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
+
+  // Fake cart for the purpose of the demo
+  const Cart = () => {
+    return (
+      <div className="cart">
+        <div className="cart-item">
+          <div className="cart-info">
+            <span className="cart-title">Cart Title</span>
+            <span className="cart-quantity">#: 1</span>
+            <span className="price">$XX.00/day</span>
+          </div>
+          <div className="cart-details">
+            <strong>Details:</strong>
+            <p>Description of the cart that you're about to pay for.</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Manage status of stream transaction
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -58,7 +81,9 @@ function App() {
         }}
       >
         {isProcessing && <p>Processing Transaction... </p>}
-        {isProcessed && <p>Transaction Successful!</p>}
+        {isProcessed && (
+          <p>Transaction Successful! -redirect to another page-</p>
+        )}
         {processTxError && <p>Error: {processTxError.message}</p>}
       </div>
 
@@ -77,6 +102,7 @@ function App() {
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}
           tokenList={tokenList}
+          cart={<Cart />}
         />
       </div>
     </>
