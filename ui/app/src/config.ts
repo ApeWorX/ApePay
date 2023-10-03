@@ -1,3 +1,5 @@
+// Override this config in your downstream implementations as needed
+
 const config = {
   streamManagerAddress: "0x3543Faeeddb7bAbCbBB216B3627f9c5E0C39CE41",
   tokens: [
