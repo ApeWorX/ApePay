@@ -51,3 +51,10 @@
   text-align: center;
   align-items: center;
 }
+
+.status-graph {
+  width: 10%;
+  position: relative;
+  margin-top: 5%;
+  left: 45%;
+}

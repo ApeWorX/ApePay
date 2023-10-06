@@ -3,14 +3,20 @@ import { useState } from "react";
 import { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-
-// import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
-import { StreamStatus } from "@apeworx/apepay-react";
-import CreateStream from "../../../ui/lib/CreateStream";
+import {
+  usePublicClient,
+  useWalletClient,
+  WalletClient,
+  useAccount,
+} from "wagmi";
 import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
 import "./styles.css";
+// import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
+// import { StreamStatus } from "@apeworx/apepay-react";
+import CreateStream from "../../../ui/lib/CreateStream";
+import StreamStatus from "../../../ui/lib/StreamStatus";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
@@ -54,6 +60,10 @@ function App() {
     return Math.random().toString(36).substring(7);
   };
 
+  // NEW
+  const { address } = useAccount();
+  const [streamId, setStreamId] = useState<number | null>(null);
+
   return (
     <>
       {/* LOG IN WITH WALLET */}
@@ -66,7 +76,6 @@ function App() {
       >
         <ConnectButton />
       </div>
-
       {/* Transaction Status Display */}
       <div
         style={{
@@ -82,7 +91,6 @@ function App() {
         )}
         {processTxError && <p>Error: {processTxError.message}</p>}
       </div>
-
       <div
         style={{
           display: "flex",
@@ -93,14 +101,42 @@ function App() {
       >
         <CreateStream
           streamManagerAddress={config.streamManagerAddress as `0x${string}`}
-          amountPerSecond={100000000000000}
-          registerStream={(s: Stream) => console.log(s)}
+          amountPerSecond={100}
+          registerStream={(s: Stream) => {
+            console.log(s);
+            setStreamId(s.streamId);
+          }}
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}
           tokenList={tokenList}
           cart={<Cart />}
         />
       </div>
+
+      <div className="status-graph">
+        {streamId ? (
+          <StreamStatus
+            stream={
+              new Stream(
+                config.streamManagerAddress as `0x${string}`,
+                address as `0x${string}`,
+                // todo: get streamID?
+                streamId,
+                usePublicClient(),
+                useWalletClient()?.data as WalletClient
+              )
+            }
+          />
+        ) : (
+          <p>Create a deployment in order to get its graph.</p>
+        )}
+      </div>
+
+      {console.log("stream " + Stream)}
+      {console.log("stream manager address" + config.streamManagerAddress)}
+      {console.log("address " + address)}
+      {console.log("usepublicclient " + usePublicClient())}
+      {console.log("streamid " + streamId)}
     </>
   );
 }

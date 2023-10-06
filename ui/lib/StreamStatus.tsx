@@ -13,10 +13,15 @@ const StreamStatus = (props: StreamStatusProps) => {
     props.stream.timeLeft().then(setTimeLeft).catch(console.error);
   }, [timeLeft]);
 
+  console.log('timeleft' + timeLeft)
+
   const [totalTime, setTotalTime] = React.useState(1); // using `1` to avoid NaN
   React.useEffect(() => {
     props.stream.totalTime().then(setTotalTime).catch(console.error);
   }, [totalTime]);
+
+  console.log('totaltime' + totalTime)
+
 
   return (
     <PieChart
