@@ -19,7 +19,7 @@ ApePay is open source and we welcome all contributors! Check out the following t
 TODOs:
 
 - [x] Initial implementation
-- [ ] Documentation
+- [x] Documentation
 - [x] Live testing on Sepolia
 - [x] Production deployment on Arbitrum
 - [ ] Frontend management console, for managing subscriptions
@@ -143,6 +143,54 @@ $ silverback run scripts.daemon:app --network ::foundry --account TEST::0
 ```
 
 After that, it's suggested to start `ape console` and create a stream to watch the daemon react
+
+### Publishing
+
+Given the monorepo structure, it's a bit more challenging to distribute all the packages in this repo.
+
+#### Contracts
+
+TBD
+
+#### Python SDK
+
+To publish the Python package, there are 5 steps.
+
+```sh
+# 1. Install everything
+$ poetry install`
+# 2. Compile the package manifest
+$ ape compile
+# 3. Copy the package manifest to the Python SDK folder
+$ cp .build/__local__.json sdk/py/apepay/manifest.json
+# 4. Build the Python SDK with Poetry
+$ poetry build
+# 5. Publish the package
+$ poetry publish
+```
+
+**NOTE**: make sure to revision the package before publishing, or it will fail.
+
+#### Javscript SDK and React component library
+
+To publish the JS SDK, do the following:
+
+```sh
+# 1. Install everything
+$ npm install --all-workspaces
+# 2. Build SDK
+$ npm run build --workspace=sdk/js
+# 3. Publish SDK
+$ npm publish --workspace=sdk/js
+```
+
+**NOTE**: make sure to revision the package before publishing, or it will fail.
+
+TO publish the React Component library, do the same thing as the SDK exepct use the `ui/lib` workspace.
+
+#### Demo App and Management Console
+
+TBD
 
 ## License
 
