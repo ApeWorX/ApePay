@@ -7,3 +7,20 @@ plugins:
 ethereum:
   local:
     default_provider: foundry
+
+vyper:
+  # NOTE: Using `paris` to avoid PUSH0 for now
+  evm_version: paris
+
+deployments:
+  ethereum:
+    sepolia: &chaosnet
+      # NOTE: Deployed with salt=`ApePay v0.1`
+      - contract_type: StreamFactory
+        address: 0x92823EB2DB42b8df354EDB5A1FB3668057e2935D
+      - contract_type: StreamManager
+        address: 0x3543faeeddb7babcbbb216b3627f9c5e0c39ce41
+  arbitrum:
+    mainnet: *chaosnet
+  optimism:
+    mainnet: *chaosnet

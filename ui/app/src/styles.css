@@ -1,0 +1,53 @@
+.cart {
+  border: 1px solid black;
+  text-align: center;
+  margin: 5em;
+  padding: 1em;
+}
+
+/* step 1 */
+.select-token-dropdown {
+  color: red;
+}
+
+.button-validate-select-token {
+  color: red;
+}
+
+.loading-message-token-balance {
+  color: red;
+}
+
+.loading-message-balance {
+  color: red;
+}
+
+/* step 2 */
+.slider-select-time {
+  width: 30%;
+  margin-bottom: 5em;
+}
+
+.button-validate-transaction {
+  color: red;
+}
+.validate-transaction-message {
+  color: red;
+}
+
+/* step 3 */
+
+.button-create-stream {
+  color: red;
+}
+
+.create-stream-approval-message {
+  color: red;
+}
+
+.payment-flow {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+}

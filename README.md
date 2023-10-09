@@ -19,12 +19,12 @@ ApePay is open source and we welcome all contributors! Check out the following t
 TODOs:
 
 - [x] Initial implementation
-- [ ] Documentation
-- [ ] Live testing on Sepolia
-- [ ] Production deployment on Arbitrum
+- [x] Documentation
+- [x] Live testing on Sepolia
+- [x] Production deployment on Arbitrum
 - [ ] Frontend management console, for managing subscriptions
 
-### Setup
+### Setup (Python)
 
 First, [install Ape](https://docs.apeworx.io/ape/stable/userguides/quickstart.html#installation)
 
@@ -34,13 +34,59 @@ Second, make sure to install the plugins:
 $ ape plugins install . --upgrade
 ```
 
-Lastly, since this is an SDK package, install the SDK:
+Next, prior to installing the SDK package, you have to compile the project:
+
+```sh
+$ ape compile
+```
+
+```note
+The SDK package relies on a soft link in [`./sdk/py/apepay/manifest.json`](./sdk/py/apepay/manifest.json)
+```
+
+Lastly, install the SDK package via:
 
 ```sh
 $ poetry install
 ```
 
 Then you are ready to contribute!
+
+### Setup (JS)
+
+In order to contribute to the JS SDK and React component library, or to build the demo app, you need to first follow the [Python Setup instructions](#setup-python) to compile the smart contract package.
+
+Next, you need install the node packages for development:
+
+```sh
+$ npm install
+```
+
+In order to work on the React component library, you need to compile the JS SDK:
+
+```sh
+$ npm run build --workspace=sdk/js
+```
+
+In order to work on the Demo app, you need to compile the JS SDK (like above) as well as compile the React component library:
+
+```sh
+$ npm run build --workspace=ui/lib
+```
+
+Then you are ready to contribute!
+
+To run the demo app in development mode, do the following:
+
+```sh
+$ npm run dev --workspace=ui/app
+```
+
+To build the demo app for production, do the following:
+
+```sh
+$ npm run build --workspace=ui/app
+```
 
 ### Testing
 
@@ -72,6 +118,16 @@ To deploy the StreamFactory (for production use), run:
 $ ape run deploy factory
 ```
 
+To deploy a Token (for testing use only), run:
+
+```sh
+$ ape run deploy token
+```
+
+```note
+This test token has an unauthenticated mint, please do not use in production!
+```
+
 To run the demo ApePay cluster daemon, first run a node like `anvil`:
 
 ```sh
@@ -87,6 +143,54 @@ $ silverback run scripts.daemon:app --network ::foundry --account TEST::0
 ```
 
 After that, it's suggested to start `ape console` and create a stream to watch the daemon react
+
+### Publishing
+
+Given the monorepo structure, it's a bit more challenging to distribute all the packages in this repo.
+
+#### Contracts
+
+TBD
+
+#### Python SDK
+
+To publish the Python package, there are 5 steps.
+
+```sh
+# 1. Install everything
+$ poetry install`
+# 2. Compile the package manifest
+$ ape compile
+# 3. Copy the package manifest to the Python SDK folder
+$ cp .build/__local__.json sdk/py/apepay/manifest.json
+# 4. Build the Python SDK with Poetry
+$ poetry build
+# 5. Publish the package
+$ poetry publish
+```
+
+**NOTE**: make sure to revision the package before publishing, or it will fail.
+
+#### Javscript SDK and React component library
+
+To publish the JS SDK, do the following:
+
+```sh
+# 1. Install everything
+$ npm install --all-workspaces
+# 2. Build SDK
+$ npm run build --workspace=sdk/js
+# 3. Publish SDK
+$ npm publish --workspace=sdk/js
+```
+
+**NOTE**: make sure to revision the package before publishing, or it will fail.
+
+TO publish the React Component library, do the same thing as the SDK exepct use the `ui/lib` workspace.
+
+#### Demo App and Management Console
+
+TBD
 
 ## License
 

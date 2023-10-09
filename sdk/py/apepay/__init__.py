@@ -1,15 +1,22 @@
 import json
+import importlib
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import partial
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Union, cast
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Union, cast, ClassVar
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
-from ape.exceptions import CompilerError, ContractLogicError, DecodingError, ProjectError
+from ape.exceptions import (
+    CompilerError,
+    ContractLogicError,
+    DecodingError,
+    ProjectError,
+    ContractNotFoundError,
+)
 from ape.types import AddressType, ContractLog, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
-from ethpm_types import ContractType
+from ethpm_types import ContractType, PackageManifest
 from pydantic import ValidationError, validator
 
 from .exceptions import (
@@ -54,26 +61,47 @@ _ValidatorItem = Union[Validator, ContractInstance, str, AddressType]
 class StreamManager(BaseInterfaceModel):
     address: AddressType
     contract_type: Optional[ContractType] = None
+    _local_contracts: ClassVar[Dict[str, ContractType]]
 
     @validator("address", pre=True)
     def normalize_address(cls, value: Any) -> AddressType:
         return cls.conversion_manager.convert(value, AddressType)
 
-    @cached_property
-    def _local_contracts(self) -> Dict[str, ContractType]:
+    @validator("contract_type", pre=True, always=True)
+    def fetch_contract_type(cls, value: Any, values: Dict[str, Any]) -> ContractType:
+        # 0. If pre-loaded, default to that type
+        if value:
+            return value
+
+        # 1. If building locally, use that
         try:
-            return self.project_manager.contracts
+            if contract_type := cls.project_manager.contracts.get("StreamManager"):
+                cls._local_contracts = cls.project_manager.contracts
+                return contract_type
+
         except (CompilerError, ProjectError, ValidationError):
-            return {}
+            pass
+
+        # 2. If contract cache has it, use that
+        try:
+            if values.get("address") and (
+                contract_type := cls.chain_manager.contracts.get(values["address"])
+            ):
+                return contract_type
+
+        except Exception:
+            pass
+
+        # 3. Most expensive way is through package resources
+        cls._local_contracts = PackageManifest.parse_file(
+            importlib.resources.files("apepay") / "manifest.json"
+        ).contract_types
+        return cls._local_contracts["StreamManager"]
 
     @property
     def contract(self) -> ContractInstance:
-        return (
-            self.project_manager.StreamManager.at(self.address)
-            if "StreamManager" in self._local_contracts
-            else self.chain_manager.contracts.instance_at(
-                self.address, contract_type=self.contract_type
-            )
+        return self.chain_manager.contracts.instance_at(
+            self.address, contract_type=self.contract_type
         )
 
     def __repr__(self) -> str:
@@ -248,9 +276,10 @@ class StreamManager(BaseInterfaceModel):
         for stream_id in range(self.contract.num_streams(creator)):
             yield Stream(manager=self, creator=creator, stream_id=stream_id)
 
-    def all_streams(self) -> Iterator["Stream"]:
+    def all_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
         for stream_created_event in self.contract.StreamCreated.range(
-            self.contract.receipt.block_number, self.chain_manager.blocks.head.number
+            start_block if start_block is not None else self.contract.receipt.block_number,
+            self.chain_manager.blocks.head.number,
         ):
             yield Stream.from_event(
                 manager=self,
@@ -258,13 +287,13 @@ class StreamManager(BaseInterfaceModel):
                 is_creation_event=True,
             )
 
-    def active_streams(self) -> Iterator["Stream"]:
-        for stream in self.all_streams():
+    def active_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
+        for stream in self.all_streams(start_block=start_block):
             if stream.is_active:
                 yield stream
 
-    def unclaimed_streams(self) -> Iterator["Stream"]:
-        for stream in self.all_streams():
+    def unclaimed_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
+        for stream in self.all_streams(start_block=start_block):
             if not stream.is_active and stream.amount_unlocked > 0:
                 yield stream
 
@@ -334,11 +363,20 @@ class Stream(BaseInterfaceModel):
 
     @cached_property
     def token(self) -> ContractInstance:
-        return (
-            self.project_manager.TestToken.at(self.info.token)
-            if "TestToken" in self.project_manager.contracts
-            else self.chain_manager.contracts.instance_at(self.info.token)
-        )
+        if "TestToken" in self.project_manager.contracts:
+            return self.project_manager.TestToken.at(self.info.token)
+
+        try:
+            return self.chain_manager.contracts.instance_at(self.info.token)
+        except ContractNotFoundError as err:
+            try:
+                from ape_tokens.managers import ERC20
+
+                return self.chain_manager.contracts.instance_at(
+                    self.info.token, contract_type=ERC20
+                )
+            except ImportError:
+                raise err
 
     @cached_property
     def amount_per_second(self) -> int:
@@ -390,6 +428,17 @@ class Stream(BaseInterfaceModel):
     @property
     def time_left(self) -> timedelta:
         return timedelta(seconds=self.contract.time_left(self.creator, self.stream_id))
+
+    @property
+    def total_time(self) -> timedelta:
+        info = self.info  # NOTE: Avoid calling contract twice
+        return (
+            # NOTE: `last_pull == start_time` if never pulled
+            datetime.fromtimestamp(info.last_pull)
+            - datetime.fromtimestamp(info.start_time)
+            # NOTE: Measure time-duration of unclaimed amount remaining (locked and unlocked)
+            + timedelta(seconds=int(info.funded_amount / info.amount_per_second))
+        )
 
     @property
     def is_active(self) -> bool:
