@@ -1,27 +1,22 @@
-import * as React from "react";
+import React, { useState, useEffect } from "react";
 import { PieChart } from "react-minimal-pie-chart";
-
 import { Stream } from "@apeworx/apepay";
 
 export interface StreamStatusProps {
   stream: Stream;
 }
 
-const StreamStatus = (props: StreamStatusProps) => {
-  const [timeLeft, setTimeLeft] = React.useState(1); // using `1` to start w/ 100% left
-  React.useEffect(() => {
-    props.stream.timeLeft().then(setTimeLeft).catch(console.error);
-  }, [timeLeft]);
+const StreamStatus: React.FC<StreamStatusProps> = ({ stream }) => {
+  const [timeLeft, setTimeLeft] = useState<number>(10);
+  const [totalTime, setTotalTime] = useState<number>(10);
 
-  console.log('timeleft' + timeLeft)
+  useEffect(() => {
+    stream.timeLeft().then(setTimeLeft).catch(console.error);
+    stream.totalTime().then(setTotalTime).catch(console.error);
+  }, [stream]);
 
-  const [totalTime, setTotalTime] = React.useState(1); // using `1` to avoid NaN
-  React.useEffect(() => {
-    props.stream.totalTime().then(setTotalTime).catch(console.error);
-  }, [totalTime]);
-
-  console.log('totaltime' + totalTime)
-
+  console.log("totaltime " + totalTime);
+  console.log("timeleft " + timeLeft);
 
   return (
     <PieChart

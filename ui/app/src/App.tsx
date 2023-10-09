@@ -17,6 +17,7 @@ import "./styles.css";
 // import { StreamStatus } from "@apeworx/apepay-react";
 import CreateStream from "../../../ui/lib/CreateStream";
 import StreamStatus from "../../../ui/lib/StreamStatus";
+import StreamStatusBar from "../../../ui/lib/StreamStatusBar";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
@@ -60,7 +61,6 @@ function App() {
     return Math.random().toString(36).substring(7);
   };
 
-  // NEW
   const { address } = useAccount();
   const [streamId, setStreamId] = useState<number | null>(null);
 
@@ -115,20 +115,35 @@ function App() {
 
       <div className="status-graph">
         {streamId ? (
-          <StreamStatus
-            stream={
-              new Stream(
-                config.streamManagerAddress as `0x${string}`,
-                address as `0x${string}`,
-                // todo: get streamID?
-                streamId,
-                usePublicClient(),
-                useWalletClient()?.data as WalletClient
-              )
-            }
-          />
+          <>
+            <StreamStatus
+              stream={
+                new Stream(
+                  config.streamManagerAddress as `0x${string}`,
+                  address as `0x${string}`,
+                  // todo: get streamID
+                  streamId,
+                  usePublicClient(),
+                  useWalletClient()?.data as WalletClient
+                )
+              }
+            />
+
+            <StreamStatusBar
+              stream={
+                new Stream(
+                  config.streamManagerAddress as `0x${string}`,
+                  address as `0x${string}`,
+                  // todo: get streamID
+                  streamId,
+                  usePublicClient(),
+                  useWalletClient()?.data as WalletClient
+                )
+              }
+            />
+          </>
         ) : (
-          <p>Create a deployment in order to get its graph.</p>
+          <p>Create a deployment in order to see its graph.</p>
         )}
       </div>
 

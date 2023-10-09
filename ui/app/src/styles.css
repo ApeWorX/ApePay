@@ -58,3 +58,26 @@
   margin-top: 5%;
   left: 45%;
 }
+
+/* STREAM STATUS BAR */
+
+.stream-status-bar-container {
+  width: 100%;
+  border: 1px solid #111;
+  border-radius: 4px;
+  position: relative;
+  height: 24px;
+}
+
+.stream-status-bar-progress {
+  height: 100%;
+  background-color: #111;
+}
+
+.stream-status-bar-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: red;
+}
