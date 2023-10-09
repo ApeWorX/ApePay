@@ -146,7 +146,7 @@ class StreamManager(BaseInterfaceModel):
         **txn_kwargs,
     ) -> ReceiptAPI:
         if len(validators) >= 20:
-            raise Validator("Validators full")
+            raise ValueError("Validators full")
 
         return self.contract.set_validators(
             [self._convert_to_address(v) for v in validators],
