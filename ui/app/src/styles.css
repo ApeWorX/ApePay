@@ -57,6 +57,8 @@
   position: relative;
   margin-top: 5%;
   left: 45%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* STREAM STATUS BAR */
@@ -80,4 +82,11 @@
   left: 50%;
   transform: translate(-50%, -50%);
   color: red;
+  width: 100%;
+  text-align: center;
+}
+
+.dropdown-select {
+  position: relative;
+  margin-bottom: 10px;
 }

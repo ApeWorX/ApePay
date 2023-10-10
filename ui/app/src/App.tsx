@@ -13,14 +13,13 @@ import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
 import "./styles.css";
-// import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
-// import { StreamStatus } from "@apeworx/apepay-react";
+// import { CreateStream, StreamStatus } from '@apeworx/apepay-react';
 import CreateStream from "../../../ui/lib/CreateStream";
 import StreamStatus from "../../../ui/lib/StreamStatus";
-import StreamStatusBar from "../../../ui/lib/StreamStatusBar";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
+  const [chartType, setChartType] = useState<"bar" | "pie">("bar");
 
   // Fake cart for the purpose of the demo
   const Cart = () => {
@@ -62,7 +61,7 @@ function App() {
   };
 
   const { address } = useAccount();
-  const [streamId, setStreamId] = useState<number | null>(null);
+  const [streamId, setStreamId] = useState<number >(1);
 
   return (
     <>
@@ -114,37 +113,30 @@ function App() {
       </div>
 
       <div className="status-graph">
-        {streamId ? (
-          <>
-            <StreamStatus
-              stream={
-                new Stream(
-                  config.streamManagerAddress as `0x${string}`,
-                  address as `0x${string}`,
-                  // todo: get streamID
-                  streamId,
-                  usePublicClient(),
-                  useWalletClient()?.data as WalletClient
-                )
-              }
-            />
+        <select
+          className="dropdown-select"
+          value={chartType}
+          onChange={(e) => setChartType(e.target.value as "bar" | "pie")}
+        >
+          <option value="bar">Bar Chart</option>
+          <option value="pie">Pie Chart</option>
+        </select>
 
-            <StreamStatusBar
-              stream={
-                new Stream(
-                  config.streamManagerAddress as `0x${string}`,
-                  address as `0x${string}`,
-                  // todo: get streamID
-                  streamId,
-                  usePublicClient(),
-                  useWalletClient()?.data as WalletClient
-                )
-              }
-            />
-          </>
-        ) : (
-          <p>Create a deployment in order to see its graph.</p>
-        )}
+        <>
+          <StreamStatus
+            chartType={chartType}
+            stream={
+              new Stream(
+                config.streamManagerAddress as `0x${string}`,
+                address as `0x${string}`,
+                // todo: get streamID
+                streamId,
+                usePublicClient(),
+                useWalletClient()?.data as WalletClient
+              )
+            }
+          />
+        </>
       </div>
 
       {console.log("stream " + Stream)}
