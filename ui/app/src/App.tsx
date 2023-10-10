@@ -13,9 +13,8 @@ import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
 import "./styles.css";
-// import { CreateStream, StreamStatus } from '@apeworx/apepay-react';
-import CreateStream from "../../../ui/lib/CreateStream";
-import StreamStatus from "../../../ui/lib/StreamStatus";
+import CreateStream from "lib/CreateStream";
+import StreamStatus from "lib/StreamStatus";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
@@ -61,7 +60,7 @@ function App() {
   };
 
   const { address } = useAccount();
-  const [streamId, setStreamId] = useState<number >(1);
+  const [streamId, setStreamId] = useState<number>(1);
 
   return (
     <>
