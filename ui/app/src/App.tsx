@@ -124,16 +124,7 @@ function App() {
         <>
           <StreamStatus
             chartType={chartType}
-            stream={
-              new Stream(
-                config.streamManagerAddress as `0x${string}`,
-                address as `0x${string}`,
-                // todo: get streamID
-                streamId,
-                usePublicClient(),
-                useWalletClient()?.data as WalletClient
-              )
-            }
+            stream={stream}
           />
         </>
       </div>
