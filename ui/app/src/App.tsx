@@ -111,11 +111,7 @@ function App() {
           <option value="pie">Pie Chart</option>
         </select>
 
-        <>
-          {stream &&
-            (console.log(stream),
-            (<StreamStatus chartType={chartType} stream={stream} />))}
-        </>
+        <>{stream && <StreamStatus chartType={chartType} stream={stream} />}</>
       </div>
     </>
   );

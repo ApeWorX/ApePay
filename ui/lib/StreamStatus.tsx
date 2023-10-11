@@ -8,30 +8,57 @@ export interface StreamStatusProps {
 }
 
 const StreamStatus: React.FC<StreamStatusProps> = ({ stream, chartType }) => {
-  const [timeLeft, setTimeLeft] = useState<number>(1);
-  const [totalTime, setTotalTime] = useState<number>(1);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [totalTime, setTotalTime] = useState<number | null>(null);
 
   useEffect(() => {
     stream.timeLeft().then(setTimeLeft).catch(console.error);
     stream.totalTime().then(setTotalTime).catch(console.error);
 
-    // Create an interval to decrement timeLeft every second
-    const intervalId = setInterval(() => {
-      setTimeLeft((prevTimeLeft) => Math.max(prevTimeLeft - 1, 0));
-    }, 1000);
+    // Skip the interval if timeLeft is null
+    if (timeLeft !== null) {
+      const intervalId = setInterval(() => {
+        setTimeLeft((prevTimeLeft) =>
+          prevTimeLeft !== null ? Math.max(prevTimeLeft - 1, 0) : null
+        );
+      }, 1000);
 
-    // Clear the interval when the component is unmounted
-    return () => clearInterval(intervalId);
+      // Clear the interval when the component is unmounted
+      return () => clearInterval(intervalId);
+    }
   }, [stream]);
 
-  console.log("totaltime " + totalTime);
-  console.log("timeleft " + timeLeft);
-
-  const percentageLeft = (timeLeft / totalTime) * 100;
+  const percentageLeft =
+    timeLeft && totalTime ? (timeLeft / totalTime) * 100 : 0;
 
   return (
     <>
-      {chartType === "bar" ? (
+      {timeLeft === null || totalTime === null ? (
+        // Loading State
+        chartType === "pie" ? (
+          <PieChart
+            data={[{ value: 1, color: "#ddd" }]}
+            totalValue={1}
+            lineWidth={20}
+            background="#eee"
+            label={() => "Loading..."}
+            labelPosition={0}
+          />
+        ) : (
+          // Loading state for bar chart
+          <div className="stream-status-bar-container">
+            <div
+              className="stream-status-bar-progress"
+              style={{
+                backgroundColor: "#ddd",
+                width: "100%",
+              }}
+            />
+            <div className="stream-status-bar-label">Loading...</div>
+          </div>
+        )
+      ) : // Display the actual data once loaded
+      chartType === "pie" ? (
         <PieChart
           data={[{ value: timeLeft, color: "#111" }]}
           totalValue={totalTime}
@@ -39,9 +66,7 @@ const StreamStatus: React.FC<StreamStatusProps> = ({ stream, chartType }) => {
           background="#bfbfbf"
           rounded
           animate
-          label={({ dataEntry }) =>
-            `${Math.floor((100 * dataEntry.value) / totalTime)}%`
-          }
+          label={() => `${Math.round(percentageLeft)}%`}
           labelPosition={0}
         />
       ) : (
