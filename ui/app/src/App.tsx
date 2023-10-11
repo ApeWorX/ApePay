@@ -100,10 +100,7 @@ function App() {
         <CreateStream
           streamManagerAddress={config.streamManagerAddress as `0x${string}`}
           amountPerSecond={100}
-          registerStream={(s: Stream) => {
-            console.log(s);
-            setStreamId(s.streamId);
-          }}
+          registerStream={setStream}
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}
           tokenList={tokenList}
