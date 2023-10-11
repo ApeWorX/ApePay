@@ -3,17 +3,16 @@ import { useState } from "react";
 import { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-
-// import { CreateStream, StreamStatus } from "@apeworx/apepay-react";
-import { StreamStatus } from "@apeworx/apepay-react";
-import CreateStream from "../../../ui/lib/CreateStream";
 import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
 import "./styles.css";
+import CreateStream from "lib/CreateStream";
+import StreamStatus from "lib/StreamStatus";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
+  const [chartType, setChartType] = useState<"bar" | "pie">("bar");
 
   // Fake cart for the purpose of the demo
   const Cart = () => {
@@ -54,6 +53,8 @@ function App() {
     return Math.random().toString(36).substring(7);
   };
 
+  const [stream, setStream] = useState<Stream | null>(null);
+
   return (
     <>
       {/* LOG IN WITH WALLET */}
@@ -66,7 +67,6 @@ function App() {
       >
         <ConnectButton />
       </div>
-
       {/* Transaction Status Display */}
       <div
         style={{
@@ -82,7 +82,6 @@ function App() {
         )}
         {processTxError && <p>Error: {processTxError.message}</p>}
       </div>
-
       <div
         style={{
           display: "flex",
@@ -93,13 +92,26 @@ function App() {
       >
         <CreateStream
           streamManagerAddress={config.streamManagerAddress as `0x${string}`}
-          amountPerSecond={100000000000000}
-          registerStream={(s: Stream) => console.log(s)}
+          amountPerSecond={100}
+          registerStream={setStream}
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}
           tokenList={tokenList}
           cart={<Cart />}
         />
+      </div>
+
+      <div className="status-graph">
+        <select
+          className="dropdown-select"
+          value={chartType}
+          onChange={(e) => setChartType(e.target.value as "bar" | "pie")}
+        >
+          <option value="bar">Bar Chart</option>
+          <option value="pie">Pie Chart</option>
+        </select>
+
+        <>{stream && <StreamStatus chartType={chartType} stream={stream} />}</>
       </div>
     </>
   );

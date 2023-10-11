@@ -51,3 +51,42 @@
   text-align: center;
   align-items: center;
 }
+
+.status-graph {
+  width: 10%;
+  position: relative;
+  margin-top: 5%;
+  left: 45%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* STREAM STATUS BAR */
+
+.stream-status-bar-container {
+  width: 100%;
+  border: 1px solid #111;
+  border-radius: 4px;
+  position: relative;
+  height: 24px;
+}
+
+.stream-status-bar-progress {
+  height: 100%;
+  background-color: #111;
+}
+
+.stream-status-bar-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: red;
+  width: 100%;
+  text-align: center;
+}
+
+.dropdown-select {
+  position: relative;
+  margin-bottom: 10px;
+}
