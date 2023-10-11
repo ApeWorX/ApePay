@@ -60,7 +60,7 @@ function App() {
   };
 
   const { address } = useAccount();
-  const [streamId, setStreamId] = useState<number>(1);
+  const [stream, setStream] = useState<Stream | null>(null);
 
   return (
     <>
