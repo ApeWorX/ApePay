@@ -3,12 +3,6 @@ import { useState } from "react";
 import { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import {
-  usePublicClient,
-  useWalletClient,
-  WalletClient,
-  useAccount,
-} from "wagmi";
 import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
@@ -59,7 +53,6 @@ function App() {
     return Math.random().toString(36).substring(7);
   };
 
-  const { address } = useAccount();
   const [stream, setStream] = useState<Stream | null>(null);
 
   return (
@@ -119,18 +112,11 @@ function App() {
         </select>
 
         <>
-          <StreamStatus
-            chartType={chartType}
-            stream={stream}
-          />
+          {stream &&
+            (console.log(stream),
+            (<StreamStatus chartType={chartType} stream={stream} />))}
         </>
       </div>
-
-      {console.log("stream " + Stream)}
-      {console.log("stream manager address" + config.streamManagerAddress)}
-      {console.log("address " + address)}
-      {console.log("usepublicclient " + usePublicClient())}
-      {console.log("streamid " + streamId)}
     </>
   );
 }

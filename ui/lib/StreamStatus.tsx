@@ -4,7 +4,7 @@ import { Stream } from "@apeworx/apepay";
 
 export interface StreamStatusProps {
   stream: Stream;
-  chartType: 'bar' | 'pie';
+  chartType: "bar" | "pie";
 }
 
 const StreamStatus: React.FC<StreamStatusProps> = ({ stream, chartType }) => {
@@ -14,6 +14,14 @@ const StreamStatus: React.FC<StreamStatusProps> = ({ stream, chartType }) => {
   useEffect(() => {
     stream.timeLeft().then(setTimeLeft).catch(console.error);
     stream.totalTime().then(setTotalTime).catch(console.error);
+
+    // Create an interval to decrement timeLeft every second
+    const intervalId = setInterval(() => {
+      setTimeLeft((prevTimeLeft) => Math.max(prevTimeLeft - 1, 0));
+    }, 1000);
+
+    // Clear the interval when the component is unmounted
+    return () => clearInterval(intervalId);
   }, [stream]);
 
   console.log("totaltime " + totalTime);
@@ -23,7 +31,7 @@ const StreamStatus: React.FC<StreamStatusProps> = ({ stream, chartType }) => {
 
   return (
     <>
-      {chartType === 'bar' ? (
+      {chartType === "bar" ? (
         <PieChart
           data={[{ value: timeLeft, color: "#111" }]}
           totalValue={totalTime}
