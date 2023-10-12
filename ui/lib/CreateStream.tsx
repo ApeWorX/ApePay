@@ -230,8 +230,8 @@ const CreateStream = (props: CreateStreamProps) => {
           reasonString
         )
           .then((result) => {
-            props.registerStream(result);
             props.handleTransactionStatus(false, true, null);
+            props.registerStream(result);
           })
           .catch((error) => {
             props.handleTransactionStatus(false, false, error);
