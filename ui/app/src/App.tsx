@@ -111,7 +111,16 @@ function App() {
           <option value="pie">Pie Chart</option>
         </select>
 
-        <>{stream && <StreamStatus chartType={chartType} stream={stream} />}</>
+        <>
+          {stream && (
+            <StreamStatus
+              stream={stream}
+              chartType={chartType}
+              background="#110036"
+              color="#B40C4C"
+            />
+          )}
+        </>
       </div>
     </>
   );
