@@ -225,4 +225,24 @@ export default class StreamManager {
       throw new Error("Error while processing transactions");
     return BigInt(result);
   }
+
+  async update(
+    creator: Address,
+    streamId: number,
+    amount: number
+  ): Promise<bigint> {
+    if (!this.walletClient)
+      throw new Error("Error funding stream: wallet client is not set");
+    const timeLeft = await this.walletClient.writeContract({
+      chain: null,
+      address: this.address,
+      abi: StreamManagerContractType.abi as Abi,
+      functionName: "add_funds",
+      args: [creator, streamId, amount],
+      account: creator,
+    });
+    if (timeLeft === undefined)
+      throw new Error("Error while processing transactions");
+    return BigInt(timeLeft);
+  }
 }

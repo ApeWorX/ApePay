@@ -10,6 +10,7 @@ import "./styles.css";
 import CreateStream from "lib/CreateStream";
 import StreamStatus from "lib/StreamStatus";
 import CancelStream from "lib/CancelStream";
+import UpdateStream from "lib/UpdateStream";
 
 import { WalletClient } from "viem";
 import { usePublicClient, useWalletClient } from "wagmi";
@@ -155,6 +156,15 @@ function App() {
             streamId={stream.streamId}
             reason={reason}
             creator={stream.creator}
+            sm={sm}
+          />
+        </div>
+      )}
+      {stream && (
+        <div>
+          <UpdateStream
+            creator={stream.creator}
+            streamId={stream.streamId}
             sm={sm}
           />
         </div>

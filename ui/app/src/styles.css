@@ -91,11 +91,20 @@
   margin-bottom: 10px;
 }
 
-
 /* CANCEL STREAM */
 
-.button-cancel-stream {
+.cancel-stream-button {
   position: relative;
   margin-top: 5%;
   left: 45%;
+}
+
+/* UPDATE STREAM */
+.update-stream-container {
+  position: relative;
+  margin-top: 2em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
