@@ -90,3 +90,12 @@
   position: relative;
   margin-bottom: 10px;
 }
+
+
+/* CANCEL STREAM */
+
+.button-cancel-stream {
+  position: relative;
+  margin-top: 5%;
+  left: 45%;
+}

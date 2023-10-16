@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -9,6 +9,11 @@ import "rc-slider/assets/index.css";
 import "./styles.css";
 import CreateStream from "lib/CreateStream";
 import StreamStatus from "lib/StreamStatus";
+import CancelStream from "lib/CancelStream";
+
+import { WalletClient } from "viem";
+import { usePublicClient, useWalletClient } from "wagmi";
+import StreamManager from "../../../sdk/js/index";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
@@ -54,6 +59,28 @@ function App() {
   };
 
   const [stream, setStream] = useState<Stream | null>(null);
+
+  // Get streamManager to pass it as props to cancelstream
+  const sm = new StreamManager(
+    config.streamManagerAddress as `0x${string}`,
+    usePublicClient(),
+    useWalletClient()?.data as WalletClient
+  );
+
+  // Get the reason to pass it as props to cancelstream
+  const [reason, setReason] = useState("");
+  useEffect(() => {
+    const fetchReason = async () => {
+      try {
+        const reasonCode = await renderReasonCode();
+        setReason(reasonCode);
+      } catch (error) {
+        console.error("Error fetching reason code:", error);
+      }
+    };
+
+    fetchReason();
+  }, []);
 
   return (
     <>
@@ -122,6 +149,16 @@ function App() {
           )}
         </>
       </div>
+      {stream && (
+        <div>
+          <CancelStream
+            streamId={stream.streamId}
+            reason={reason}
+            creator={stream.creator}
+            sm={sm}
+          />
+        </div>
+      )}
     </>
   );
 }
