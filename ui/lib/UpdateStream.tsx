@@ -82,8 +82,9 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   // Step 1: set number of tokens you want to add
   const Step1 = () => {
     return (
-      <div className="update-stream-container">
-        <div>Remaining time in the stream: {timeLeft}.</div>
+      <div className="stream-container">
+        {/* TODO: add dynamic unit of time; now in seconds */}
+        <div>Remaining time in the stream: {timeLeft} seconds.</div>
         <div className="update-stream-title">
           Enter the amount of {props.token.symbol} you want to add to the
           stream:
