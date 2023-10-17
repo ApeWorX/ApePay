@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import StreamManager from "../../sdk/js/index";
 import { Address, stringToHex } from "viem";
+import StreamManager from "../../sdk/js/index";
 
 interface CancelStreamProps {
   streamId: number;
@@ -25,7 +25,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
         hexReason,
         props.creator
       );
-      setResult(`Stream cancelled. Remaining funds: ${result}`);
+      setResult(`Stream cancelled. Transaction Hash: ${result}`);
     } catch (error) {
       if (error instanceof Error) {
         setResult(`Error canceling stream: ${error.message}`);

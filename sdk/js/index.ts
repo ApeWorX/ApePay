@@ -229,7 +229,7 @@ export default class StreamManager {
   async update(
     creator: Address,
     streamId: number,
-    amount: number
+    amount: bigint
   ): Promise<string> {
     if (!this.walletClient)
       throw new Error("Error funding stream: wallet client is not set");

@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WalletClient, Address } from "viem";
+import { usePublicClient, useWalletClient } from "wagmi";
 import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
@@ -11,10 +13,7 @@ import CreateStream from "lib/CreateStream";
 import StreamStatus from "lib/StreamStatus";
 import CancelStream from "lib/CancelStream";
 import UpdateStream from "lib/UpdateStream";
-
-import { WalletClient } from "viem";
-import { usePublicClient, useWalletClient } from "wagmi";
-import StreamManager from "../../../sdk/js/index";
+import StreamManager from "sdk/js/index";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
@@ -63,7 +62,7 @@ function App() {
 
   // Get streamManager to pass it as props to cancelstream
   const sm = new StreamManager(
-    config.streamManagerAddress as `0x${string}`,
+    config.streamManagerAddress as Address,
     usePublicClient(),
     useWalletClient()?.data as WalletClient
   );

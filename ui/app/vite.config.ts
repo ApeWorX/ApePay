@@ -10,8 +10,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      app: path.resolve(__dirname),
       lib: path.resolve(__dirname, '../lib/'),
-      app: path.resolve(__dirname)
+      sdk: path.resolve(__dirname, '../../sdk/')
     },
   }
 });
