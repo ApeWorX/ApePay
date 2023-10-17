@@ -210,10 +210,10 @@ export default class StreamManager {
     streamId: number,
     reason: string,
     creator: Address
-  ): Promise<bigint> {
+  ): Promise<string> {
     if (!this.walletClient)
       throw new Error("Error cancelling stream: wallet client is not set");
-    const result = await this.walletClient.writeContract({
+    const hash = await this.walletClient.writeContract({
       chain: null,
       address: this.address,
       abi: StreamManagerContractType.abi as Abi,
@@ -221,19 +221,19 @@ export default class StreamManager {
       args: [streamId, reason, creator],
       account: creator,
     });
-    if (result === undefined)
+    if (hash === undefined)
       throw new Error("Error while processing transactions");
-    return BigInt(result);
+    return hash;
   }
 
   async update(
     creator: Address,
     streamId: number,
     amount: number
-  ): Promise<bigint> {
+  ): Promise<string> {
     if (!this.walletClient)
       throw new Error("Error funding stream: wallet client is not set");
-    const timeLeft = await this.walletClient.writeContract({
+    const hash = await this.walletClient.writeContract({
       chain: null,
       address: this.address,
       abi: StreamManagerContractType.abi as Abi,
@@ -241,8 +241,8 @@ export default class StreamManager {
       args: [creator, streamId, amount],
       account: creator,
     });
-    if (timeLeft === undefined)
+    if (hash === undefined)
       throw new Error("Error while processing transactions");
-    return BigInt(timeLeft);
+    return hash;
   }
 }

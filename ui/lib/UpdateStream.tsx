@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import StreamManager from "../../sdk/js/index";
-import { Address } from "viem";
+import { Address, parseUnits } from "viem";
+
 
 interface UpdateStreamProps {
   creator: Address;
   streamId: number;
   sm: StreamManager;
+  tokenDecimals: number,
 }
 
 const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
