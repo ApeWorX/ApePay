@@ -36,7 +36,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   };
 
   return (
-    <div className="cancel-stream-container">
+    <div className="stream-container">
       <button className="cancel-stream-button" onClick={handleCancel}>
         Cancel Stream
       </button>

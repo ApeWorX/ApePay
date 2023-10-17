@@ -85,6 +85,7 @@ function App() {
   //find token decimals for update stream component. TODO: fetch dynamically as stream.token
   const selectedToken = config.tokens[2];
 
+
   return (
     <>
       {/* LOG IN WITH WALLET */}
@@ -165,10 +166,9 @@ function App() {
       {stream && (
         <div>
           <UpdateStream
-            creator={stream.creator}
-            streamId={stream.streamId}
+            stream={stream}
             sm={sm}
-            tokenDecimals={selectedToken.decimals}
+            token={selectedToken}
           />
         </div>
       )}

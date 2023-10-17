@@ -93,14 +93,7 @@
 
 /* CANCEL STREAM */
 
-.cancel-stream-button {
-  position: relative;
-  margin-top: 5%;
-  left: 45%;
-}
-
-/* UPDATE STREAM */
-.update-stream-container {
+.stream-container {
   position: relative;
   margin-top: 2em;
   display: flex;
@@ -108,3 +101,5 @@
   align-items: center;
   gap: 10px;
 }
+
+
