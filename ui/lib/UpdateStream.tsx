@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { parseUnits } from "viem";
 import StreamManager, { Stream } from "../../sdk/js/index";
-import { usePrepareContractWrite, useContractWrite } from "wagmi";
+import {
+  usePrepareContractWrite,
+  useContractWrite,
+  useAccount,
+  useBalance,
+} from "wagmi";
 import { formatTime } from "./utils";
+import Slider from "rc-slider";
 
 interface UpdateStreamProps {
   stream: Stream;
+  streamDailyCost: number;
   sm: StreamManager;
   token: {
     chainId: number;
@@ -15,17 +21,40 @@ interface UpdateStreamProps {
     symbol: string;
   };
 }
-// TODO: let user choose time with a slider instead of an amount of tokens
 
 const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   // Display time left for the user
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  // Set the amount user wants to add
-  const [amount, setAmount] = useState<string>("0");
   // Get result of transaction to display to the user
   const [result, setResult] = useState<string | null>(null);
   // Allow user to update stream only once
   const [isButtonDisabled, setButtonDisabled] = useState(false);
+  // Let users select the number of days they want to fund the stream
+  const [selectedTime, setSelectedTime] = useState(1);
+
+  // set ERC20 allowance
+  const contractAmount = BigInt(selectedTime) * BigInt(props.streamDailyCost);
+
+  // Fetch user balance to determine what max amount of funds he can add
+  const { address } = useAccount();
+  const { data: tokenData } = useBalance({
+    address,
+    token: props.token.address as `0x${string}`,
+  });
+
+  // Largest value displayed on the slider is the amount of tokens you have divided by the daily cost of your stream
+  const maxTime = Number(
+    (tokenData?.value || BigInt(0)) / BigInt(props.streamDailyCost)
+  );
+  const maxTimeDays: number = Math.min(Math.floor(maxTime), 7); // Up to a week
+
+  // Define steps in the slider
+  const marks = Object.fromEntries(
+    Array.from(Array(maxTimeDays).keys()).map((v: number) => [
+      v + 1,
+      `${v + 1}`,
+    ])
+  );
 
   // Get time left in the stream
   useEffect(() => {
@@ -44,8 +73,6 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     }
   }, [props.stream]);
 
-  // set ERC20 allowance
-  const contractAmount = parseUnits(amount, props.token.decimals);
   const { config: approvalConfig } = usePrepareContractWrite({
     address: props.token.address as `0x${string}`,
     value: BigInt(0),
@@ -91,25 +118,22 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
         ) : (
           <div>Fetching remaining time...</div>
         )}
-
-        <div className="update-stream-title">
-          Enter the amount of {props.token.symbol} you want to add to the
-          stream:
-        </div>
-        <input
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Update Stream"
-          className="update-stream-input"
-          min="0"
+        <Slider
+          className="slider-select-time"
+          min={1}
+          marks={marks}
+          max={maxTimeDays}
+          step={null}
+          value={Math.min(selectedTime, maxTimeDays)}
+          defaultValue={1}
+          onChange={(value) =>
+            typeof value === "number" && setSelectedTime(value)
+          }
         />
-        <button
-          onClick={approveStream}
-          disabled={amount === "0"}
-          className="update-stream-button"
-        >
-          Validate {amount} {props.token.symbol} to proceed to stream update
+        <button onClick={approveStream} className="update-stream-button">
+          {`Validate adding funds for ${selectedTime} new day${
+            selectedTime !== 1 ? "s" : ""
+          }`}
         </button>
         {isLoading && <p>Waiting for the transaction approval...</p>}
         {isError && <p>You did not confirm the transaction.</p>}
@@ -134,6 +158,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
         setResult(`Error updating stream: ${error}`);
       }
     }
+    console.log(result);
   };
 
   // Step 2: add funds to stream
@@ -142,20 +167,21 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
       <>
         <div className="stream-container">
           <div className="update-stream-title">
-            Add {amount} {props.token.symbol} to the stream:
+            {`Add funds for ${selectedTime} new day${
+              selectedTime !== 1 ? "s:" : ":"
+            }`}
           </div>
           <button
             onClick={handleUpdate}
             disabled={isButtonDisabled}
             className="update-stream-button"
           >
-            Update Stream
+            Fund stream
           </button>
           <div className="update-stream-label">
             {result && (
               <div>
-                Funds added to the stream. Updated time remaining in the stream:
-                {timeLeft !== null ? ` ${formatTime(timeLeft)}` : "Fetching remaining time..."}
+                Your stream has been funded for {selectedTime} more days.
               </div>
             )}
           </div>

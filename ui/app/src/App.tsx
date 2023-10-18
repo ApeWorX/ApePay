@@ -31,7 +31,7 @@ function App() {
           </div>
           <div className="cart-details">
             <strong>Details:</strong>
-            <p>Description of the cart that you're about to pay for.</p>
+            <p>Description of the cart that you are about to pay for.</p>
           </div>
         </div>
       </div>
@@ -169,6 +169,7 @@ function App() {
             stream={stream}
             sm={sm}
             token={selectedToken}
+            streamDailyCost={100*86400}
           />
         </div>
       )}
