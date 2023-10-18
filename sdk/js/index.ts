@@ -245,4 +245,13 @@ export default class StreamManager {
       throw new Error("Error while processing transactions");
     return hash;
   }
+
+  async stream_is_cancelable(creator: Address, streamId: number): Promise<boolean> {
+    return (await this.publicClient.readContract({
+      address: this.address,
+      abi: StreamManagerContractType.abi as Abi,
+      functionName: "stream_is_cancelable",
+      args: [creator, streamId],
+    })) as boolean;
+  }
 }

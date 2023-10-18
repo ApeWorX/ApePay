@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Address, stringToHex } from "viem";
 import StreamManager from "../../sdk/js/index";
+import { formatTime } from "./utils";
 
 interface CancelStreamProps {
   streamId: number;
@@ -12,16 +13,47 @@ interface CancelStreamProps {
 const CancelStream: React.FC<CancelStreamProps> = (props) => {
   const [result, setResult] = useState<string | null>(null);
   const hexReason = stringToHex(props.reason);
-  // Allow user to cancel stream only once
-  const [isButtonDisabled, setButtonDisabled] = useState(false);
-  // console.log(props.streamId);
-  // console.log(hexReason);
-  // console.log(props.creator);
-  // console.log(props.sm);
+  // Allow user to cancel stream only if he didnt click on cancel already AND if the stream is cancellable
+  const [isButtonEnabled, setButtonEnabled] = useState(false);
+  // Get the min stream life
+  const [minStreamLife, setMinStreamLife] = useState<number | null>(null);
+
+  // Retrieve the value of the min stream life
+  async function fetchMinStreamLife() {
+    try {
+      const minStreamLife = await props.sm.MIN_STREAM_LIFE();
+      setMinStreamLife(minStreamLife);
+    } catch (error) {
+      console.error("Error fetching MIN_STREAM_LIFE:", error);
+    }
+  }
+  fetchMinStreamLife();
+
+  // Check if the stream is cancellable and set the button state accordingly.
+  const checkStreamCancellable = async () => {
+    try {
+      const isCancellable = await props.sm.stream_is_cancelable(
+        props.creator,
+        props.streamId
+      );
+      setButtonEnabled(isCancellable);
+    } catch (error) {
+      console.error("Error checking stream cancellability:", error);
+    }
+  };
+  checkStreamCancellable();
+
+  // Set interval to check every 10 seconds
+  const interval = setInterval(checkStreamCancellable, 10000);
+
+  // Clean up the interval when the component unmounts
+  useEffect(() => {
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCancel = async () => {
     try {
-      setButtonDisabled(true);
+      setButtonEnabled(false);
       const result = await props.sm.cancel(
         props.streamId,
         hexReason,
@@ -42,15 +74,20 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
       <button
         className="cancel-stream-button"
         onClick={handleCancel}
-        disabled={isButtonDisabled}
+        disabled={!isButtonEnabled}
       >
         Cancel Stream
       </button>
       <div className="cancel-stream-label">
         {result && <div>Stream cancelled.</div>}
+        {!isButtonEnabled && (
+          <div>
+            Stream cannot be cancelled yet: its minimum life is
+            {formatTime(Number(minStreamLife))}.
+          </div>
+        )}
       </div>
     </div>
   );
 };
-
 export default CancelStream;
