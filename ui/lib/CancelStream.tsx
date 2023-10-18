@@ -12,7 +12,8 @@ interface CancelStreamProps {
 const CancelStream: React.FC<CancelStreamProps> = (props) => {
   const [result, setResult] = useState<string | null>(null);
   const hexReason = stringToHex(props.reason);
-
+  // Allow user to cancel stream only once
+  const [isButtonDisabled, setButtonDisabled] = useState(false);
   // console.log(props.streamId);
   // console.log(hexReason);
   // console.log(props.creator);
@@ -20,6 +21,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
 
   const handleCancel = async () => {
     try {
+      setButtonDisabled(true);
       const result = await props.sm.cancel(
         props.streamId,
         hexReason,
@@ -37,10 +39,16 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
 
   return (
     <div className="stream-container">
-      <button className="cancel-stream-button" onClick={handleCancel}>
+      <button
+        className="cancel-stream-button"
+        onClick={handleCancel}
+        disabled={isButtonDisabled}
+      >
         Cancel Stream
       </button>
-      <div className="cancel-stream-label">{result && <div>{result}</div>}</div>
+      <div className="cancel-stream-label">
+        {result && <div>Stream cancelled.</div>}
+      </div>
     </div>
   );
 };

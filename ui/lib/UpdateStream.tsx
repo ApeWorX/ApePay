@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { parseUnits } from "viem";
 import StreamManager, { Stream } from "../../sdk/js/index";
 import { usePrepareContractWrite, useContractWrite } from "wagmi";
+import { formatTime } from "./utils";
 
 interface UpdateStreamProps {
   stream: Stream;
@@ -23,6 +24,8 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   const [amount, setAmount] = useState<string>("0");
   // Get result of transaction to display to the user
   const [result, setResult] = useState<string | null>(null);
+  // Allow user to update stream only once
+  const [isButtonDisabled, setButtonDisabled] = useState(false);
 
   // Get time left in the stream
   useEffect(() => {
@@ -83,8 +86,12 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   const Step1 = () => {
     return (
       <div className="stream-container">
-        {/* TODO: add dynamic unit of time; now in seconds */}
-        <div>Remaining time in the stream: {timeLeft} seconds.</div>
+        {timeLeft !== null ? (
+          <div>Remaining time in the stream: {formatTime(timeLeft)}.</div>
+        ) : (
+          <div>Fetching remaining time...</div>
+        )}
+
         <div className="update-stream-title">
           Enter the amount of {props.token.symbol} you want to add to the
           stream:
@@ -113,6 +120,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   // Stream update function (for step 2)
   const handleUpdate = async () => {
     try {
+      setButtonDisabled(true);
       const result = await props.sm.update(
         props.stream.creator,
         props.stream.streamId,
@@ -136,11 +144,20 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
           <div className="update-stream-title">
             Add {amount} {props.token.symbol} to the stream:
           </div>
-          <button onClick={handleUpdate} className="update-stream-button">
+          <button
+            onClick={handleUpdate}
+            disabled={isButtonDisabled}
+            className="update-stream-button"
+          >
             Update Stream
           </button>
           <div className="update-stream-label">
-            {result && <div>{result}</div>}
+            {result && (
+              <div>
+                Funds added to the stream. Updated time remaining in the stream:
+                {timeLeft !== null ? ` ${formatTime(timeLeft)}` : "Fetching remaining time..."}
+              </div>
+            )}
           </div>
         </div>
       </>
