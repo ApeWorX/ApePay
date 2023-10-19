@@ -1,6 +1,5 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { WalletClient, Address } from "viem";
@@ -13,7 +12,7 @@ import CreateStream from "lib/CreateStream";
 import StreamStatus from "lib/StreamStatus";
 import CancelStream from "lib/CancelStream";
 import UpdateStream from "lib/UpdateStream";
-import StreamManager from "sdk/js/index";
+import StreamManager, { Stream } from "sdk/js/index";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;

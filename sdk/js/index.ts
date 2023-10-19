@@ -119,6 +119,16 @@ export default class StreamManager {
     );
   }
 
+  async MAX_STREAM_LIFE(): Promise<number> {
+    return Number(
+      (await this.publicClient.readContract({
+        address: this.address,
+        abi: StreamManagerContractType.abi as Abi,
+        functionName: "MAX_STREAM_LIFE",
+      })) as bigint
+    );
+  }
+
   async create(
     token: Address,
     amountPerSecond: number,
@@ -246,7 +256,10 @@ export default class StreamManager {
     return hash;
   }
 
-  async stream_is_cancelable(creator: Address, streamId: number): Promise<boolean> {
+  async stream_is_cancelable(
+    creator: Address,
+    streamId: number
+  ): Promise<boolean> {
     return (await this.publicClient.readContract({
       address: this.address,
       abi: StreamManagerContractType.abi as Abi,

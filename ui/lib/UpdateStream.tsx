@@ -24,11 +24,10 @@ interface UpdateStreamProps {
 const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   // Get result of transaction to display to the user
   const [result, setResult] = useState<string | null>(null);
-  // Allow user to update stream only once
+  // Disable 'update stream' button after a user clicked on it
   const [isButtonDisabled, setButtonDisabled] = useState(false);
   // Let users select the number of days they want to fund the stream
   const [selectedTime, setSelectedTime] = useState(1);
-
   // set ERC20 allowance
   const contractAmount = BigInt(selectedTime) * BigInt(props.streamDailyCost);
 
@@ -53,7 +52,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     ])
   );
 
-
+  // Validate first transaction
   const { config: approvalConfig } = usePrepareContractWrite({
     address: props.token.address as `0x${string}`,
     value: BigInt(0),
@@ -80,7 +79,34 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     write: approveStream,
   } = useContractWrite(approvalConfig);
 
-  // Set step logic: set amount and validate transaction (1) then update stream (2)
+  // Make sure stream is updatable (timemax not reached) before validating transaction
+  const [isValidateButtonDisabled, setValidateButtonDisabled] = useState(true);
+  // Check if timemax has been checked to display a loading message
+  const [isUpdatableChecked, setIsUpdatableChecked] = useState(false);
+  const checkStreamUpdatable = async () => {
+    try {
+      setIsUpdatableChecked(true);
+      const streamInfo = await props.stream.streamInfo();
+      const currentTime = Math.floor(Date.now() / 1000);
+      const startTime = streamInfo.start_time;
+      const timeRemaining =
+        Number(startTime) + Number(streamInfo.max_stream_life) - currentTime;
+
+      const isUpdatable = timeRemaining > 0;
+      setValidateButtonDisabled(!isUpdatable);
+    } catch (error) {
+      console.error("Error checking stream updatability:", error);
+    }
+  };
+
+  // Set interval to check every 10 seconds
+  const interval = setInterval(checkStreamUpdatable, 10000);
+  // Clean up the interval when the component unmounts
+  useEffect(() => {
+    return () => clearInterval(interval);
+  }, []);
+
+  // Set step logic: (1) set amount, check updatability, and validate transaction & (2) update stream
   const [currentStep, setCurrentStep] = useState(1);
 
   // Move to step 2 if transaction has been succesful
@@ -90,23 +116,37 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     }
   }, [isSuccess]);
 
-  // Step 1: set number of tokens you want to add
+  // Step 1: set number of tokens you want to add and check if stream is updatable
   const Step1 = () => {
     return (
       <div className="stream-container">
-        <Slider
-          className="slider-select-time"
-          min={1}
-          marks={marks}
-          max={maxTimeDays}
-          step={null}
-          value={Math.min(selectedTime, maxTimeDays)}
-          defaultValue={1}
-          onChange={(value) =>
-            typeof value === "number" && setSelectedTime(value)
-          }
-        />
-        <button onClick={approveStream} className="update-stream-button">
+        {!isUpdatableChecked ? (
+          <div className="update-message">Fetching max stream life...</div>
+        ) : isValidateButtonDisabled ? (
+          <div className="update-message">
+            Max stream life reached: stream cannot be updated.
+          </div>
+        ) : (
+          <>
+            <Slider
+              className="slider-select-time"
+              min={1}
+              marks={marks}
+              max={maxTimeDays}
+              step={null}
+              value={Math.min(selectedTime, maxTimeDays)}
+              defaultValue={1}
+              onChange={(value) =>
+                typeof value === "number" && setSelectedTime(value)
+              }
+            />
+          </>
+        )}
+        <button
+          onClick={approveStream}
+          className="update-stream-button"
+          disabled={isValidateButtonDisabled}
+        >
           {`Validate adding funds for ${selectedTime} new day${
             selectedTime !== 1 ? "s" : ""
           }`}
@@ -158,7 +198,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
             {result && (
               <div>
                 {`Your stream has been funded for ${selectedTime} more day${
-                  selectedTime !== 1 ? "s:" : ":"
+                  selectedTime !== 1 ? "s" : ""
                 }`}
               </div>
             )}
