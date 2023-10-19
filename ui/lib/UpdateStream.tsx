@@ -6,7 +6,6 @@ import {
   useAccount,
   useBalance,
 } from "wagmi";
-import { formatTime } from "./utils";
 import Slider from "rc-slider";
 
 interface UpdateStreamProps {
@@ -23,8 +22,6 @@ interface UpdateStreamProps {
 }
 
 const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
-  // Display time left for the user
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   // Get result of transaction to display to the user
   const [result, setResult] = useState<string | null>(null);
   // Allow user to update stream only once
@@ -56,22 +53,6 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     ])
   );
 
-  // Get time left in the stream
-  useEffect(() => {
-    props.stream.timeLeft().then(setTimeLeft).catch(console.error);
-
-    // Skip the interval if timeLeft is null
-    if (timeLeft !== null) {
-      const intervalId = setInterval(() => {
-        setTimeLeft((prevTimeLeft) =>
-          prevTimeLeft !== null ? Math.max(prevTimeLeft - 1, 0) : null
-        );
-      }, 3000);
-
-      // Clear the interval when the component is unmounted
-      return () => clearInterval(intervalId);
-    }
-  }, [props.stream]);
 
   const { config: approvalConfig } = usePrepareContractWrite({
     address: props.token.address as `0x${string}`,
@@ -89,7 +70,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
       },
     ],
     functionName: "approve",
-    args: [props.sm.address, contractAmount],
+    args: [props.stream.address, contractAmount],
   });
 
   const {
@@ -113,11 +94,6 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   const Step1 = () => {
     return (
       <div className="stream-container">
-        {timeLeft !== null ? (
-          <div>Remaining time in the stream: {formatTime(timeLeft)}.</div>
-        ) : (
-          <div>Fetching remaining time...</div>
-        )}
         <Slider
           className="slider-select-time"
           min={1}
@@ -181,7 +157,9 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
           <div className="update-stream-label">
             {result && (
               <div>
-                Your stream has been funded for {selectedTime} more days.
+                {`Your stream has been funded for ${selectedTime} more day${
+                  selectedTime !== 1 ? "s:" : ":"
+                }`}
               </div>
             )}
           </div>

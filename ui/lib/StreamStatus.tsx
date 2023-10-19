@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { PieChart } from "react-minimal-pie-chart";
 import { Stream } from "@apeworx/apepay";
+import { formatTime } from "./utils";
 
 export interface StreamStatusProps {
   stream: Stream;
@@ -48,9 +49,12 @@ const StreamStatus: React.FC<StreamStatusProps> = (props) => {
           />
         ) : (
           // Loading state for bar chart
-          <div className="stream-status-bar-container" style={{
-            backgroundColor: props.background || "#bfbfbf",
-          }}>
+          <div
+            className="stream-status-bar-container"
+            style={{
+              backgroundColor: props.background || "#bfbfbf",
+            }}
+          >
             <div
               className="stream-status-bar-progress"
               style={{
@@ -63,20 +67,28 @@ const StreamStatus: React.FC<StreamStatusProps> = (props) => {
         )
       ) : // Display the actual data once loaded
       props.chartType === "pie" ? (
-        <PieChart
-          data={[{ value: timeLeft, color: props.color || "#111" }]}
-          totalValue={totalTime}
-          lineWidth={20}
-          background={props.background || "#bfbfbf"}
-          rounded
-          animate
-          label={() => `${Math.round(percentageLeft)}%`}
-          labelPosition={0}
-        />
+        <>
+          <PieChart
+            data={[{ value: timeLeft, color: props.color || "#111" }]}
+            totalValue={totalTime}
+            lineWidth={20}
+            background={props.background || "#bfbfbf"}
+            rounded
+            animate
+            label={() => `${Math.round(percentageLeft)}%`}
+            labelPosition={0}
+          />
+          <div className="countdown-label">
+            {formatTime(timeLeft)} remaining
+          </div>
+        </>
       ) : (
-        <div className="stream-status-bar-container" style={{
-          backgroundColor: props.background || "#bfbfbf",
-        }}>
+        <div
+          className="stream-status-bar-container"
+          style={{
+            backgroundColor: props.background || "#bfbfbf",
+          }}
+        >
           <div
             className="stream-status-bar-progress"
             style={{

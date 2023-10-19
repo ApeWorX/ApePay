@@ -91,6 +91,12 @@
   margin-bottom: 10px;
 }
 
+.countdown-label {
+  position: relative;
+  margin-top: 10px;
+  text-align: center;
+}
+
 /* CANCEL STREAM */
 
 .stream-container {
@@ -101,5 +107,3 @@
   align-items: center;
   gap: 10px;
 }
-
-
