@@ -195,13 +195,15 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
             Fund stream
           </button>
           <div className="update-stream-label">
-            {result && (
+            {result && result.startsWith("Error") ? (
+              <div>{result}</div>
+            ) : result ? (
               <div>
                 {`Your stream has been funded for ${selectedTime} more day${
                   selectedTime !== 1 ? "s" : ""
                 }`}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </>
