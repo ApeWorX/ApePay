@@ -79,7 +79,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
         {result && <div>Stream cancelled.</div>}
         {minStreamLife === null ? (
           <div>Fetching stream minimum life...</div>
-        ) : !isButtonEnabled ? (
+        ) : !isButtonEnabled && !result ? (
           <div>
             Stream cannot be cancelled yet: its minimum life is
             {formatTime(Number(minStreamLife))}.
