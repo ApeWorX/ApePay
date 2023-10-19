@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Address, stringToHex } from "viem";
-import StreamManager from "../../sdk/js/index";
+import { stringToHex } from "viem";
+import StreamManager, { Stream } from "../../sdk/js/index";
 import { formatTime } from "./utils";
 
 interface CancelStreamProps {
-  streamId: number;
+  stream: Stream;
   reason: string;
-  creator: Address;
   sm: StreamManager;
+  onComplete: (result: string) => void;
 }
 
 const CancelStream: React.FC<CancelStreamProps> = (props) => {
@@ -33,10 +33,13 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   const checkStreamCancellable = async () => {
     try {
       const isCancellable = await props.sm.stream_is_cancelable(
-        props.creator,
-        props.streamId
+        props.stream.creator,
+        props.stream.streamId
       );
       setButtonEnabled(isCancellable);
+      if (isCancellable) {
+        clearInterval(interval);
+      }
     } catch (error) {
       console.error("Error checking stream cancellability:", error);
     }
@@ -55,16 +58,19 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
     try {
       setButtonEnabled(false);
       const result = await props.sm.cancel(
-        props.streamId,
+        props.stream.streamId,
         hexReason,
-        props.creator
+        props.stream.creator
       );
       setResult(`Stream cancelled. Transaction Hash: ${result}`);
+      props.onComplete(result);
     } catch (error) {
       if (error instanceof Error) {
         setResult(`Error canceling stream: ${error.message}`);
+        props.onComplete(error.message);
       } else {
         setResult(`Error canceling stream: ${error}`);
+        props.onComplete(String(error));
       }
     }
   };

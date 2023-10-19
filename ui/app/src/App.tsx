@@ -85,6 +85,11 @@ function App() {
   //find token decimals for update stream component. TODO: fetch dynamically as stream.token
   const selectedToken = config.tokens[2];
 
+  // Callback function to handle result from cancel component
+  const [cancelResult, setCancelResult] = useState<string | null>(null);
+  const handleCancelComplete = (result: string | null) => {
+    setCancelResult(result);
+  };
 
   return (
     <>
@@ -154,14 +159,17 @@ function App() {
         </>
       </div>
       {stream && (
-        <div>
-          <CancelStream
-            streamId={stream.streamId}
-            reason={reason}
-            creator={stream.creator}
-            sm={sm}
-          />
-        </div>
+        <>
+          <div>
+            <CancelStream
+              stream={stream}
+              reason={reason}
+              sm={sm}
+              onComplete={handleCancelComplete}
+            />
+          </div>
+          {cancelResult && <p>{cancelResult}</p>}
+        </>
       )}
       {stream && (
         <div>
@@ -169,7 +177,7 @@ function App() {
             stream={stream}
             sm={sm}
             token={selectedToken}
-            streamDailyCost={100*86400}
+            streamDailyCost={100 * 86400}
           />
         </div>
       )}
