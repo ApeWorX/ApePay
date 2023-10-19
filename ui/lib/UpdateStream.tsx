@@ -10,7 +10,7 @@ import Slider from "rc-slider";
 
 interface UpdateStreamProps {
   stream: Stream;
-  streamDailyCost: number;
+  streamDailyCost: bigint;
   sm: StreamManager;
   token: {
     chainId: number;

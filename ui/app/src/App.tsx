@@ -176,7 +176,7 @@ function App() {
             stream={stream}
             sm={sm}
             token={selectedToken}
-            streamDailyCost={100 * 86400}
+            streamDailyCost={BigInt(100 * 86400)}
           />
         </div>
       )}
