@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import StreamManager, { Stream } from "../../sdk/js/index";
+import { Stream } from "../../sdk/js/index";
 import {
   usePrepareContractWrite,
   useContractWrite,
@@ -10,37 +10,50 @@ import Slider from "rc-slider";
 
 interface UpdateStreamProps {
   stream: Stream;
-  streamDailyCost: bigint;
-  sm: StreamManager;
-  token: {
-    chainId: number;
-    address: string;
-    name: string;
-    decimals: number;
-    symbol: string;
-  };
 }
 
 const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   // Get result of transaction to display to the user
   const [result, setResult] = useState<string | null>(null);
+  // Get the token address of the stream
+  const [streamToken, setStreamToken] = useState<`0x${string}` | null>(null);
   // Disable 'update stream' button after a user clicked on it
   const [isButtonDisabled, setButtonDisabled] = useState(false);
   // Let users select the number of days they want to fund the stream
   const [selectedTime, setSelectedTime] = useState(1);
-  // set ERC20 allowance
-  const contractAmount = BigInt(selectedTime) * BigInt(props.streamDailyCost);
+
+  // Fetch the stream token to prepare approval transaction
+  const getStreamToken = async () => {
+    try {
+      const streamInfo = await props.stream.streamInfo();
+      setStreamToken(streamInfo.token);
+    } catch (error) {
+      console.error("Error getting stream token");
+    }
+  };
+  getStreamToken;
+
+  // Set interval to check streamtoken
+  const interval = setInterval(getStreamToken, 1000);
+  // Clean up the interval when the component unmounts
+  useEffect(() => {
+    return () => clearInterval(interval);
+  }, []);
+
+  // set ERC20 allowance to selected time * stream daily cost
+  const streamDailyCost = props.stream.amountPerSecond * 86400;
+  const contractAmount = (selectedTime) * streamDailyCost;
 
   // Fetch user balance to determine what max amount of funds he can add
   const { address } = useAccount();
   const { data: tokenData } = useBalance({
     address,
-    token: props.token.address as `0x${string}`,
+    token: streamToken as `0x${string}`,
   });
 
-  // Largest value displayed on the slider is the amount of tokens you have divided by the daily cost of your stream
+  // Largest value displayed on the slider is the amount of tokens user has divided by the daily cost of his stream
   const maxTime = Number(
-    (tokenData?.value || BigInt(0)) / BigInt(props.streamDailyCost)
+    (tokenData?.value || BigInt(0)) / BigInt(streamDailyCost)
   );
   const maxTimeDays: number = Math.min(Math.floor(maxTime), 7); // Up to a week
 
@@ -54,7 +67,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
 
   // Validate first transaction
   const { config: approvalConfig } = usePrepareContractWrite({
-    address: props.token.address as `0x${string}`,
+    address: streamToken as `0x${string}`,
     value: BigInt(0),
     abi: [
       {
@@ -69,7 +82,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
       },
     ],
     functionName: "approve",
-    args: [props.stream.address, contractAmount],
+    args: [props.stream.streamManager.address, contractAmount],
   });
 
   const {
@@ -78,33 +91,6 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     isSuccess,
     write: approveStream,
   } = useContractWrite(approvalConfig);
-
-  // Make sure stream is updatable (timemax not reached) before validating transaction
-  const [isValidateButtonDisabled, setValidateButtonDisabled] = useState(true);
-  // Check if timemax has been checked to display a loading message
-  const [isUpdatableChecked, setIsUpdatableChecked] = useState(false);
-  const checkStreamUpdatable = async () => {
-    try {
-      setIsUpdatableChecked(true);
-      const streamInfo = await props.stream.streamInfo();
-      const currentTime = Math.floor(Date.now() / 1000);
-      const startTime = streamInfo.start_time;
-      const timeRemaining =
-        Number(startTime) + Number(streamInfo.max_stream_life) - currentTime;
-
-      const isUpdatable = timeRemaining > 0;
-      setValidateButtonDisabled(!isUpdatable);
-    } catch (error) {
-      console.error("Error checking stream updatability:", error);
-    }
-  };
-
-  // Set interval to check every 10 seconds
-  const interval = setInterval(checkStreamUpdatable, 10000);
-  // Clean up the interval when the component unmounts
-  useEffect(() => {
-    return () => clearInterval(interval);
-  }, []);
 
   // Set step logic: (1) set amount, check updatability, and validate transaction & (2) update stream
   const [currentStep, setCurrentStep] = useState(1);
@@ -116,18 +102,12 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     }
   }, [isSuccess]);
 
-  // Step 1: set number of tokens you want to add and check if stream is updatable
+  // Step 1: set number of tokens you want to add
   const Step1 = () => {
     return (
       <div className="stream-container">
-        {!isUpdatableChecked ? (
-          <div className="update-message">Fetching max stream life...</div>
-        ) : isValidateButtonDisabled ? (
-          <div className="update-message">
-            Max stream life reached: stream cannot be updated.
-          </div>
-        ) : (
-          <>
+        <>
+          {streamToken != null && (
             <Slider
               className="slider-select-time"
               min={1}
@@ -140,12 +120,12 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                 typeof value === "number" && setSelectedTime(value)
               }
             />
-          </>
-        )}
+          )}
+        </>
         <button
           onClick={approveStream}
           className="update-stream-button"
-          disabled={isValidateButtonDisabled}
+          disabled={streamToken === null}
         >
           {`Validate adding funds for ${selectedTime} new day${
             selectedTime !== 1 ? "s" : ""
@@ -161,11 +141,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   const handleUpdate = async () => {
     try {
       setButtonDisabled(true);
-      const result = await props.sm.update(
-        props.stream.creator,
-        props.stream.streamId,
-        contractAmount
-      );
+      const result = await props.stream.update(BigInt(contractAmount));
       setResult(`Stream updated. Transaction Hash: ${result}`);
     } catch (error) {
       if (error instanceof Error) {
@@ -174,7 +150,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
         setResult(`Error updating stream: ${error}`);
       }
     }
-    console.log(result);
+    return result;
   };
 
   // Step 2: add funds to stream

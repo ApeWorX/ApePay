@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from "react";
+import React, { useState, useEffect, ReactNode } from "react";
 import Slider from "rc-slider";
 import { Address, WalletClient } from "viem";
 import {
@@ -13,7 +13,7 @@ import {
   useNetwork,
 } from "wagmi";
 import { fetchBalance } from "@wagmi/core";
-import StreamManager, { Stream } from "@apeworx/apepay";
+import StreamManager, { Stream } from "../../sdk/js/index";
 import { TokenInfo } from "@uniswap/token-lists";
 
 const SECS_PER_DAY = 24 * 60 * 60;
@@ -46,19 +46,18 @@ const CreateStream = (props: CreateStreamProps) => {
     token: selectedToken as `0x${string}`,
   });
 
-  // Get balances for native tokens (or set to 1 after 8 seconds and keep fetching)
+  // Get balances for native tokens (or set to 1 after 5 seconds and keep fetching)
   useEffect(() => {
     let balanceCountdown: NodeJS.Timeout;
     let balanceCountdownTriggered = false;
 
     // Check if an address exists to proceed with fetching the balance
     if (address) {
-      // Initiate a countdown timer that sets native balance to 1 after 2 seconds
       // if fetching balance takes too long
       balanceCountdown = setTimeout(() => {
         setNativeBalance(1);
         balanceCountdownTriggered = true;
-      }, 8000);
+      }, 5000);
 
       // Use fetchBalance function to asynchronously get the native token balance for the address
       fetchBalance({ address })
@@ -81,18 +80,16 @@ const CreateStream = (props: CreateStreamProps) => {
     };
   }, [address]);
 
-  // Get balances for stream tokens (or set to transactionamount * 10 after 2 seconds and keep fetching)
+  // Get balances for stream tokens (or set to 1 after 5 seconds and keep fetching)
   useEffect(() => {
     let tokenCountdown: NodeJS.Timeout;
     let tokenCountdownTriggered = false;
 
-    // Initiate a countdown timer to set token balance to transactionAmount + 1
-    // if fetching the token balance takes too long
     if (address && selectedToken) {
       tokenCountdown = setTimeout(() => {
-        setTokenBalance(transactionAmount * 10);
+        setTokenBalance(1);
         tokenCountdownTriggered = true;
-      }, 8000);
+      }, 5000);
 
       if (address && selectedToken) {
         fetchBalance({
@@ -122,15 +119,14 @@ const CreateStream = (props: CreateStreamProps) => {
 
   // Get gas price (or set to 0 after 5 seconds and keep fetching)
   useEffect(() => {
-    let gasCountdown: NodeJS.Timeout;
     let gasCountdownTriggered = false;
 
-    // Initiate a countdown timer to set gas price to 1 after 8 seconds
+    // Initiate a countdown timer to set gas price to 1 after 5 seconds
     // if fetching the gas price takes too long
-    gasCountdown = setTimeout(() => {
+    const gasCountdown = setTimeout(() => {
       setGasPrice(1);
       gasCountdownTriggered = true;
-    }, 8000);
+    }, 5000);
 
     // Check if the feeData object and its properties are available
     if (
@@ -165,12 +161,13 @@ const CreateStream = (props: CreateStreamProps) => {
   );
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
-  const sm = new StreamManager(
+  const [SM, setSM] = useState<StreamManager | null>(null);
+
+  StreamManager.fromAddress(
     props.streamManagerAddress,
-    // TODO: handle `isError`, `isLoading`
     usePublicClient(),
     useWalletClient()?.data as WalletClient
-  );
+  ).then(setSM);
 
   const { config: approvalConfig } = usePrepareContractWrite({
     address: selectedToken as `0x${string}`,
@@ -188,7 +185,7 @@ const CreateStream = (props: CreateStreamProps) => {
       },
     ],
     functionName: "approve",
-    args: [sm.address, selectedTime * props.amountPerSecond],
+    args: [SM?.address, selectedTime * props.amountPerSecond],
   });
 
   const {
@@ -216,6 +213,7 @@ const CreateStream = (props: CreateStreamProps) => {
     hash: txHash as `0x${string}`,
   });
 
+
   const [buttonCreateClicked, setButtonCreateClicked] = useState(false);
   const createStream = () => {
     setButtonCreateClicked(true);
@@ -224,7 +222,7 @@ const CreateStream = (props: CreateStreamProps) => {
     props
       .renderReasonCode()
       .then((reasonString) => {
-        sm.create(
+        SM?.create(
           selectedToken as `0x${string}`,
           props.amountPerSecond,
           reasonString

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { PieChart } from "react-minimal-pie-chart";
-import { Stream } from "@apeworx/apepay";
+import { Stream } from "../../sdk/js/index";
 import { formatTime } from "./utils";
 
 export interface StreamStatusProps {
