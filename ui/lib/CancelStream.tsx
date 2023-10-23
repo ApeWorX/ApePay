@@ -85,7 +85,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   }, []);
 
   // Calculate the time in seconds before a stream can be cancelled
-  const timeBeforeCancellability = (startTime + minStreamLife) - currentTime;
+  const timeBeforeCancellability = startTime + minStreamLife - currentTime;
 
   return (
     <div className="stream-container">
@@ -96,7 +96,10 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
           <div>
             Deployment cannot be cancelled yet: its minimum life is
             {formatTime(Number(minStreamLife))}.
-            <div> You will be able to cancel it in: {formatTime(Number(timeBeforeCancellability))}.</div>
+            <div>
+              You will be able to cancel it in:
+              {formatTime(Number(timeBeforeCancellability))}.
+            </div>
           </div>
         ) : null}
       </div>

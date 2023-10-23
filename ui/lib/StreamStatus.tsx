@@ -13,7 +13,7 @@ export interface StreamStatusProps {
 const StreamStatus: React.FC<StreamStatusProps> = (props) => {
   const [timeLeft, setTimeLeft] = useState<bigint | null>(null);
   const [totalTime, setTotalTime] = useState<bigint | null>(null);
-  
+
   useEffect(() => {
     const fetchTimeData = async () => {
       try {
@@ -24,7 +24,7 @@ const StreamStatus: React.FC<StreamStatusProps> = (props) => {
         setTotalTime(fetchedTotalTime);
 
         // If both timeLeft and totalTime are not null, clearInterval
-        if (fetchedTimeLeft !== null && fetchedTotalTime !== null) {
+        if ((fetchedTimeLeft !== null && fetchedTotalTime !== null) || fetchedTimeLeft === 0n) {
           clearInterval(interval);
         }
       } catch (error) {
@@ -80,7 +80,7 @@ const StreamStatus: React.FC<StreamStatusProps> = (props) => {
         <>
           <PieChart
             data={[{ value: Number(timeLeft), color: props.color || "#111" }]}
-            totalValue={ Number(totalTime)}
+            totalValue={Number(totalTime)}
             lineWidth={20}
             background={props.background || "#bfbfbf"}
             rounded

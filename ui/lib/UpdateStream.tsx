@@ -110,6 +110,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
       <div className="stream-container">
         <>
           {maxTimeDays ? (
+            <>
             <Slider
               className="slider-select-time"
               min={1}
@@ -122,19 +123,23 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                 typeof value === "number" && setSelectedTime(value)
               }
             />
+            <button
+            onClick={approveStream}
+            className="update-stream-button"
+            disabled={streamToken === null}
+          >
+            {`Validate adding funds for ${selectedTime} new day${
+              selectedTime !== 1 ? "s" : ""
+            }`}
+          </button>
+          </>
           ) : (
+            <>
             <p> Loading your account balance...</p>
+            </>
           )}
         </>
-        <button
-          onClick={approveStream}
-          className="update-stream-button"
-          disabled={streamToken === null}
-        >
-          {`Validate adding funds for ${selectedTime} new day${
-            selectedTime !== 1 ? "s" : ""
-          }`}
-        </button>
+
         {isLoading && <p>Waiting for the transaction approval...</p>}
         {isError && <p>You did not confirm the transaction.</p>}
       </div>

@@ -11,7 +11,7 @@ import StreamManagerContractType from "./.build/StreamManager.json";
 
 export interface StreamInfo {
   token: Address;
-  amount_per_second: number;
+  amount_per_second: bigint;
   max_stream_life: bigint;
   funded_amount: bigint;
   start_time: bigint;
@@ -92,8 +92,8 @@ export class Stream {
   async totalTime(): Promise<bigint> {
     const streamInfo = await this.streamInfo();
     return (
-      (streamInfo.funded_amount) / BigInt(streamInfo.amount_per_second) +
-      ((streamInfo.last_pull) - (streamInfo.start_time))
+      streamInfo.funded_amount / BigInt(streamInfo.amount_per_second) +
+      (streamInfo.last_pull - streamInfo.start_time)
     );
   }
 
