@@ -23,7 +23,7 @@ export class Stream {
   streamManager: StreamManager;
   creator: Address;
   streamId: number;
-  amountPerSecond: number;
+  amountPerSecond: bigint;
   publicClient: PublicClient;
   walletClient?: WalletClient;
 
@@ -31,7 +31,7 @@ export class Stream {
     streamManager: StreamManager,
     creator: Address,
     streamId: number,
-    amountPerSecond: number,
+    amountPerSecond: bigint,
     publicClient: PublicClient,
     walletClient?: WalletClient
   ) {
@@ -63,7 +63,7 @@ export class Stream {
       streamManager,
       creator,
       streamId,
-      Number(streamInfo.amount_per_second),
+      BigInt(streamInfo.amount_per_second),
       publicClient,
       walletClient
     );
@@ -206,7 +206,7 @@ export default class StreamManager {
 
   async create(
     token: Address,
-    amountPerSecond: number,
+    amountPerSecond: bigint,
     reason?: string,
     startTime?: number,
     accountOverride?: Address
@@ -274,7 +274,7 @@ export default class StreamManager {
               this,
               log.topics[2] as Address, // creator
               Number(log.topics[3]), // streamId
-              Number(log.topics[4]), // amountPerSecond
+              BigInt(log.topics[4] as string), //amount per second
               this.publicClient,
               this.walletClient
             )

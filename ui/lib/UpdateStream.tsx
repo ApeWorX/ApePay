@@ -43,7 +43,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   }, [streamToken]);
 
   // set ERC20 allowance to selected time * stream daily cost
-  const streamDailyCost = props.stream.amountPerSecond * 86400;
+  const streamDailyCost = Number(props.stream.amountPerSecond) * 86400;
   const contractAmount = selectedTime * streamDailyCost;
 
   // Fetch user balance to determine what max amount of funds he can add

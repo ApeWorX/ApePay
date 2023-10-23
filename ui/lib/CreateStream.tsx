@@ -21,7 +21,7 @@ const SECS_PER_DAY = 24 * 60 * 60;
 export interface CreateStreamProps {
   streamManagerAddress: Address;
   tokenList: TokenInfo[];
-  amountPerSecond: number;
+  amountPerSecond: bigint;
   cart?: ReactNode;
   registerStream: (stream: Stream) => void;
   renderReasonCode: () => Promise<string>;
@@ -185,7 +185,7 @@ const CreateStream = (props: CreateStreamProps) => {
       },
     ],
     functionName: "approve",
-    args: [SM?.address, selectedTime * props.amountPerSecond],
+    args: [SM?.address, selectedTime * Number(props.amountPerSecond)],
   });
 
   const {
@@ -244,7 +244,7 @@ const CreateStream = (props: CreateStreamProps) => {
   // Set transaction amount
   const transactionAmount = Number(
     (
-      (selectedTime * props.amountPerSecond) /
+      (selectedTime * Number(props.amountPerSecond)) /
       Math.pow(10, tokenData?.decimals || 0)
     ).toFixed(Math.min(tokenData?.decimals || 0, 3))
   );

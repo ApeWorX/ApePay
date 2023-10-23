@@ -109,7 +109,7 @@ function App() {
       >
         <CreateStream
           streamManagerAddress={config.streamManagerAddress as `0x${string}`}
-          amountPerSecond={100}
+          amountPerSecond={BigInt(100)}
           registerStream={setStream}
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}
