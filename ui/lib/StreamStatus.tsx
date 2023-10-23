@@ -11,33 +11,43 @@ export interface StreamStatusProps {
 }
 
 const StreamStatus: React.FC<StreamStatusProps> = (props) => {
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [totalTime, setTotalTime] = useState<number | null>(null);
-
+  const [timeLeft, setTimeLeft] = useState<bigint | null>(null);
+  const [totalTime, setTotalTime] = useState<bigint | null>(null);
+  
   useEffect(() => {
-    props.stream.timeLeft().then(setTimeLeft).catch(console.error);
-    props.stream.totalTime().then(setTotalTime).catch(console.error);
+    const fetchTimeData = async () => {
+      try {
+        const fetchedTimeLeft = await props.stream.timeLeft();
+        setTimeLeft(fetchedTimeLeft);
 
-    // Skip the interval if timeLeft is null
-    if (timeLeft !== null) {
-      const intervalId = setInterval(() => {
-        setTimeLeft((prevTimeLeft) =>
-          prevTimeLeft !== null ? Math.max(prevTimeLeft - 1, 0) : null
-        );
-      }, 1000);
+        const fetchedTotalTime = await props.stream.totalTime();
+        setTotalTime(fetchedTotalTime);
 
-      // Clear the interval when the component is unmounted
-      return () => clearInterval(intervalId);
-    }
-  }, [props.stream]);
+        // If both timeLeft and totalTime are not null, clearInterval
+        if (fetchedTimeLeft !== null && fetchedTotalTime !== null) {
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error("Error fetching time data:", error);
+      }
+    };
+
+    const interval = setInterval(() => {
+      fetchTimeData();
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   const percentageLeft =
-    timeLeft && totalTime ? (timeLeft / totalTime) * 100 : 0;
+    timeLeft && totalTime ? (Number(timeLeft) / Number(totalTime)) * 100 : 0;
 
   return (
     <>
       {timeLeft === null || totalTime === null ? (
-        // Loading State
+        // Loading State for pie chart
         props.chartType === "pie" ? (
           <PieChart
             data={[{ value: 1, color: props.color || "#111" }]}
@@ -69,8 +79,8 @@ const StreamStatus: React.FC<StreamStatusProps> = (props) => {
       props.chartType === "pie" ? (
         <>
           <PieChart
-            data={[{ value: timeLeft, color: props.color || "#111" }]}
-            totalValue={totalTime}
+            data={[{ value: Number(timeLeft), color: props.color || "#111" }]}
+            totalValue={ Number(totalTime)}
             lineWidth={20}
             background={props.background || "#bfbfbf"}
             rounded
@@ -79,7 +89,7 @@ const StreamStatus: React.FC<StreamStatusProps> = (props) => {
             labelPosition={0}
           />
           <div className="countdown-label">
-            {formatTime(timeLeft)} remaining
+            {formatTime(Number(timeLeft))} remaining
           </div>
         </>
       ) : (

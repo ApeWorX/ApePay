@@ -69,8 +69,8 @@ export class Stream {
     );
   }
 
-  async timeLeft(): Promise<number> {
-    return Number(
+  async timeLeft(): Promise<bigint> {
+    return BigInt(
       (await this.publicClient.readContract({
         address: this.streamManager.address,
         abi: StreamManagerContractType.abi as Abi,
@@ -89,11 +89,11 @@ export class Stream {
     })) as StreamInfo;
   }
 
-  async totalTime(): Promise<number> {
+  async totalTime(): Promise<bigint> {
     const streamInfo = await this.streamInfo();
     return (
-      Number(streamInfo.funded_amount) / streamInfo.amount_per_second +
-      Number(streamInfo.last_pull - streamInfo.start_time)
+      (streamInfo.funded_amount) / BigInt(streamInfo.amount_per_second) +
+      ((streamInfo.last_pull) - (streamInfo.start_time))
     );
   }
 

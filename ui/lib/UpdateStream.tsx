@@ -42,7 +42,6 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     return () => clearInterval(interval);
   }, [streamToken]);
 
-
   // set ERC20 allowance to selected time * stream daily cost
   const streamDailyCost = props.stream.amountPerSecond * 86400;
   const contractAmount = selectedTime * streamDailyCost;
@@ -104,11 +103,6 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
       setCurrentStep(2);
     }
   }, [isSuccess]);
-
-  // console.log("daily cost " + streamDailyCost);
-  // console.log("token data value " + tokenData?.value);
-  // console.log("stream token " + streamToken);
-  // console.log("Contract amount " + contractAmount);
 
   // Step 1: set number of tokens you want to add
   const Step1 = () => {
