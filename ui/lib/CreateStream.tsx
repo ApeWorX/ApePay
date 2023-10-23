@@ -213,7 +213,6 @@ const CreateStream = (props: CreateStreamProps) => {
     hash: txHash as `0x${string}`,
   });
 
-
   const [buttonCreateClicked, setButtonCreateClicked] = useState(false);
   const createStream = () => {
     setButtonCreateClicked(true);

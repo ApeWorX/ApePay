@@ -4,7 +4,7 @@ export function formatTime(seconds: number) {
     return ` ${seconds} second${seconds !== 1 ? "s" : ""}`;
   } else if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60);
-    const remainderSeconds = seconds % 60;
+    const remainderSeconds = Math.floor(seconds % 60); 
     return ` ${minutes} minute${
       minutes !== 1 ? "s" : ""
     } and ${remainderSeconds} second${remainderSeconds !== 1 ? "s" : ""}`;

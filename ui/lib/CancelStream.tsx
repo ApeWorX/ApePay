@@ -9,32 +9,37 @@ interface CancelStreamProps {
 
 const CancelStream: React.FC<CancelStreamProps> = (props) => {
   // Allow user to cancel stream only if the stream is cancellable
-  const [isButtonEnabled, setButtonEnabled] = useState(true);
+  const [isButtonEnabled, setButtonEnabled] = useState(false);
   // Allow user to cancel stream only if he didnt already click on cancel
   const [inProgress, setInProgress] = useState(false);
   // Get the minimum stream life, before which a stream cannot be Canceled
-  const minStreamLife = props.stream.streamManager.MIN_STREAM_LIFE;
+  const minStreamLife = Number(props.stream.streamManager.MIN_STREAM_LIFE);
+  // Get the starting time of a stream
+  const [startTime, setStartTime] = useState<number>(0);
+  // Get the current time to be able to calculate remaining time before cancellability
+  const [currentTime, setCurrentTime] = useState(Date.now() / 1000);
 
   // Check if the stream is cancellable and set the button state accordingly.
-  const checkStreamCancelable = async () => {
-    try {
-      const isCancelable = await props.stream.isCancelable();
-      setButtonEnabled(isCancelable);
-      // clean up interval if stream can be cancelled
-      if (isCancelable) {
-        clearInterval(interval);
-      }
-    } catch (error) {
-      console.error("Error checking stream cancellability:", error);
-    }
-  };
-
-  // Set interval to check cancellability every 10 seconds
-  const interval = setInterval(checkStreamCancelable, 10000);
-  // Clean up the interval when the component unmounts
   useEffect(() => {
+    // Check if the stream is cancellable and set the button state accordingly
+    const checkStreamCancelable = async () => {
+      try {
+        const isCancelable = await props.stream.isCancelable();
+        setButtonEnabled(isCancelable);
+        if (isCancelable) {
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error("Error checking stream cancellability:", error);
+      }
+    };
+
+    // Set interval to check cancellability every 10 seconds
+    const interval = setInterval(checkStreamCancelable, 10000);
+
+    // Clean up the interval when the component unmounts or isButtonEnabled is true
     return () => clearInterval(interval);
-  }, []);
+  }, [isButtonEnabled]);
 
   const handleCancel = async () => {
     try {
@@ -53,6 +58,35 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
     }
   };
 
+  // Fetch starttime
+  useEffect(() => {
+    const getStartTime = async () => {
+      try {
+        const streamInfo = await props.stream.streamInfo();
+        setStartTime(Number(streamInfo.start_time));
+        if (streamInfo) {
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error("Error getting stream token");
+      }
+    };
+    const interval = setInterval(getStartTime, 1000);
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  // Fetch current time every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now() / 1000);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Calculate the time in seconds before a stream can be cancelled
+  const timeBeforeCancellability = (startTime + minStreamLife) - currentTime;
+
   return (
     <div className="stream-container">
       <div className="cancel-stream-label">
@@ -60,8 +94,9 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
           <div>Fetching stream minimum life...</div>
         ) : !isButtonEnabled && !inProgress ? (
           <div>
-            Stream cannot be cancelled yet: its minimum life is
+            Deployment cannot be cancelled yet: its minimum life is
             {formatTime(Number(minStreamLife))}.
+            <div> You will be able to cancel it in: {formatTime(Number(timeBeforeCancellability))}.</div>
           </div>
         ) : null}
       </div>

@@ -55,6 +55,14 @@ function App() {
     setCancelStatus(status);
   };
 
+  // Manage update status from UpdateStream component, either error or true
+  // Use this callback to display the error or close the update modal
+  const [updateStatus, setUpdateStatus] = useState<string | boolean>(false);
+  const handleUpdateStatus = (status: string | boolean) => {
+    setUpdateStatus(status);
+  };
+
+
   // Generate random string (demo app only);
   const renderReasonCode = async () => {
     return Math.random().toString(36).substring(7);
@@ -134,18 +142,26 @@ function App() {
           <div>
             <CancelStream stream={stream} onComplete={handleCancelStatus} />
           </div>
-          {/* CancelStream transaction callback */}
+          {/* CancelStream callback */}
           {cancelStatus === true ? (
-            <p> -cancel in progress- Close modal</p>
+            <p> -Deployment is being cancelled- Close modal</p>
           ) : cancelStatus && typeof cancelStatus === "string" ? (
             <p>ERROR: {cancelStatus}</p>
           ) : null}
         </>
       )}
       {stream && (
+        <>
         <div>
-          <UpdateStream stream={stream} />
+          <UpdateStream stream={stream} onComplete={handleUpdateStatus}/>
         </div>
+          {/* UpdateStream callback */}
+          {updateStatus === true ? (
+            <p> -Funds are being added to your deployment- Close modal</p>
+          ) : updateStatus && typeof updateStatus === "string" ? (
+            <p>Error when adding funds: {updateStatus}</p>
+          ) : null}
+        </>
       )}
     </>
   );

@@ -10,11 +10,10 @@ import Slider from "rc-slider";
 
 interface UpdateStreamProps {
   stream: Stream;
+  onComplete: (error: string | boolean) => void;
 }
 
 const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
-  // Get result of transaction to display to the user
-  const [result, setResult] = useState<string | null>(null);
   // Get the token address of the stream
   const [streamToken, setStreamToken] = useState<`0x${string}` | null>(null);
   // Disable 'update stream' button after a user clicked on it
@@ -23,22 +22,26 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   const [selectedTime, setSelectedTime] = useState(1);
 
   // Fetch the stream token to prepare approval transaction
-  const getStreamToken = async () => {
-    try {
-      const streamInfo = await props.stream.streamInfo();
-      setStreamToken(streamInfo.token);
-    } catch (error) {
-      console.error("Error getting stream token");
-    }
-  };
-  getStreamToken;
-
-  // Set interval to check streamtoken
-  const interval = setInterval(getStreamToken, 1000);
-  // Clean up the interval when the component unmounts
   useEffect(() => {
+    const getStreamToken = async () => {
+      try {
+        const streamInfo = await props.stream.streamInfo();
+        setStreamToken(streamInfo.token);
+        if (streamToken) {
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.error("Error getting stream token");
+      }
+    };
+
+    // Set interval to check streamtoken
+    const interval = setInterval(getStreamToken, 1000);
+
+    // Clean up the interval when the component unmounts or streamToken is set
     return () => clearInterval(interval);
-  }, []);
+  }, [streamToken]);
+
 
   // set ERC20 allowance to selected time * stream daily cost
   const streamDailyCost = props.stream.amountPerSecond * 86400;
@@ -102,12 +105,17 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     }
   }, [isSuccess]);
 
+  // console.log("daily cost " + streamDailyCost);
+  // console.log("token data value " + tokenData?.value);
+  // console.log("stream token " + streamToken);
+  // console.log("Contract amount " + contractAmount);
+
   // Step 1: set number of tokens you want to add
   const Step1 = () => {
     return (
       <div className="stream-container">
         <>
-          {streamToken != null && (
+          {maxTimeDays ? (
             <Slider
               className="slider-select-time"
               min={1}
@@ -120,6 +128,8 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                 typeof value === "number" && setSelectedTime(value)
               }
             />
+          ) : (
+            <p> Loading your account balance...</p>
           )}
         </>
         <button
@@ -140,17 +150,19 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   // Stream update function (for step 2)
   const handleUpdate = async () => {
     try {
+      // Make sure the user cannot click again on the button
       setButtonDisabled(true);
-      const result = await props.stream.addTime(BigInt(contractAmount));
-      setResult(`Stream updated. Transaction Hash: ${result}`);
+      await props.stream.addTime(BigInt(contractAmount));
+      props.onComplete(true);
     } catch (error) {
       if (error instanceof Error) {
-        setResult(`Error updating stream: ${error.message}`);
+        props.onComplete(error.message);
+        setButtonDisabled(false);
       } else {
-        setResult(`Error updating stream: ${error}`);
+        props.onComplete(String(error));
+        setButtonDisabled(false);
       }
     }
-    return result;
   };
 
   // Step 2: add funds to stream
@@ -170,17 +182,6 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
           >
             Fund stream
           </button>
-          <div className="update-stream-label">
-            {result && result.startsWith("Error") ? (
-              <div>{result}</div>
-            ) : result ? (
-              <div>
-                {`Your stream has been funded for ${selectedTime} more day${
-                  selectedTime !== 1 ? "s" : ""
-                }`}
-              </div>
-            ) : null}
-          </div>
         </div>
       </>
     );

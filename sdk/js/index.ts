@@ -92,7 +92,7 @@ export class Stream {
   async totalTime(): Promise<number> {
     const streamInfo = await this.streamInfo();
     return (
-      (Number(streamInfo.funded_amount) / streamInfo.amount_per_second) +
+      Number(streamInfo.funded_amount) / streamInfo.amount_per_second +
       Number(streamInfo.last_pull - streamInfo.start_time)
     );
   }
