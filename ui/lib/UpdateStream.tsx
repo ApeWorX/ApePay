@@ -42,7 +42,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
 
   // set ERC20 allowance to selected time * stream daily cost
   const streamDailyCost = props.stream.amountPerSecond * 86400;
-  const contractAmount = (selectedTime) * streamDailyCost;
+  const contractAmount = selectedTime * streamDailyCost;
 
   // Fetch user balance to determine what max amount of funds he can add
   const { address } = useAccount();
@@ -141,7 +141,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   const handleUpdate = async () => {
     try {
       setButtonDisabled(true);
-      const result = await props.stream.update(BigInt(contractAmount));
+      const result = await props.stream.addTime(BigInt(contractAmount));
       setResult(`Stream updated. Transaction Hash: ${result}`);
     } catch (error) {
       if (error instanceof Error) {

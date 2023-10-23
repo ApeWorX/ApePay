@@ -97,7 +97,7 @@ export class Stream {
     );
   }
 
-  async update(amount: bigint): Promise<string> {
+  async addTime(amount: bigint): Promise<string> {
     if (!this.walletClient || !this.walletClient.account)
       throw new Error("Error funding stream: no wallet client set");
 
