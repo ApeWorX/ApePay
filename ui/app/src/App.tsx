@@ -48,10 +48,11 @@ function App() {
     setProcessTxError(error);
   };
 
-  // Manage results from CancelStream component
-  const [cancelResult, setCancelResult] = useState<string | null>(null);
-  const handleCancelComplete = (result: string | null) => {
-    setCancelResult(result);
+  // Manage cancel status from CancelStream component, either error or true
+  // Use this callback to display the error or close the cancel modal
+  const [cancelStatus, setCancelStatus] = useState<string | boolean>(false);
+  const handleCancelStatus = (status: string | boolean) => {
+    setCancelStatus(status);
   };
 
   // Generate random string (demo app only);
@@ -89,8 +90,6 @@ function App() {
           <p>Transaction Successful! -redirect to another page-</p>
         )}
         {processTxError && <p>Tx Error: {processTxError.message}</p>}
-        {/* CancelStream transaction callback */}
-        {cancelResult && <p>{cancelResult}</p>}
       </div>
       <div
         style={{
@@ -133,8 +132,14 @@ function App() {
       {stream && (
         <>
           <div>
-            <CancelStream stream={stream} onComplete={handleCancelComplete} />
+            <CancelStream stream={stream} onComplete={handleCancelStatus} />
           </div>
+          {/* CancelStream transaction callback */}
+          {cancelStatus === true ? (
+            <p> -cancel in progress- Close modal</p>
+          ) : cancelStatus && typeof cancelStatus === "string" ? (
+            <p>ERROR: {cancelStatus}</p>
+          ) : null}
         </>
       )}
       {stream && (

@@ -4,13 +4,14 @@ import { formatTime } from "./utils";
 
 interface CancelStreamProps {
   stream: Stream;
-  onComplete: (result: string) => void;
+  onComplete: (error: string | boolean) => void;
 }
 
 const CancelStream: React.FC<CancelStreamProps> = (props) => {
-  const [result, setResult] = useState<string | null>(null);
-  // Allow user to cancel stream only if he didnt already click on cancel  AND if the stream is cancellable
-  const [isButtonEnabled, setButtonEnabled] = useState(false);
+  // Allow user to cancel stream only if the stream is cancellable
+  const [isButtonEnabled, setButtonEnabled] = useState(true);
+  // Allow user to cancel stream only if he didnt already click on cancel
+  const [inProgress, setInProgress] = useState(false);
   // Get the minimum stream life, before which a stream cannot be Canceled
   const minStreamLife = props.stream.streamManager.MIN_STREAM_LIFE;
 
@@ -37,16 +38,16 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
 
   const handleCancel = async () => {
     try {
+      // Make sure the min life isnt displayed when button is clicked
+      setInProgress(true);
+      // Make sure the user cannot click again on the button
       setButtonEnabled(false);
-      const result = await props.stream.cancel();
-      setResult(`Stream cancelled. Transaction Hash: ${result}`);
-      props.onComplete(result);
+      await props.stream.cancel();
+      props.onComplete(true);
     } catch (error) {
       if (error instanceof Error) {
-        setResult(`Error canceling stream: ${error.message}`);
         props.onComplete(error.message);
       } else {
-        setResult(`Error canceling stream: ${error}`);
         props.onComplete(String(error));
       }
     }
@@ -55,18 +56,9 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   return (
     <div className="stream-container">
       <div className="cancel-stream-label">
-        {result && (
-          <div>
-            {result.startsWith("Error") ? (
-              <div>Error: {result}</div>
-            ) : (
-              <div>Stream cancelled.</div>
-            )}
-          </div>
-        )}
         {minStreamLife === null ? (
           <div>Fetching stream minimum life...</div>
-        ) : !isButtonEnabled && !result ? (
+        ) : !isButtonEnabled && !inProgress ? (
           <div>
             Stream cannot be cancelled yet: its minimum life is
             {formatTime(Number(minStreamLife))}.
