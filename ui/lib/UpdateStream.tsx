@@ -102,10 +102,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                   typeof value === "number" && setSelectedTime(value)
                 }
               />
-              <button
-                onClick={approveStream}
-                className="update-stream-button"
-              >
+              <button onClick={approveStream} className="update-stream-button">
                 {`Validate adding funds for ${selectedTime} new day${
                   selectedTime !== 1 ? "s" : ""
                 }`}
@@ -113,13 +110,22 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
             </>
           ) : (
             <>
-              <p> Loading your account balance...</p>
+              <div className="update-stream-account-loading">
+                Loading your account balance...
+              </div>
             </>
           )}
         </>
-
-        {isLoading && <p>Waiting for the transaction approval...</p>}
-        {isError && <p>You did not confirm the transaction.</p>}
+        {isLoading && (
+          <div className="update-stream-tx-loading">
+            Waiting for the transaction approval...
+          </div>
+        )}
+        {isError && (
+          <div className="update-stream-tx-error">
+            You did not confirm the transaction.
+          </div>
+        )}
       </div>
     );
   };
@@ -154,7 +160,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
           >
             Fund stream
           </button>
-          {Error && Error}
+          <div className="update-stream-error"> {Error && Error}</div>
         </div>
       </>
     );

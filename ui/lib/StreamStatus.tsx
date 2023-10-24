@@ -24,7 +24,10 @@ const StreamStatus: React.FC<StreamStatusProps> = (props) => {
         setTotalTime(fetchedTotalTime);
 
         // If both timeLeft and totalTime are not null, clearInterval
-        if ((fetchedTimeLeft !== null && fetchedTotalTime !== null) || fetchedTimeLeft === 0n) {
+        if (
+          (fetchedTimeLeft !== null && fetchedTotalTime !== null) ||
+          fetchedTimeLeft === 0n
+        ) {
           clearInterval(interval);
         }
       } catch (error) {
@@ -56,6 +59,7 @@ const StreamStatus: React.FC<StreamStatusProps> = (props) => {
             background={props.background || "#bfbfbf"}
             label={() => "Loading..."}
             labelPosition={0}
+            className="stream-status-pie"
           />
         ) : (
           // Loading state for bar chart
@@ -87,6 +91,7 @@ const StreamStatus: React.FC<StreamStatusProps> = (props) => {
             animate
             label={() => `${Math.round(percentageLeft)}%`}
             labelPosition={0}
+            className="stream-status-pie"
           />
           <div className="countdown-label">
             {formatTime(Number(timeLeft))} remaining
