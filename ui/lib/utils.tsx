@@ -4,7 +4,7 @@ export function formatTime(seconds: number) {
     return ` ${seconds} second${seconds !== 1 ? "s" : ""}`;
   } else if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60);
-    const remainderSeconds = Math.floor(seconds % 60); 
+    const remainderSeconds = Math.floor(seconds % 60);
     return ` ${minutes} minute${
       minutes !== 1 ? "s" : ""
     } and ${remainderSeconds} second${remainderSeconds !== 1 ? "s" : ""}`;
@@ -21,4 +21,9 @@ export function formatTime(seconds: number) {
       remainderHours !== 1 ? "s" : ""
     }`;
   }
+}
+
+// Fetch current time in seconds
+export function getCurrentTime() {
+  return Date.now() / 1000;
 }

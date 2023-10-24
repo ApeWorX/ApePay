@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Stream } from "../../sdk/js/index";
 import { formatTime } from "./utils";
+import { getCurrentTime } from "./utils";
 
 interface CancelStreamProps {
   stream: Stream;
-  onComplete: (error: string | boolean) => void;
+  onComplete: (success: boolean) => void;
 }
 
 const CancelStream: React.FC<CancelStreamProps> = (props) => {
@@ -16,8 +17,10 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   const minStreamLife = Number(props.stream.streamManager.MIN_STREAM_LIFE);
   // Get the starting time of a stream
   const [startTime, setStartTime] = useState<number>(0);
-  // Get the current time to be able to calculate remaining time before cancellability
-  const [currentTime, setCurrentTime] = useState(Date.now() / 1000);
+  // Manage error handling
+  const [Error, setError] = useState<string | null>(null);
+  // Set currenTime state to update it very second
+  const [currentTime, setCurrentTime] = useState<number>(0);
 
   // Check if the stream is cancellable and set the button state accordingly.
   useEffect(() => {
@@ -50,11 +53,8 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
       await props.stream.cancel();
       props.onComplete(true);
     } catch (error) {
-      if (error instanceof Error) {
-        props.onComplete(error.message);
-      } else {
-        props.onComplete(String(error));
-      }
+      setError(String(error));
+      setButtonEnabled(false);
     }
   };
 
@@ -78,7 +78,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   // Fetch current time every second
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTime(Date.now() / 1000);
+      setCurrentTime(getCurrentTime());
     }, 1000);
 
     return () => clearInterval(interval);
@@ -101,7 +101,9 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
               {formatTime(Number(timeBeforeCancellability))}.
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div>Fetching time remaining before cancellability...</div>
+        )}
       </div>
       <button
         className="cancel-stream-button"
@@ -110,6 +112,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
       >
         Cancel Stream
       </button>
+      {Error && Error}
     </div>
   );
 };

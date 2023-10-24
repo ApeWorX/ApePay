@@ -63,6 +63,7 @@ export class Stream {
       streamManager,
       creator,
       streamId,
+      // amount_per_second can't be changed once the stream has been created
       BigInt(streamInfo.amount_per_second),
       publicClient,
       walletClient
@@ -119,10 +120,12 @@ export class Stream {
       this.walletClient.account.address != this.creator &&
       this.walletClient.account.address != (await this.streamManager.owner())
     )
+    // Both the owner and the creator of the stream can cancel it
       throw new Error(
         "Error cancelling stream: you are neither the creator nor the owner of the stream."
       );
 
+    // pass args depending on each situation; reason is optional
     const args =
       this.walletClient.account.address != this.creator
         ? [this.streamId, reason || "", this.creator]

@@ -48,20 +48,13 @@ function App() {
     setProcessTxError(error);
   };
 
-  // Manage cancel status from CancelStream component, either error or true
-  // Use this callback to display the error or close the cancel modal
-  const [cancelStatus, setCancelStatus] = useState<string | boolean>(false);
-  const handleCancelStatus = (status: string | boolean) => {
-    setCancelStatus(status);
-  };
+  // Manage cancel status from CancelStream component
+  // Use this callback to close the cancel modal
+  const [cancelStatus, setCancelStatus] = useState<boolean>(false);
 
-  // Manage update status from UpdateStream component, either error or true
-  // Use this callback to display the error or close the update modal
-  const [updateStatus, setUpdateStatus] = useState<string | boolean>(false);
-  const handleUpdateStatus = (status: string | boolean) => {
-    setUpdateStatus(status);
-  };
-
+  // Manage update status from UpdateStream component
+  // Use this callback to close the update modal
+  const [updateStatus, setUpdateStatus] = useState<boolean>(false);
 
   // Generate random string (demo app only);
   const renderReasonCode = async () => {
@@ -140,27 +133,25 @@ function App() {
       {stream && (
         <>
           <div>
-            <CancelStream stream={stream} onComplete={handleCancelStatus} />
+            <CancelStream
+              stream={stream}
+              onComplete={(success) => setCancelStatus(success)}
+            />
           </div>
           {/* CancelStream callback */}
-          {cancelStatus === true ? (
-            <p> -Deployment is being cancelled- Close modal</p>
-          ) : cancelStatus && typeof cancelStatus === "string" ? (
-            <p>ERROR: {cancelStatus}</p>
-          ) : null}
+          {cancelStatus && <p> -Deployment is being cancelled- Close modal</p>}
         </>
       )}
       {stream && (
         <>
-        <div>
-          <UpdateStream stream={stream} onComplete={handleUpdateStatus}/>
-        </div>
+          <div>
+            <UpdateStream
+              stream={stream}
+              onComplete={(success) => setUpdateStatus(success)}
+            />
+          </div>
           {/* UpdateStream callback */}
-          {updateStatus === true ? (
-            <p> -Funds are being added to your deployment- Close modal</p>
-          ) : updateStatus && typeof updateStatus === "string" ? (
-            <p>Error when adding funds: {updateStatus}</p>
-          ) : null}
+          {updateStatus && <p> -Deployment is being updated- Close modal</p>}
         </>
       )}
     </>

@@ -10,7 +10,7 @@ import Slider from "rc-slider";
 
 interface UpdateStreamProps {
   stream: Stream;
-  onComplete: (error: string | boolean) => void;
+  onComplete: (success: boolean) => void;
 }
 
 const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
@@ -20,6 +20,8 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   const [isButtonDisabled, setButtonDisabled] = useState(false);
   // Let users select the number of days they want to fund the stream
   const [selectedTime, setSelectedTime] = useState(1);
+  // Manage error handling
+  const [Error, setError] = useState<string | null>(null);
 
   // Fetch the stream token to prepare approval transaction
   useEffect(() => {
@@ -111,31 +113,31 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
         <>
           {maxTimeDays ? (
             <>
-            <Slider
-              className="slider-select-time"
-              min={1}
-              marks={marks}
-              max={maxTimeDays}
-              step={null}
-              value={Math.min(selectedTime, maxTimeDays)}
-              defaultValue={1}
-              onChange={(value) =>
-                typeof value === "number" && setSelectedTime(value)
-              }
-            />
-            <button
-            onClick={approveStream}
-            className="update-stream-button"
-            disabled={streamToken === null}
-          >
-            {`Validate adding funds for ${selectedTime} new day${
-              selectedTime !== 1 ? "s" : ""
-            }`}
-          </button>
-          </>
+              <Slider
+                className="slider-select-time"
+                min={1}
+                marks={marks}
+                max={maxTimeDays}
+                step={null}
+                value={Math.min(selectedTime, maxTimeDays)}
+                defaultValue={1}
+                onChange={(value) =>
+                  typeof value === "number" && setSelectedTime(value)
+                }
+              />
+              <button
+                onClick={approveStream}
+                className="update-stream-button"
+                disabled={streamToken === null}
+              >
+                {`Validate adding funds for ${selectedTime} new day${
+                  selectedTime !== 1 ? "s" : ""
+                }`}
+              </button>
+            </>
           ) : (
             <>
-            <p> Loading your account balance...</p>
+              <p> Loading your account balance...</p>
             </>
           )}
         </>
@@ -154,13 +156,8 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
       await props.stream.addTime(BigInt(contractAmount));
       props.onComplete(true);
     } catch (error) {
-      if (error instanceof Error) {
-        props.onComplete(error.message);
-        setButtonDisabled(false);
-      } else {
-        props.onComplete(String(error));
-        setButtonDisabled(false);
-      }
+      setError(String(error));
+      setButtonDisabled(false);
     }
   };
 
@@ -181,6 +178,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
           >
             Fund stream
           </button>
+          {Error && Error}
         </div>
       </>
     );
