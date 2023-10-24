@@ -73,7 +73,7 @@ const CreateStream = (props: CreateStreamProps) => {
     return () => {
       clearInterval(intervalID);
     };
-  }, []);
+  }, [address]);
 
   // Get balances for stream tokens after a stream token has been selected
   useEffect(() => {
@@ -107,7 +107,7 @@ const CreateStream = (props: CreateStreamProps) => {
     return () => {
       clearInterval(tokenInterval);
     };
-  }, [selectedToken]);
+  }, [address, selectedToken]);
 
   const maxTime = Number(
     (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond)
