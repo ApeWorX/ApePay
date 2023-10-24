@@ -23,6 +23,7 @@ export class Stream {
   streamManager: StreamManager;
   creator: Address;
   streamId: number;
+  token: Address;
   amountPerSecond: bigint;
   publicClient: PublicClient;
   walletClient?: WalletClient;
@@ -31,6 +32,7 @@ export class Stream {
     streamManager: StreamManager,
     creator: Address,
     streamId: number,
+    token: Address,
     amountPerSecond: bigint,
     publicClient: PublicClient,
     walletClient?: WalletClient
@@ -38,6 +40,7 @@ export class Stream {
     this.streamManager = streamManager;
     this.creator = creator;
     this.streamId = streamId;
+    this.token = token;
     this.amountPerSecond = amountPerSecond;
     this.publicClient = publicClient;
     this.walletClient = walletClient;
@@ -51,6 +54,7 @@ export class Stream {
   ): Promise<Stream> {
     const creator = log.topics[2] as Address;
     const streamId = Number(log.topics[3]);
+    const token = log.topics[4] as Address;
 
     const streamInfo: StreamInfo = (await publicClient.readContract({
       address: streamManager.address,
@@ -63,6 +67,7 @@ export class Stream {
       streamManager,
       creator,
       streamId,
+      token,
       // amount_per_second can't be changed once the stream has been created
       BigInt(streamInfo.amount_per_second),
       publicClient,
@@ -120,7 +125,7 @@ export class Stream {
       this.walletClient.account.address != this.creator &&
       this.walletClient.account.address != (await this.streamManager.owner())
     )
-    // Both the owner and the creator of the stream can cancel it
+      // Both the owner and the creator of the stream can cancel it
       throw new Error(
         "Error cancelling stream: you are neither the creator nor the owner of the stream."
       );
@@ -258,6 +263,7 @@ export default class StreamManager {
       this,
       account,
       streamId,
+      token,
       amountPerSecond,
       this.publicClient,
       this.walletClient
@@ -277,7 +283,8 @@ export default class StreamManager {
               this,
               log.topics[2] as Address, // creator
               Number(log.topics[3]), // streamId
-              BigInt(log.topics[4] as string), //amount per second
+              log.topics[4] as Address, // token
+              BigInt(log.topics[5] as string), //amount per second
               this.publicClient,
               this.walletClient
             )
