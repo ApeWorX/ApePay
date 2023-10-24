@@ -14,35 +14,12 @@ interface UpdateStreamProps {
 }
 
 const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
-  // Get the token address of the stream
-  const [streamToken, setStreamToken] = useState<`0x${string}` | null>(null);
   // Disable 'update stream' button after a user clicked on it
   const [isButtonDisabled, setButtonDisabled] = useState(false);
   // Let users select the number of days they want to fund the stream
   const [selectedTime, setSelectedTime] = useState(1);
   // Manage error handling
   const [Error, setError] = useState<string | null>(null);
-
-  // Fetch the stream token to prepare approval transaction
-  useEffect(() => {
-    const getStreamToken = async () => {
-      try {
-        const streamInfo = await props.stream.streamInfo();
-        setStreamToken(streamInfo.token);
-        if (streamToken) {
-          clearInterval(interval);
-        }
-      } catch (error) {
-        console.error("Error getting stream token");
-      }
-    };
-
-    // Set interval to check streamtoken
-    const interval = setInterval(getStreamToken, 1000);
-
-    // Clean up the interval when the component unmounts or streamToken is set
-    return () => clearInterval(interval);
-  }, [streamToken]);
 
   // set ERC20 allowance to selected time * stream daily cost
   const streamDailyCost = Number(props.stream.amountPerSecond) * 86400;
@@ -52,7 +29,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   const { address } = useAccount();
   const { data: tokenData } = useBalance({
     address,
-    token: streamToken as `0x${string}`,
+    token: props.stream.token,
   });
 
   // Largest value displayed on the slider is the amount of tokens user has divided by the daily cost of his stream
@@ -71,7 +48,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
 
   // Validate first transaction
   const { config: approvalConfig } = usePrepareContractWrite({
-    address: streamToken as `0x${string}`,
+    address: props.stream.token,
     value: BigInt(0),
     abi: [
       {
@@ -96,7 +73,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     write: approveStream,
   } = useContractWrite(approvalConfig);
 
-  // Set step logic: (1) set amount, check updatability, and validate transaction & (2) update stream
+  // Set step logic: (1) set amount and validate transaction & (2) update stream
   const [currentStep, setCurrentStep] = useState(1);
 
   // Move to step 2 if transaction has been succesful
@@ -128,7 +105,6 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
               <button
                 onClick={approveStream}
                 className="update-stream-button"
-                disabled={streamToken === null}
               >
                 {`Validate adding funds for ${selectedTime} new day${
                   selectedTime !== 1 ? "s" : ""

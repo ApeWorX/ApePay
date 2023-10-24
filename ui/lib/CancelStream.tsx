@@ -36,13 +36,14 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
         console.error("Error checking stream cancellability:", error);
       }
     };
+    checkStreamCancelable;
 
     // Set interval to check cancellability every 10 seconds
     const interval = setInterval(checkStreamCancelable, 10000);
 
     // Clean up the interval when the component unmounts or isButtonEnabled is true
     return () => clearInterval(interval);
-  }, [isButtonEnabled]);
+  }, [props.stream]);
 
   const handleCancel = async () => {
     try {
@@ -54,7 +55,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
       props.onComplete(true);
     } catch (error) {
       setError(String(error));
-      setButtonEnabled(false);
+      setButtonEnabled(true);
     }
   };
 
@@ -64,7 +65,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
       try {
         const streamInfo = await props.stream.streamInfo();
         setStartTime(Number(streamInfo.start_time));
-        if (streamInfo) {
+        if (streamInfo && streamInfo.start_time !== 0n) {
           clearInterval(interval);
         }
       } catch (error) {
@@ -86,7 +87,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
 
   // Calculate the time in seconds before a stream can be cancelled
   const timeBeforeCancellability = startTime + minStreamLife - currentTime;
-  
+
   return (
     <div className="stream-container">
       <div className="cancel-stream-label">

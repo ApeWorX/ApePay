@@ -107,3 +107,7 @@
   align-items: center;
   gap: 10px;
 }
+
+.label-close-modal {
+  text-align: center;
+}
