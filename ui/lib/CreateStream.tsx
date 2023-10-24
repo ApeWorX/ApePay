@@ -8,7 +8,6 @@ import {
   useWalletClient,
   usePrepareContractWrite,
   useContractWrite,
-  useFeeData,
   useWaitForTransaction,
   useNetwork,
 } from "wagmi";
@@ -35,8 +34,6 @@ export interface CreateStreamProps {
 const CreateStream = (props: CreateStreamProps) => {
   const [nativeBalance, setNativeBalance] = useState<number | null>(null);
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
-  const [gasPrice, setGasPrice] = useState<number | null>(null);
-  const { data: feeData } = useFeeData();
   const { address } = useAccount();
   const { chain } = useNetwork();
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
@@ -46,107 +43,72 @@ const CreateStream = (props: CreateStreamProps) => {
     token: selectedToken as `0x${string}`,
   });
 
-  // Get balances for native tokens (or set to 1 after 5 seconds and keep fetching)
+  // Get balances for native tokens
   useEffect(() => {
-    let balanceCountdown: NodeJS.Timeout;
-    let balanceCountdownTriggered = false;
-
-    // Check if an address exists to proceed with fetching the balance
-    if (address) {
-      // if fetching balance takes too long
-      balanceCountdown = setTimeout(() => {
-        setNativeBalance(1);
-        balanceCountdownTriggered = true;
-      }, 5000);
-
-      // Use fetchBalance function to asynchronously get the native token balance for the address
-      fetchBalance({ address })
-        .then((nativeBalanceData) => {
-          if (nativeBalanceData && nativeBalanceData.formatted !== undefined) {
-            // If the countdown hasn't triggered yet, clear the countdown
-            if (!balanceCountdownTriggered) {
-              clearTimeout(balanceCountdown);
+    const fetchAndSetNativeBalance = () => {
+      if (address) {
+        // Fetch the balance
+        fetchBalance({ address })
+          .then((nativeBalanceData) => {
+            if (nativeBalanceData && nativeBalanceData.formatted != undefined) {
+              const fetchedBalance = Number(nativeBalanceData.formatted);
+              setNativeBalance(fetchedBalance);
+              // clear the interval when fetched balance is not null
+              if (fetchedBalance) {
+                clearInterval(intervalID);
+              }
             }
-            setNativeBalance(Number(nativeBalanceData.formatted));
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching balance:", error);
-        });
-    }
-    // Cleanup function to clear any pending countdowns
-    return () => {
-      clearTimeout(balanceCountdown);
+          })
+          .catch((error) => {
+            console.error("Error fetching native balance:", error);
+          });
+      }
     };
-  }, [address]);
+    fetchAndSetNativeBalance;
 
-  // Get balances for stream tokens (or set to 1 after 5 seconds and keep fetching)
+    // Keep fetching every second
+    const intervalID = setInterval(fetchAndSetNativeBalance, 1000);
+
+    // Cleanup when component dismounts
+    return () => {
+      clearInterval(intervalID);
+    };
+  }, []);
+
+  // Get balances for stream tokens after a stream token has been selected
   useEffect(() => {
-    let tokenCountdown: NodeJS.Timeout;
-    let tokenCountdownTriggered = false;
-
-    if (address && selectedToken) {
-      tokenCountdown = setTimeout(() => {
-        setTokenBalance(1);
-        tokenCountdownTriggered = true;
-      }, 5000);
-
+    const fetchAndSetTokenBalance = () => {
       if (address && selectedToken) {
         fetchBalance({
           address,
           token: selectedToken as `0x${string}`,
         })
           .then((tokenBalanceData) => {
-            if (tokenBalanceData && tokenBalanceData.formatted !== undefined) {
-              // Cancel the countdown if it hasn't triggered yet
-              if (!tokenCountdownTriggered) {
-                clearTimeout(tokenCountdown);
+            if (tokenBalanceData && tokenBalanceData.formatted != undefined) {
+              const fetchedTokenBalance = Number(tokenBalanceData.formatted);
+              setTokenBalance(fetchedTokenBalance);
+              // clear the interval when fetched balance is not null
+              if (fetchedTokenBalance) {
+                clearInterval(tokenInterval);
               }
-              setTokenBalance(Number(tokenBalanceData.formatted));
             }
           })
           .catch((error) => {
             console.error("Error fetching token balance:", error);
           });
       }
-    }
-
-    // Cleanup function to clear any pending countdowns
-    return () => {
-      clearTimeout(tokenCountdown);
     };
-  }, [address, selectedToken]);
+    fetchAndSetTokenBalance;
 
-  // Get gas price (or set to 0 after 5 seconds and keep fetching)
-  useEffect(() => {
-    let gasCountdownTriggered = false;
+    // Keep fetching every second
+    const tokenInterval = setInterval(fetchAndSetTokenBalance, 1000);
 
-    // Initiate a countdown timer to set gas price to 1 after 5 seconds
-    // if fetching the gas price takes too long
-    const gasCountdown = setTimeout(() => {
-      setGasPrice(1);
-      gasCountdownTriggered = true;
-    }, 5000);
-
-    // Check if the feeData object and its properties are available
-    if (
-      feeData &&
-      feeData.formatted &&
-      feeData.formatted.gasPrice !== undefined
-    ) {
-      // If the countdown hasn't been triggered yet, cancel it
-      if (!gasCountdownTriggered) {
-        clearTimeout(gasCountdown);
-      }
-      setGasPrice(Number(feeData.formatted.gasPrice));
-    }
-    // Cleanup function to clear any pending countdowns
+    // Cleanup when component dismounts
     return () => {
-      clearTimeout(gasCountdown);
+      clearInterval(tokenInterval);
     };
-  }, [feeData]);
+  }, [selectedToken]);
 
-  // TODO: handle `isError`, `isLoading`
   const maxTime = Number(
     (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond)
   );
@@ -159,6 +121,7 @@ const CreateStream = (props: CreateStreamProps) => {
       `${v + 1}`,
     ])
   );
+
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
   const [SM, setSM] = useState<StreamManager | null>(null);
@@ -296,14 +259,14 @@ const CreateStream = (props: CreateStreamProps) => {
   };
 
   const Step2 = () => {
-    // 1: Check if gas price and native balance are still loading
-    if (gasPrice === null || nativeBalance === null) {
+    // 1: Check if native balance is still fetching
+    if (nativeBalance === null) {
       return (
         <div>
           <div className="cart-body">{props.cart && props.cart}</div>
           <div className="payment-flow">
             <div className="loading-message-balance">
-              Checking gas and native token balance...
+              Checking native token balance...
             </div>
           </div>
         </div>
@@ -311,14 +274,16 @@ const CreateStream = (props: CreateStreamProps) => {
     }
 
     // 2: Check for enough native tokens for transaction fees
-    if (gasPrice / 10000 >= nativeBalance) {
+    if (nativeBalance < 0.001) {
       return (
         <div>
           <div className="cart-body">{props.cart && props.cart}</div>
           <div className="payment-flow">
             <div className="error-message-balance">
-              <p>Not enough native tokens to pay for transaction fee</p>
-              <p>Your native token balance is: {nativeBalance}</p>
+              <p>Not enough native tokens to pay for transaction fees</p>
+              <p>
+                Your native token balance is:&nbsp;{nativeBalance.toFixed(4)}
+              </p>
             </div>
             <button
               className="button-redirect-hop"
@@ -332,7 +297,7 @@ const CreateStream = (props: CreateStreamProps) => {
     }
 
     // 3: Check if the transaction amount and token balance are still loading
-    if (transactionAmount === null || tokenBalance === null) {
+    if (tokenBalance === null) {
       return (
         <div>
           <div className="cart-body">{props.cart && props.cart}</div>
@@ -352,10 +317,12 @@ const CreateStream = (props: CreateStreamProps) => {
           <div className="cart-body">{props.cart && props.cart}</div>
           <div className="payment-flow">
             <div className="error-message-balance">
-              <p>Not enough tokens to pay for stream</p>
-              <p>
-                Your token balance is: {tokenBalance}&nbsp;{tokenData?.symbol}
-              </p>
+              <div>Not enough tokens to pay for transaction.</div>
+              <div>
+                Your token balance is: {tokenBalance.toFixed(2)}&nbsp;
+                {tokenData?.symbol} but the transaction costs&nbsp;
+                {transactionAmount}&nbsp;{tokenData?.symbol}
+              </div>
             </div>
             <button
               className="button-redirect-uniswap"

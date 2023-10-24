@@ -139,7 +139,12 @@ function App() {
             />
           </div>
           {/* CancelStream callback */}
-          {cancelStatus && <p className="label-close-modal"> -Deployment is being cancelled- Close modal</p>}
+          {cancelStatus && (
+            <p className="label-close-modal">
+              {" "}
+              -Deployment is being cancelled- Close modal
+            </p>
+          )}
         </>
       )}
       {stream && (
@@ -151,7 +156,12 @@ function App() {
             />
           </div>
           {/* UpdateStream callback */}
-          {updateStatus && <p className="label-close-modal"> -Deployment is being updated- Close modal</p>}
+          {updateStatus && (
+            <p className="label-close-modal">
+              {" "}
+              -Deployment is being updated- Close modal
+            </p>
+          )}
         </>
       )}
     </>
