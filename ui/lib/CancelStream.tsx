@@ -5,7 +5,7 @@ import { getCurrentTime } from "./utils";
 
 interface CancelStreamProps {
   stream: Stream;
-  onComplete: (success: boolean) => void;
+  onComplete: () => void;
 }
 
 const CancelStream: React.FC<CancelStreamProps> = (props) => {
@@ -52,7 +52,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
       // Make sure the user cannot click again on the button
       setButtonEnabled(false);
       await props.stream.cancel();
-      props.onComplete(true);
+      props.onComplete();
     } catch (error) {
       setError(String(error));
       setButtonEnabled(true);
@@ -106,9 +106,12 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
           </div>
         </>
       ) : (
-        <div className="cancel-stream-label-loading">
-          Fetching time remaining before cancellability...
-        </div>
+        !isButtonEnabled &&
+        !inProgress && (
+          <div className="cancel-stream-label-loading">
+            Fetching time remaining before cancellability...
+          </div>
+        )
       )}
 
       <button

@@ -135,7 +135,7 @@ function App() {
           <div>
             <CancelStream
               stream={stream}
-              onComplete={(success) => setCancelStatus(success)}
+              onComplete={() => setCancelStatus(!cancelStatus)}
             />
           </div>
           {/* CancelStream callback */}
@@ -152,7 +152,7 @@ function App() {
           <div>
             <UpdateStream
               stream={stream}
-              onComplete={(success) => setUpdateStatus(success)}
+              onComplete={() => setUpdateStatus(!updateStatus)}
             />
           </div>
           {/* UpdateStream callback */}

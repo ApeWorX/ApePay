@@ -10,7 +10,7 @@ import Slider from "rc-slider";
 
 interface UpdateStreamProps {
   stream: Stream;
-  onComplete: (success: boolean) => void;
+  onComplete: () => void;
 }
 
 const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
@@ -136,7 +136,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
       // Make sure the user cannot click again on the button
       setButtonDisabled(true);
       await props.stream.addTime(BigInt(contractAmount));
-      props.onComplete(true);
+      props.onComplete();
     } catch (error) {
       setError(String(error));
       setButtonDisabled(false);
