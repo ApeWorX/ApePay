@@ -20,76 +20,180 @@ export interface StreamInfo {
 }
 
 export class Stream {
-  address: Address;
+  streamManager: StreamManager;
   creator: Address;
   streamId: number;
-
+  token: Address;
+  amountPerSecond: bigint;
   publicClient: PublicClient;
   walletClient?: WalletClient;
 
   constructor(
-    address: Address,
+    streamManager: StreamManager,
     creator: Address,
     streamId: number,
+    token: Address,
+    amountPerSecond: bigint,
     publicClient: PublicClient,
-    walletClient?: WalletClient,
+    walletClient?: WalletClient
   ) {
-    this.address = address;
+    this.streamManager = streamManager;
     this.creator = creator;
     this.streamId = streamId;
-
+    this.token = token;
+    this.amountPerSecond = amountPerSecond;
     this.publicClient = publicClient;
     this.walletClient = walletClient;
   }
 
-  async timeLeft(): Promise<number> {
-    return Number(
+  static async fromEventLog(
+    streamManager: StreamManager,
+    log: Log,
+    publicClient: PublicClient,
+    walletClient?: WalletClient
+  ): Promise<Stream> {
+    const creator = log.topics[2] as Address;
+    const streamId = Number(log.topics[3]);
+    const token = log.topics[4] as Address;
+
+    const streamInfo: StreamInfo = (await publicClient.readContract({
+      address: streamManager.address,
+      abi: StreamManagerContractType.abi as Abi,
+      functionName: "streams",
+      args: [creator, streamId],
+    })) as StreamInfo;
+
+    return new Stream(
+      streamManager,
+      creator,
+      streamId,
+      token,
+      // amount_per_second can't be changed once the stream has been created
+      BigInt(streamInfo.amount_per_second),
+      publicClient,
+      walletClient
+    );
+  }
+
+  async timeLeft(): Promise<bigint> {
+    return BigInt(
       (await this.publicClient.readContract({
-        address: this.address,
+        address: this.streamManager.address,
         abi: StreamManagerContractType.abi as Abi,
         functionName: "time_left",
         args: [this.creator, this.streamId],
-      })) as bigint,
+      })) as bigint
     );
   }
 
   async streamInfo(): Promise<StreamInfo> {
     return (await this.publicClient.readContract({
-      address: this.address,
+      address: this.streamManager.address,
       abi: StreamManagerContractType.abi as Abi,
       functionName: "streams",
       args: [this.creator, this.streamId],
     })) as StreamInfo;
   }
 
-  async token(): Promise<Address> {
-    return (await this.streamInfo()).token;
-  }
-
-  async totalTime(): Promise<number> {
+  async totalTime(): Promise<bigint> {
     const streamInfo = await this.streamInfo();
     return (
-      Number(streamInfo.funded_amount / streamInfo.amount_per_second) +
-      Number(streamInfo.last_pull - streamInfo.start_time)
+      streamInfo.funded_amount / BigInt(streamInfo.amount_per_second) +
+      (streamInfo.last_pull - streamInfo.start_time)
     );
+  }
+
+  async addTime(amount: bigint): Promise<string> {
+    if (!this.walletClient || !this.walletClient.account)
+      throw new Error("Error funding stream: no wallet client set");
+
+    return this.walletClient.writeContract({
+      chain: null,
+      address: this.streamManager.address,
+      abi: StreamManagerContractType.abi as Abi,
+      functionName: "add_funds",
+      args: [this.creator, this.streamId, amount],
+      account: this.walletClient.account.address,
+    });
+  }
+
+  async cancel(reason?: string): Promise<string> {
+    if (!this.walletClient || !this.walletClient.account)
+      throw new Error("Error cancelling stream: wallet client is not set");
+
+    if (
+      this.walletClient.account.address != this.creator &&
+      this.walletClient.account.address != (await this.streamManager.owner())
+    )
+      // Both the owner and the creator of the stream can cancel it
+      throw new Error(
+        "Error cancelling stream: you are neither the creator nor the owner of the stream."
+      );
+
+    // pass args depending on each situation; reason is optional but must be provided
+    // if not using the caller as the creator arg
+    const args =
+      this.walletClient.account.address != this.creator
+        ? [this.streamId, reason || "", this.creator]
+        : reason
+        ? [this.streamId, reason]
+        : [this.streamId];
+
+    return this.walletClient.writeContract({
+      chain: null,
+      address: this.streamManager.address,
+      abi: StreamManagerContractType.abi as Abi,
+      functionName: "cancel_stream",
+      args: args,
+      account: this.walletClient.account.address,
+    });
+  }
+
+  async isCancelable(): Promise<boolean> {
+    return (await this.publicClient.readContract({
+      address: this.streamManager.address,
+      abi: StreamManagerContractType.abi as Abi,
+      functionName: "stream_is_cancelable",
+      args: [this.creator, this.streamId],
+    })) as boolean;
   }
 }
 
 export default class StreamManager {
   address: Address;
-
+  MIN_STREAM_LIFE: bigint;
   publicClient: PublicClient;
   walletClient?: WalletClient;
 
-  constructor(
+  private constructor(
     address: Address,
+    MIN_STREAM_LIFE: bigint,
     publicClient: PublicClient,
-    walletClient?: WalletClient,
+    walletClient?: WalletClient
   ) {
     this.address = address;
-
+    this.MIN_STREAM_LIFE = MIN_STREAM_LIFE;
     this.publicClient = publicClient;
     this.walletClient = walletClient;
+  }
+
+  static async fromAddress(
+    address: Address,
+    publicClient: PublicClient,
+    walletClient?: WalletClient
+  ): Promise<StreamManager> {
+    const MIN_STREAM_LIFE: bigint = (await publicClient.readContract({
+      address: address,
+      abi: StreamManagerContractType.abi as Abi,
+      functionName: "MIN_STREAM_LIFE",
+    })) as bigint;
+
+    return new StreamManager(
+      address,
+      MIN_STREAM_LIFE,
+      publicClient,
+      walletClient
+    );
   }
 
   async owner(): Promise<Address> {
@@ -109,31 +213,21 @@ export default class StreamManager {
     })) as boolean;
   }
 
-  async MIN_STREAM_LIFE(): Promise<number> {
-    return Number(
-      (await this.publicClient.readContract({
-        address: this.address,
-        abi: StreamManagerContractType.abi as Abi,
-        functionName: "MIN_STREAM_LIFE",
-      })) as bigint,
-    );
-  }
-
   async create(
     token: Address,
-    amountPerSecond: number,
+    amountPerSecond: bigint,
     reason?: string,
     startTime?: number,
-    accountOverride?: Address,
+    accountOverride?: Address
   ): Promise<Stream> {
     if (!accountOverride && !this.walletClient?.account)
-      throw new Error("No account");
+      throw new Error("Error on create: no account");
 
     const account =
       accountOverride || (this.walletClient?.account?.address ?? "0x0");
     // NOTE: 0x0 shouldn't ever be the value of `account` because of the above error
 
-    const args: Array<number | string | Address | ByteArray> = [
+    const args: Array<number | string | bigint | Address | ByteArray> = [
       token,
       amountPerSecond,
     ];
@@ -151,7 +245,7 @@ export default class StreamManager {
         abi: StreamManagerContractType.abi as Abi,
         functionName: "num_streams",
         args: [account],
-      })) as bigint,
+      })) as bigint
     );
 
     const hash = await this.walletClient?.writeContract({
@@ -164,20 +258,22 @@ export default class StreamManager {
     });
 
     if (hash === undefined)
-      throw new Error("Error while processing trasactions");
+      throw new Error("Error while processing transaction; hash undefined");
 
     return new Stream(
-      this.address,
+      this,
       account,
       streamId,
+      token,
+      amountPerSecond,
       this.publicClient,
-      this.walletClient,
+      this.walletClient
     );
   }
 
   onStreamCreated(
     handleStream: (stream: Stream) => null,
-    creator?: Address,
+    creator?: Address
   ): void {
     const onLogs = (logs: Log[]) => {
       logs
@@ -185,18 +281,17 @@ export default class StreamManager {
           // Log is StreamCreated
           (log: Log) =>
             new Stream(
-              log.address,
-              // @ts-ignore
+              this,
               log.topics[2] as Address, // creator
-              // @ts-ignore
               Number(log.topics[3]), // streamId
+              log.topics[4] as Address, // token
+              BigInt(log.topics[5] as string), //amount per second
               this.publicClient,
-              this.walletClient,
-            ),
+              this.walletClient
+            )
         )
         .forEach(handleStream);
     };
-
     this.publicClient.watchContractEvent({
       address: this.address,
       abi: StreamManagerContractType.abi as Abi,

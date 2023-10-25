@@ -1,6 +1,4 @@
-import React from "react";
-import { useState } from "react";
-import { Stream } from "@apeworx/apepay";
+import React, { useState } from "react";
 import { TokenInfo } from "@uniswap/token-lists";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import config from "./config";
@@ -9,6 +7,9 @@ import "rc-slider/assets/index.css";
 import "./styles.css";
 import CreateStream from "lib/CreateStream";
 import StreamStatus from "lib/StreamStatus";
+import CancelStream from "lib/CancelStream";
+import UpdateStream from "lib/UpdateStream";
+import { Stream } from "sdk/js/index";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
@@ -26,18 +27,17 @@ function App() {
           </div>
           <div className="cart-details">
             <strong>Details:</strong>
-            <p>Description of the cart that you're about to pay for.</p>
+            <p>Description of the cart that you are about to pay for.</p>
           </div>
         </div>
       </div>
     );
   };
 
-  // Manage status of stream transaction
+  // Manage results from CreateStream component
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processTxError, setProcessTxError] = useState<Error | null>(null);
   const [isProcessed, setIsProcessed] = useState<boolean>(false);
-
   const handleTransactionStatus = (
     processing: boolean,
     processed: boolean,
@@ -48,11 +48,20 @@ function App() {
     setProcessTxError(error);
   };
 
-  // random string for the demo;
+  // Manage cancel status from CancelStream component
+  // Use this callback to close the cancel modal
+  const [cancelStatus, setCancelStatus] = useState<boolean>(false);
+
+  // Manage update status from UpdateStream component
+  // Use this callback to close the update modal
+  const [updateStatus, setUpdateStatus] = useState<boolean>(false);
+
+  // Generate random string (demo app only);
   const renderReasonCode = async () => {
     return Math.random().toString(36).substring(7);
   };
 
+  // Get stream from CreateStream to pass it as props
   const [stream, setStream] = useState<Stream | null>(null);
 
   return (
@@ -76,11 +85,12 @@ function App() {
           height: "10vh",
         }}
       >
+        {/* CreateStream transaction callback */}
         {isProcessing && <p>Processing Transaction... </p>}
         {isProcessed && (
           <p>Transaction Successful! -redirect to another page-</p>
         )}
-        {processTxError && <p>Error: {processTxError.message}</p>}
+        {processTxError && <p>Tx Error: {processTxError.message}</p>}
       </div>
       <div
         style={{
@@ -92,7 +102,7 @@ function App() {
       >
         <CreateStream
           streamManagerAddress={config.streamManagerAddress as `0x${string}`}
-          amountPerSecond={100}
+          amountPerSecond={BigInt(100)}
           registerStream={setStream}
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}
@@ -111,17 +121,49 @@ function App() {
           <option value="pie">Pie Chart</option>
         </select>
 
+        {stream && (
+          <StreamStatus
+            stream={stream}
+            chartType={chartType}
+            background="#110036"
+            color="#B40C4C"
+          />
+        )}
+      </div>
+      {stream && (
         <>
-          {stream && (
-            <StreamStatus
+          <div>
+            <CancelStream
               stream={stream}
-              chartType={chartType}
-              background="#110036"
-              color="#B40C4C"
+              onComplete={() => setCancelStatus(!cancelStatus)}
             />
+          </div>
+          {/* CancelStream callback */}
+          {cancelStatus && (
+            <p className="label-close-modal">
+              {" "}
+              -Deployment is being cancelled- Close modal
+            </p>
           )}
         </>
-      </div>
+      )}
+      {stream && (
+        <>
+          <div>
+            <UpdateStream
+              stream={stream}
+              onComplete={() => setUpdateStatus(!updateStatus)}
+            />
+          </div>
+          {/* UpdateStream callback */}
+          {updateStatus && (
+            <p className="label-close-modal">
+              {" "}
+              -Deployment is being updated- Close modal
+            </p>
+          )}
+        </>
+      )}
     </>
   );
 }
