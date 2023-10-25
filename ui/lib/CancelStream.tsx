@@ -46,15 +46,18 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   }, [props.stream]);
 
   const handleCancel = async () => {
+    // reset the error if user clicks again on cancel
+    setError(null);
     try {
       // Make sure the min life isnt displayed when button is clicked
       setInProgress(true);
+      await props.stream.cancel();
       // Make sure the user cannot click again on the button
       setButtonEnabled(false);
-      await props.stream.cancel();
       props.onComplete();
     } catch (error) {
       setError(String(error));
+      // re-enable button if there was an error
       setButtonEnabled(true);
     }
   };
@@ -75,7 +78,6 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
     const interval = setInterval(getStartTime, 1000);
     return () => clearInterval(interval);
   }, [startTime]);
-
 
   // Calculate the time in seconds before a stream can be cancelled
   const timeBeforeCancellability = startTime + minStreamLife - currentTime;
@@ -105,7 +107,6 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
           </div>
         )
       )}
-
       <button
         className="cancel-stream-button"
         onClick={handleCancel}

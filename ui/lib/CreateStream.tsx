@@ -135,7 +135,7 @@ const CreateStream = (props: CreateStreamProps) => {
           const newSM = await StreamManager.fromAddress(
             props.streamManagerAddress,
             publicClient,
-            ...(walletClient ? [walletClient] : [])
+            walletClient
           );
           setSM(newSM);
         } catch (error) {
@@ -378,6 +378,7 @@ const CreateStream = (props: CreateStreamProps) => {
             onChange={(value) =>
               typeof value === "number" && setSelectedTime(SECS_PER_DAY * value)
             }
+            disabled={isSuccess}
           />
           <button
             className="button-validate-transaction"
