@@ -267,22 +267,30 @@ const CreateStream = (props: CreateStreamProps) => {
           <button
             className="button-validate-select-token"
             onClick={() => validateStep(1)}
-            disabled={SM === null}
           >
             Next
           </button>
-          {SM === null && (
-            <div className="sm-loading-label">
-              {" "}
-              Fetching stream manager address...
-            </div>
-          )}
         </div>
       </div>
     );
   };
 
   const Step2 = () => {
+
+      // 1: Check if SM is still fetching
+      if (SM === null) {
+        return (
+          <div>
+            <div className="cart-body">{props.cart && props.cart}</div>
+            <div className="payment-flow">
+              <div className="loading-message-balance">
+                Fetching stream manager address...
+              </div>
+            </div>
+          </div>
+        );
+      }
+
     // 1: Check if native balance is still fetching
     if (nativeBalance === null) {
       return (
@@ -457,10 +465,10 @@ const CreateStream = (props: CreateStreamProps) => {
 
   // Monitor transaction to move to step 2 if transaction successful
   useEffect(() => {
-    if (txSuccess) {
+    if (txLoading) {
       validateStep(2);
     }
-  }, [txSuccess]);
+  }, [txLoading]);
 
   // Switch logic to accompany the user when processing his transaction
   const renderCurrentStep = () => {
