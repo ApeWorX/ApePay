@@ -293,6 +293,8 @@ export default class StreamManager {
         .forEach(handleStream);
     };
 
+    logs.map((log) => Stream.fromEventLog(...).then(handleStream).catch(console.error))
+
     this.publicClient.watchContractEvent({
       address: this.address,
       abi: StreamManagerContractType.abi as Abi,
