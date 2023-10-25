@@ -132,10 +132,12 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
 
   // Stream update function (for step 2)
   const handleUpdate = async () => {
+    // reset the error if user clicks again on cancel
+    setError(null);
     try {
+      await props.stream.addTime(BigInt(contractAmount));
       // Make sure the user cannot click again on the button
       setButtonDisabled(true);
-      await props.stream.addTime(BigInt(contractAmount));
       props.onComplete();
     } catch (error) {
       setError(String(error));
