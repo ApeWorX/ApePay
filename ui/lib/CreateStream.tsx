@@ -283,7 +283,7 @@ const CreateStream = (props: CreateStreamProps) => {
           <div>
             <div className="cart-body">{props.cart && props.cart}</div>
             <div className="payment-flow">
-              <div className="loading-message-balance">
+              <div className="fetching-sm-message">
                 Fetching stream manager address...
               </div>
             </div>
