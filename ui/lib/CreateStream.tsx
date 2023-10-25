@@ -125,12 +125,27 @@ const CreateStream = (props: CreateStreamProps) => {
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
   const [SM, setSM] = useState<StreamManager | null>(null);
+  const publicClient = usePublicClient();
+  const walletClient = useWalletClient()?.data as WalletClient | undefined;
 
-  StreamManager.fromAddress(
-    props.streamManagerAddress,
-    usePublicClient(),
-    useWalletClient()?.data as WalletClient
-  ).then(setSM);
+  useEffect(() => {
+    const fetchStreamManager = async () => {
+      if (SM === null) {
+        try {
+          const newSM = await StreamManager.fromAddress(
+            props.streamManagerAddress,
+            publicClient,
+            ...(walletClient ? [walletClient] : [])
+          );
+          setSM(newSM);
+        } catch (error) {
+          console.error("Stream Manager Error:", error);
+        }
+      }
+    };
+
+    fetchStreamManager();
+  }, [SM, publicClient, walletClient]);
 
   const { config: approvalConfig } = usePrepareContractWrite({
     address: selectedToken as `0x${string}`,
@@ -250,9 +265,16 @@ const CreateStream = (props: CreateStreamProps) => {
           <button
             className="button-validate-select-token"
             onClick={() => validateStep(1)}
+            disabled={SM === null}
           >
             Next
           </button>
+          {SM === null && (
+            <div className="sm-loading-label">
+              {" "}
+              Fetching stream manager address...
+            </div>
+          )}
         </div>
       </div>
     );

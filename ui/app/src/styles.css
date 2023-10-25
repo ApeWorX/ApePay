@@ -1,17 +1,24 @@
 .cart {
   border: 1px solid black;
   text-align: center;
-  margin: 5em;
+  margin: 1em;
   padding: 1em;
 }
 
 /* step 1 */
 .select-token-dropdown {
   color: red;
+  width: 200px;
+  height: 50px;
+  margin-bottom: 30px;
 }
 
 .button-validate-select-token {
   color: red;
+  position:relative;
+  margin-top: 10px;
+  width: 100px;
+  height: 30px
 }
 
 .loading-message-token-balance {
@@ -55,7 +62,7 @@
 .status-graph {
   width: 10%;
   position: relative;
-  margin-top: 5%;
+  margin-top: 30px;
   left: 45%;
   display: flex;
   flex-direction: column;
@@ -89,6 +96,7 @@
 .dropdown-select {
   position: relative;
   margin-bottom: 10px;
+  margin-top: 50px;
 }
 
 .countdown-label {
