@@ -103,7 +103,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                 }
               />
               <button onClick={approveStream} className="update-stream-button">
-                {`Validate adding funds for ${selectedTime} new day${
+                {`Validate adding funds for ${selectedTime} additional day${
                   selectedTime !== 1 ? "s" : ""
                 }`}
               </button>
@@ -149,7 +149,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
       <>
         <div className="stream-container">
           <div className="update-stream-title">
-            {`Add funds for ${selectedTime} new day${
+            {`Add funds for ${selectedTime} additional day${
               selectedTime !== 1 ? "s:" : ":"
             }`}
           </div>

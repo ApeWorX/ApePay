@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
+
 // Display stream time with the correct units
 export function formatTime(seconds: number) {
+  seconds = Math.floor(seconds);
   if (seconds < 60) {
     return ` ${seconds} second${seconds !== 1 ? "s" : ""}`;
   } else if (seconds < 3600) {
@@ -24,6 +27,16 @@ export function formatTime(seconds: number) {
 }
 
 // Fetch current time in seconds
-export function getCurrentTime() {
-  return Date.now() / 1000;
-}
+export const useCurrentTime = () => {
+  const [currentTime, setCurrentTime] = useState<number>(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now() / 1000);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return currentTime;
+};

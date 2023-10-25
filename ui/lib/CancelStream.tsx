@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Stream } from "../../sdk/js/index";
 import { formatTime } from "./utils";
-import { getCurrentTime } from "./utils";
+import { useCurrentTime } from "./utils";
 
 interface CancelStreamProps {
   stream: Stream;
@@ -19,8 +19,8 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   const [startTime, setStartTime] = useState<number>(0);
   // Manage error handling
   const [Error, setError] = useState<string | null>(null);
-  // Set currenTime state to update it very second
-  const [currentTime, setCurrentTime] = useState<number>(0);
+  // currenTime updates every second
+  const currentTime = useCurrentTime();
 
   // Check if the stream is cancellable and set the button state accordingly.
   useEffect(() => {
@@ -76,14 +76,6 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
     return () => clearInterval(interval);
   }, [startTime]);
 
-  // Fetch current time every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(getCurrentTime());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Calculate the time in seconds before a stream can be cancelled
   const timeBeforeCancellability = startTime + minStreamLife - currentTime;
