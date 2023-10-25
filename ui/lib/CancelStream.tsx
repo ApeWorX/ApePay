@@ -28,8 +28,8 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
     const checkStreamCancelable = async () => {
       try {
         const isCancelable = await props.stream.isCancelable();
-        setButtonEnabled(isCancelable);
         if (isCancelable) {
+          setButtonEnabled(isCancelable);
           clearInterval(interval);
         }
       } catch (error) {
