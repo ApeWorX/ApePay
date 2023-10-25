@@ -130,7 +130,8 @@ export class Stream {
         "Error cancelling stream: you are neither the creator nor the owner of the stream."
       );
 
-    // pass args depending on each situation; reason is optional
+    // pass args depending on each situation; reason is optional but must be provided
+    // if not using the caller as the creator arg
     const args =
       this.walletClient.account.address != this.creator
         ? [this.streamId, reason || "", this.creator]
