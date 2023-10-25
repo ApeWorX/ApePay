@@ -465,10 +465,10 @@ const CreateStream = (props: CreateStreamProps) => {
 
   // Monitor transaction to move to step 2 if transaction successful
   useEffect(() => {
-    if (txLoading) {
+    if (txSuccess) {
       validateStep(2);
     }
-  }, [txLoading]);
+  }, [txSuccess]);
 
   // Switch logic to accompany the user when processing his transaction
   const renderCurrentStep = () => {
