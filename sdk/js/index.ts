@@ -213,7 +213,6 @@ export default class StreamManager {
     })) as boolean;
   }
 
-  // legacy create function
   async create(
     token: Address,
     amountPerSecond: bigint,
@@ -272,98 +271,6 @@ export default class StreamManager {
     );
   }
 
-  // new create function
-  // async create(
-  //   token: Address,
-  //   amountPerSecond: bigint,
-  //   reason?: string,
-  //   startTime?: number,
-  //   accountOverride?: Address
-  // ): Promise<Stream> {
-  //   if (!accountOverride && !this.walletClient?.account)
-  //     throw new Error("No account");
-
-  //   const account =
-  //     accountOverride || (this.walletClient?.account?.address ?? "0x0");
-
-  //   const args: Array<number | string | bigint | Address | ByteArray> = [
-  //     token,
-  //     amountPerSecond,
-  //   ];
-  //   if (startTime) {
-  //     args.push(reason ? stringToHex(reason) : "");
-  //     args.push(startTime);
-  //   } else if (reason) {
-  //     args.push(stringToHex(reason));
-  //   }
-
-  //   // Step 1: Run the transaction
-  //   const hash = await this.walletClient?.writeContract({
-  //     chain: null,
-  //     address: this.address,
-  //     abi: StreamManagerContractType.abi as Abi,
-  //     functionName: "create_stream",
-  //     args,
-  //     account,
-  //   });
-
-  //   console.log("writeContract params:", {
-  //     chain: null,
-  //     address: this.address,
-  //     abi: StreamManagerContractType.abi,
-  //     functionName: "create_stream",
-  //     args,
-  //     account,
-  //   });
-
-  //   if (hash === undefined)
-  //     throw new Error("Error while processing transaction. Hash undefined.");
-
-  //   // Step 2: Wait for transaction to be confirmed
-  //   const receipt = await this.publicClient.waitForTransactionReceipt({
-  //     hash: hash,
-  //   });
-
-  //   if (!receipt || !receipt.logs || receipt.logs.length === 0) {
-  //     throw new Error("Transaction failed or logs are missing");
-  //   }
-
-  //   // Step 3: Use the last log for creating the Stream instance
-  //   const lastLog = receipt.logs[receipt.logs.length - 1];
-
-  //   return Stream.fromEventLog(
-  //     this,
-  //     lastLog,
-  //     this.publicClient,
-  //     this.walletClient
-  //   );
-  // }
-
-  // new onstreamcreated
-  // onStreamCreated(
-  //   handleStream: (stream: Stream) => null,
-  //   creator?: Address
-  // ): void {
-  //   const onLogs = (logs: Log[]) => {
-  //     Promise.all(
-  //       logs.map((log: Log) =>
-  //         Stream.fromEventLog(this, log, this.publicClient, this.walletClient)
-  //           .then(handleStream)
-  //           .catch(console.error)
-  //       )
-  //     );
-  //   };
-
-  //   this.publicClient.watchContractEvent({
-  //     address: this.address,
-  //     abi: StreamManagerContractType.abi as Abi,
-  //     eventName: "StreamCreated",
-  //     args: creator ? { creator } : {},
-  //     onLogs,
-  //   });
-  // }
-
-  // legacy onstreamcreated
   onStreamCreated(
     handleStream: (stream: Stream) => null,
     creator?: Address
