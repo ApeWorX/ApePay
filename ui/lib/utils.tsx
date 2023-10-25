@@ -28,7 +28,7 @@ export function formatTime(seconds: number) {
 
 // Fetch current time in seconds
 export const useCurrentTime = () => {
-  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [currentTime, setCurrentTime] = useState<number>(Date.now() / 1000);
 
   useEffect(() => {
     const interval = setInterval(() => {
