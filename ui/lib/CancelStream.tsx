@@ -18,7 +18,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   // Get the starting time of a stream
   const [startTime, setStartTime] = useState<number>(0);
   // Manage error handling
-  const [Error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   // currenTime updates every second
   const currentTime = useCurrentTime();
 
@@ -114,7 +114,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
       >
         Cancel Stream
       </button>
-      <div className="cancel-stream-error"> {Error && Error}</div>
+      <div className="cancel-stream-error"> {error && error}</div>
     </div>
   );
 };
