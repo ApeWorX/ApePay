@@ -8,6 +8,7 @@ from pydantic import BaseSettings, validator
 class Settings(BaseSettings):
     WARNING_LEVEL: timedelta = timedelta(days=2)
     CRITICAL_LEVEL: timedelta = timedelta(hours=12)
+    MAX_STREAM_DURATION: int = int(timedelta.max.total_seconds()) - 1
 
     @validator("WARNING_LEVEL", "CRITICAL_LEVEL", pre=True)
     def _normalize_timedelta(cls, value: Any) -> timedelta:
