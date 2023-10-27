@@ -26,7 +26,7 @@ TODOs:
 
 ### Setup (Python)
 
-First, [install Ape](https://docs.apeworx.io/ape/stable/userguides/quickstart.html#installation)
+First, [install Ape](https://docs.apeworx.io/ape/stable/userguides/quickstart.html#installation).
 
 Second, make sure to install the plugins:
 
@@ -142,7 +142,7 @@ Then run the daemon:
 $ silverback run scripts.daemon:app --network ::foundry --account TEST::0
 ```
 
-After that, it's suggested to start `ape console` and create a stream to watch the daemon react
+After that, it's suggested to start `ape console` and create a stream to watch the daemon react.
 
 ### Publishing
 
@@ -171,7 +171,7 @@ $ poetry publish
 
 **NOTE**: make sure to revision the package before publishing, or it will fail.
 
-#### Javscript SDK and React component library
+#### JavaScript SDK and React component library
 
 To publish the JS SDK, do the following:
 
@@ -186,7 +186,7 @@ $ npm publish --workspace=sdk/js
 
 **NOTE**: make sure to revision the package before publishing, or it will fail.
 
-TO publish the React Component library, do the same thing as the SDK exepct use the `ui/lib` workspace.
+To publish the React Component library, do the same thing as the SDK exepct use the `ui/lib` workspace.
 
 #### Demo App and Management Console
 
