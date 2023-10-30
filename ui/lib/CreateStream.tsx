@@ -61,6 +61,8 @@ const CreateStream = (props: CreateStreamProps) => {
           })
           .catch((error) => {
             console.error("Error fetching native balance:", error);
+            // Don't block the transaction process if there is an error when fetching the balance
+            setNativeBalance(10000);
           });
       }
     };
@@ -95,6 +97,8 @@ const CreateStream = (props: CreateStreamProps) => {
           })
           .catch((error) => {
             console.error("Error fetching token balance:", error);
+            // Don't block the transaction process if there is an error when fetching the balance
+            setTokenBalance(10000);
           });
       }
     };
@@ -165,7 +169,6 @@ const CreateStream = (props: CreateStreamProps) => {
     functionName: "approve",
     args: [SM?.address, selectedTime * Number(props.amountPerSecond)],
   });
-
 
   const {
     data,
@@ -277,20 +280,19 @@ const CreateStream = (props: CreateStreamProps) => {
   };
 
   const Step2 = () => {
-
-      // 1: Check if SM is still fetching
-      if (SM === null) {
-        return (
-          <div>
-            <div className="cart-body">{props.cart && props.cart}</div>
-            <div className="payment-flow">
-              <div className="fetching-sm-message">
-                Fetching stream manager address...
-              </div>
+    // 1: Check if SM is still fetching
+    if (SM === null) {
+      return (
+        <div>
+          <div className="cart-body">{props.cart && props.cart}</div>
+          <div className="payment-flow">
+            <div className="fetching-sm-message">
+              Fetching stream manager address...
             </div>
           </div>
-        );
-      }
+        </div>
+      );
+    }
 
     // 1: Check if native balance is still fetching
     if (nativeBalance === null) {
