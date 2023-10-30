@@ -5,6 +5,7 @@ import {
   PublicClient,
   stringToHex,
   WalletClient,
+  Log,
 } from "viem";
 import StreamManagerContractType from "./.build/StreamManager.json";
 
@@ -18,27 +19,15 @@ export interface StreamInfo {
   reason: ByteArray;
 }
 
-interface StreamCreated {
-  token: Address;
-  creator: Address;
-  stream_id: number;
-  amount_per_second: number;
-  start_time: number;
-  reason: string;
-}
-
-interface Log {
-  address: string;
-  topics: string[];
-  data: string;
-  blockNumber: number;
-  transactionHash: string;
-  transactionIndex: number;
-  blockHash: string;
-  logIndex: number;
-  removed: boolean;
-  args: StreamCreated;
-  eventName: string;
+interface StreamCreated extends Log {
+  args: {
+    token: Address;
+    creator: Address;
+    stream_id: number;
+    amount_per_second: number;
+    start_time: number;
+    reason: string;
+  };
 }
 
 export class Stream {
@@ -304,9 +293,9 @@ export default class StreamManager {
         eventName: "StreamCreated",
         args: creator ? { creator } : {},
         onLogs: (logs: Log[]) => {
-          logs
+          (logs as StreamCreated[])
             .map((log) => {
-              const stream = log.args as StreamCreated;
+              const stream = log.args;
               return new Stream(
                 this,
                 stream.creator,
