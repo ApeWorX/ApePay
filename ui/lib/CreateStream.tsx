@@ -166,6 +166,7 @@ const CreateStream = (props: CreateStreamProps) => {
     args: [SM?.address, selectedTime * Number(props.amountPerSecond)],
   });
 
+
   const {
     data,
     isLoading,

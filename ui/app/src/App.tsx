@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TokenInfo } from "@uniswap/token-lists";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import config from "./config";
@@ -9,7 +9,13 @@ import CreateStream from "lib/CreateStream";
 import StreamStatus from "lib/StreamStatus";
 import CancelStream from "lib/CancelStream";
 import UpdateStream from "lib/UpdateStream";
-import { Stream } from "sdk/js/index";
+import StreamManager, { Stream } from "sdk/js/index";
+import {
+  usePublicClient,
+  useWalletClient,
+  WalletClient,
+  useAccount,
+} from "wagmi";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
@@ -61,8 +67,50 @@ function App() {
     return Math.random().toString(36).substring(7);
   };
 
-  // Get stream from CreateStream to pass it as props
+  const publicClient = usePublicClient();
+  const walletClient = useWalletClient()?.data;
+  const { address } = useAccount();
+
   const [stream, setStream] = useState<Stream | null>(null);
+  const [SM, setSM] = useState<StreamManager | null>(null);
+  const [createdStreams, setCreatedStreams] = useState<Stream[]>([]);
+
+  // Manage callback from onstreamcreate
+  const handleStreams = (newStream: Stream) => {
+      setCreatedStreams((prevStreams) => [...prevStreams, newStream]);
+  };
+
+  // Fetch the StreamManager and its streams
+  useEffect(() => {
+    const fetchStreamManager = async () => {
+      if (SM === null) {
+        try {
+          const newSM = await StreamManager.fromAddress(
+            config.streamManagerAddress as `0x${string}`,
+            publicClient,
+            walletClient as WalletClient
+          );
+          setSM(newSM);
+        } catch (error) {
+          console.error("Stream Manager Error:", error);
+        }
+      }
+    };
+    fetchStreamManager();
+
+    // Fetch create streams when SM has been fetched
+    const interval: NodeJS.Timeout = setInterval(() => {
+      if (SM != null && createdStreams.length === 0) {
+        SM.onStreamCreated(handleStreams, address);
+      }
+    }, 3000);
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [SM, createdStreams, handleStreams, address]);
 
   return (
     <>
@@ -121,20 +169,20 @@ function App() {
           <option value="pie">Pie Chart</option>
         </select>
 
-        {stream && (
+        {createdStreams.length > 0 && (
           <StreamStatus
-            stream={stream}
+            stream={createdStreams.slice(-1)[0]}
             chartType={chartType}
             background="#110036"
             color="#B40C4C"
           />
         )}
       </div>
-      {stream && (
+      {createdStreams.length > 0 && (
         <>
           <div>
             <CancelStream
-              stream={stream}
+              stream={createdStreams.slice(-1)[0]}
               onComplete={() => setCancelStatus(!cancelStatus)}
             />
           </div>
@@ -147,11 +195,11 @@ function App() {
           )}
         </>
       )}
-      {stream && (
+      {createdStreams.length > 0 && (
         <>
           <div>
             <UpdateStream
-              stream={stream}
+              stream={createdStreams.slice(-1)[0]}
               onComplete={() => setUpdateStatus(!updateStatus)}
             />
           </div>

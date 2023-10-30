@@ -2,7 +2,6 @@ import {
   Abi,
   Address,
   ByteArray,
-  Log,
   PublicClient,
   stringToHex,
   WalletClient,
@@ -17,6 +16,29 @@ export interface StreamInfo {
   start_time: bigint;
   last_pull: bigint;
   reason: ByteArray;
+}
+
+interface LogArgs {
+  token: string;
+  creator: string;
+  stream_id: number;
+  amount_per_second: number;
+  start_time: number;
+  reason: string;
+}
+
+interface Log {
+  address: string;
+  topics: string[];
+  data: string;
+  blockNumber: number;
+  transactionHash: string;
+  transactionIndex: number;
+  blockHash: string;
+  logIndex: number;
+  removed: boolean;
+  args: LogArgs;
+  eventName: string;
 }
 
 export class Stream {
@@ -272,32 +294,34 @@ export default class StreamManager {
   }
 
   onStreamCreated(
-    handleStream: (stream: Stream) => null,
+    handleStream: (stream: Stream) => void,
     creator?: Address
   ): void {
-    const onLogs = (logs: Log[]) => {
-      logs
-        .map(
-          // Log is StreamCreated
-          (log: Log) =>
-            new Stream(
-              this,
-              log.topics[2] as Address, // creator
-              Number(log.topics[3]), // streamId
-              log.topics[4] as Address, // token
-              BigInt(log.topics[5] as string), //amount per second
-              this.publicClient,
-              this.walletClient
+    try {
+      this.publicClient.watchContractEvent({
+        address: this.address,
+        abi: StreamManagerContractType.abi as Abi,
+        eventName: "StreamCreated",
+        args: creator ? { creator } : {},
+        onLogs: (logs: Log[]) => {
+          logs
+            .map(
+              (log) =>
+                new Stream(
+                  this,
+                  log.args.creator as `0x${string}`,
+                  log.args.stream_id,
+                  log.args.token as `0x${string}`,
+                  BigInt(log.args.amount_per_second),
+                  this.publicClient,
+                  this.walletClient
+                )
             )
-        )
-        .forEach(handleStream);
-    };
-    this.publicClient.watchContractEvent({
-      address: this.address,
-      abi: StreamManagerContractType.abi as Abi,
-      eventName: "StreamCreated",
-      args: creator ? { creator } : {},
-      onLogs,
-    });
+            .forEach(handleStream);
+        },
+      });
+    } catch (error) {
+      console.error("Exception thrown while watching contract event:", error);
+    }
   }
 }
