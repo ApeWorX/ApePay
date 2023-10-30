@@ -292,16 +292,15 @@ export default class StreamManager {
         abi: StreamManagerContractType.abi as Abi,
         eventName: "StreamCreated",
         args: creator ? { creator } : {},
-        onLogs: (logs: Log[]) => {
-          (logs as StreamCreated[])
+        onLogs: (logs: StreamCreated[]) => {
+          logs
             .map((log) => {
-              const stream = log.args;
               return new Stream(
                 this,
-                stream.creator,
-                stream.stream_id,
-                stream.token,
-                BigInt(stream.amount_per_second),
+                log.args.creator,
+                log.args.stream_id,
+                log.args.token,
+                BigInt(log.args.amount_per_second),
                 this.publicClient,
                 this.walletClient
               );
