@@ -132,24 +132,13 @@ const CreateStream = (props: CreateStreamProps) => {
   const publicClient = usePublicClient();
   const walletClient = useWalletClient()?.data as WalletClient | undefined;
 
-  useEffect(() => {
-    const fetchStreamManager = async () => {
-      if (SM === null) {
-        try {
-          const newSM = await StreamManager.fromAddress(
-            props.streamManagerAddress,
-            publicClient,
-            walletClient
-          );
-          setSM(newSM);
-        } catch (error) {
-          console.error("Stream Manager Error:", error);
-        }
-      }
-    };
-
-    fetchStreamManager();
-  }, [SM, publicClient, walletClient]);
+  StreamManager.fromAddress(
+    props.streamManagerAddress as `0x${string}`,
+    publicClient,
+    walletClient as WalletClient
+  )
+    .then(setSM)
+    .catch(console.error);
 
   const { config: approvalConfig } = usePrepareContractWrite({
     address: selectedToken as `0x${string}`,

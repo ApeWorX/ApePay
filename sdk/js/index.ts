@@ -18,9 +18,9 @@ export interface StreamInfo {
   reason: ByteArray;
 }
 
-interface LogArgs {
-  token: string;
-  creator: string;
+interface StreamCreated {
+  token: Address;
+  creator: Address;
   stream_id: number;
   amount_per_second: number;
   start_time: number;
@@ -37,7 +37,7 @@ interface Log {
   blockHash: string;
   logIndex: number;
   removed: boolean;
-  args: LogArgs;
+  args: StreamCreated;
   eventName: string;
 }
 
@@ -305,18 +305,18 @@ export default class StreamManager {
         args: creator ? { creator } : {},
         onLogs: (logs: Log[]) => {
           logs
-            .map(
-              (log) =>
-                new Stream(
-                  this,
-                  log.args.creator as `0x${string}`,
-                  log.args.stream_id,
-                  log.args.token as `0x${string}`,
-                  BigInt(log.args.amount_per_second),
-                  this.publicClient,
-                  this.walletClient
-                )
-            )
+            .map((log) => {
+              const stream = log.args as StreamCreated;
+              return new Stream(
+                this,
+                stream.creator,
+                stream.stream_id,
+                stream.token,
+                BigInt(stream.amount_per_second),
+                this.publicClient,
+                this.walletClient
+              );
+            })
             .forEach(handleStream);
         },
       });

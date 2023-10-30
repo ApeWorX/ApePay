@@ -72,45 +72,25 @@ function App() {
   const { address } = useAccount();
 
   const [stream, setStream] = useState<Stream | null>(null);
-  const [SM, setSM] = useState<StreamManager | null>(null);
   const [createdStreams, setCreatedStreams] = useState<Stream[]>([]);
 
   // Manage callback from onstreamcreate
-  const handleStreams = (newStream: Stream) => {
-      setCreatedStreams((prevStreams) => [...prevStreams, newStream]);
+  const addStream = (newStream: Stream) => {
+    setCreatedStreams((prevStreams) => [...prevStreams, newStream]);
   };
 
   // Fetch the StreamManager and its streams
   useEffect(() => {
-    const fetchStreamManager = async () => {
-      if (SM === null) {
-        try {
-          const newSM = await StreamManager.fromAddress(
-            config.streamManagerAddress as `0x${string}`,
-            publicClient,
-            walletClient as WalletClient
-          );
-          setSM(newSM);
-        } catch (error) {
-          console.error("Stream Manager Error:", error);
-        }
-      }
-    };
-    fetchStreamManager();
-
-    // Fetch create streams when SM has been fetched
-    const interval: NodeJS.Timeout = setInterval(() => {
-      if (SM != null && createdStreams.length === 0) {
-        SM.onStreamCreated(handleStreams, address);
-      }
-    }, 3000);
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [SM, createdStreams, handleStreams, address]);
+    StreamManager.fromAddress(
+      config.streamManagerAddress as `0x${string}`,
+      publicClient,
+      walletClient as WalletClient
+    )
+      .then((SM) => {
+        SM.onStreamCreated(addStream, address);
+      })
+      .catch(console.error);
+  }, [addStream, address]);
 
   return (
     <>
