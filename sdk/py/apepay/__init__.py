@@ -29,6 +29,8 @@ from .exceptions import (
 )
 from .utils import time_unit_to_timedelta
 
+MAX_DURATION_SECONDS = int(timedelta.max.total_seconds()) - 1
+
 
 class Validator(BaseInterfaceModel):
     contract: ContractInstance
@@ -427,17 +429,20 @@ class Stream(BaseInterfaceModel):
 
     @property
     def time_left(self) -> timedelta:
-        return timedelta(seconds=self.contract.time_left(self.creator, self.stream_id))
+        seconds = self.contract.time_left(self.creator, self.stream_id)
+        return timedelta(seconds=min(MAX_DURATION_SECONDS, seconds))
 
     @property
     def total_time(self) -> timedelta:
         info = self.info  # NOTE: Avoid calling contract twice
+        # NOTE: Measure time-duration of unclaimed amount remaining (locked and unlocked)
+        max_life = int(info.funded_amount / info.amount_per_second)
+
         return (
             # NOTE: `last_pull == start_time` if never pulled
             datetime.fromtimestamp(info.last_pull)
             - datetime.fromtimestamp(info.start_time)
-            # NOTE: Measure time-duration of unclaimed amount remaining (locked and unlocked)
-            + timedelta(seconds=int(info.funded_amount / info.amount_per_second))
+            + timedelta(seconds=min(MAX_DURATION_SECONDS, max_life))
         )
 
     @property
