@@ -6,6 +6,7 @@ import {
   stringToHex,
   WalletClient,
   Log,
+  parseAbiItem,
 } from "viem";
 import StreamManagerContractType from "./.build/StreamManager.json";
 
@@ -286,30 +287,49 @@ export default class StreamManager {
     handleStream: (stream: Stream) => void,
     creator?: Address
   ): void {
+    this.publicClient.watchContractEvent({
+      address: this.address,
+      abi: StreamManagerContractType.abi as Abi,
+      eventName: "StreamCreated",
+      args: creator ? { creator } : {},
+      onLogs: (logs: StreamCreated[]) => {
+        logs
+          .map((log) => {
+            return new Stream(
+              this,
+              log.args.creator,
+              log.args.stream_id,
+              log.args.token,
+              BigInt(log.args.amount_per_second),
+              this.publicClient,
+              this.walletClient
+            );
+          })
+          .forEach(handleStream);
+      },
+      onError: (error) => console.log(error),
+    });
+  }
+
+  async fetchAllStreams() {
+    console.log("into it");
+
     try {
-      this.publicClient.watchContractEvent({
+      const logs = await this.publicClient.getLogs({
         address: this.address,
-        abi: StreamManagerContractType.abi as Abi,
-        eventName: "StreamCreated",
-        args: creator ? { creator } : {},
-        onLogs: (logs: StreamCreated[]) => {
-          logs
-            .map((log) => {
-              return new Stream(
-                this,
-                log.args.creator,
-                log.args.stream_id,
-                log.args.token,
-                BigInt(log.args.amount_per_second),
-                this.publicClient,
-                this.walletClient
-              );
-            })
-            .forEach(handleStream);
-        },
+        fromBlock: 4596186n,
+      });
+
+      return logs.map((log) => {
+        console.log(log)
+        // console.log("sm", this);
+        // console.log("creator", log.topics[2] as Address);
+        // console.log("streamid", Number(log.topics[3]));
+        // console.log("token", log.topics[1] as Address);
+        // console.log("aps");
       });
     } catch (error) {
-      console.error("Exception thrown while watching contract event:", error);
+      console.error("Something went sideways:", error);
     }
   }
 }

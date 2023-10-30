@@ -87,7 +87,9 @@ function App() {
       walletClient as WalletClient
     )
       .then((SM) => {
-        SM.onStreamCreated(addStream, address);
+        console.log("fetching all streams");
+        SM.fetchAllStreams();
+        // SM.onStreamCreated(addStream, address);
       })
       .catch(console.error);
   }, [addStream, address]);
