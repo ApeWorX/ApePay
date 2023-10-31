@@ -21,6 +21,9 @@ function App() {
   const tokenList: TokenInfo[] = config.tokens;
   const [chartType, setChartType] = useState<"bar" | "pie">("bar");
 
+  // Let user pick the stream he wants to work on for the status, update, and cancel components
+  const [selectedStream, setSelectedStream] = useState<Stream | null>(null);
+
   // Fake cart for the purpose of the demo
   const Cart = () => {
     return (
@@ -72,9 +75,8 @@ function App() {
   const { address } = useAccount();
 
   const [stream, setStream] = useState<Stream | null>(null);
+  const [SM, setSM] = useState<StreamManager | null>(null);
   const [createdStreams, setCreatedStreams] = useState<Stream[]>([]);
-
-  console.log(createdStreams);
 
   // Append the past streams and the newly created streams to an array
   const addStreams = (streams: Stream | Stream[]) => {
@@ -98,9 +100,10 @@ function App() {
     StreamManager.fromAddress(
       config.streamManagerAddress as `0x${string}`,
       publicClient,
-      walletClient,
+      walletClient
     )
       .then((SM) => {
+        setSM(SM);
         console.log("SM initialized");
         // 2. Fetch all past stream logs
         SM.fetchAllLogs(async (allLogs) => {
@@ -109,12 +112,7 @@ function App() {
             // 3. Convert logs to Stream objects
             const PastStreams = await Promise.all(
               allLogs.map((log) =>
-                Stream.fromEventLog(
-                  SM,
-                  log,
-                  publicClient,
-                  walletClient,
-                )
+                Stream.fromEventLog(SM, log, publicClient, walletClient)
               )
             );
             addStreams(PastStreams);
@@ -127,11 +125,11 @@ function App() {
         });
       })
       .catch(console.error);
-  }, [addStreams, address]);
+  }, [address]);
 
   return (
     <>
-      {/* LOG IN WITH WALLET */}
+      {/* Log in */}
       <div
         style={{
           display: "flex",
@@ -142,52 +140,125 @@ function App() {
         <ConnectButton />
       </div>
 
-      {/* Display list of past streams */}
+      <h1>Created Streams</h1>
+      {/* Stream list */}
       <div className="list-streams">
-        <h1>Created Streams</h1>
-        {createdStreams.length === 0 ? (
-          <p>Loading past streams...</p>
+        {SM === null ? (
+          <p>Fetching SM...</p>
+        ) : createdStreams.length === 0 ? (
+          <p>Loading streams...</p>
         ) : (
           <ul>
-            {createdStreams.map((stream, index) => (
-              <li key={index}>
-                <p>
-                  <strong>Stream ID:</strong> {Number(stream.streamId)}
-                  {/* {Number(stream.streamId)} */}
-                </p>
-                <p>
-                  <strong>Creator:</strong> {stream.creator}
-                </p>
-                <hr />
-              </li>
-            ))}
+            {createdStreams
+              .sort((a, b) => Number(a.streamId) - Number(b.streamId))
+              .map((stream, index) => (
+                <ul key={index}>
+                  <p>
+                    <strong>Stream ID:</strong> {Number(stream.streamId)}
+                  </p>
+                  <p>
+                    <strong>Creator:</strong> {stream.creator}
+                  </p>
+                  <hr />
+                </ul>
+              ))}
           </ul>
         )}
       </div>
-      {/* Transaction Status Display */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "10vh",
-        }}
-      >
-        {/* CreateStream transaction callback */}
-        {isProcessing && <p>Processing Transaction... </p>}
-        {isProcessed && (
-          <p>Transaction Successful! -redirect to another page-</p>
-        )}
-        {processTxError && <p>Tx Error: {processTxError.message}</p>}
-      </div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "30vh",
-        }}
-      >
+      {createdStreams.length > 0 && (
+        <div className="selected-stream-components">
+          {/* Select Stream */}
+          <h3> Pick a stream to work on</h3>
+          <select
+            className="dropdown-streamselected"
+            value={selectedStream ? selectedStream.streamId : ""}
+            onChange={(e) => {
+              const selectedStreamId = e.target.value;
+              const selected = createdStreams.find(
+                (stream) => String(stream.streamId) === selectedStreamId
+              );
+              setSelectedStream(selected || null);
+            }}
+          >
+            {createdStreams.map((stream) => (
+              <option key={stream.streamId} value={stream.streamId}>
+                {stream.streamId}
+              </option>
+            ))}
+          </select>
+
+          {/* Stream Status */}
+          {selectedStream && (
+            <div className="status-graph">
+              <>
+                <h3> Stream Status</h3>
+                <select
+                  className="dropdown-select"
+                  value={chartType}
+                  onChange={(e) =>
+                    setChartType(e.target.value as "bar" | "pie")
+                  }
+                >
+                  <option value="bar">Bar Chart</option>
+                  <option value="pie">Pie Chart</option>
+                </select>
+                <div className="stream-status-component">
+                  <StreamStatus
+                    key={selectedStream ? selectedStream.streamId : "no-stream"}
+                    stream={selectedStream}
+                    chartType={chartType}
+                    background="#110036"
+                    color="#B40C4C"
+                  />
+                </div>
+              </>
+            </div>
+          )}
+
+          {/* Cancel Stream */}
+          {selectedStream && (
+            <>
+              <h3> Cancel Stream</h3>
+              <div>
+                <CancelStream
+                  key={selectedStream ? selectedStream.streamId : "no-stream"}
+                  stream={selectedStream}
+                  onComplete={() => setCancelStatus(!cancelStatus)}
+                />
+              </div>
+              {/* CancelStream callback */}
+              {cancelStatus && (
+                <p className="label-close-modal">
+                  -Deployment is being cancelled- Close modal
+                </p>
+              )}
+            </>
+          )}
+
+          {/* Update Stream */}
+          {selectedStream && (
+            <>
+              <h3> Update Stream</h3>
+              <div>
+                <UpdateStream
+                  key={selectedStream ? selectedStream.streamId : "no-stream"}
+                  stream={selectedStream}
+                  onComplete={() => setUpdateStatus(!updateStatus)}
+                />
+              </div>
+              {/* UpdateStream callback */}
+              {updateStatus && (
+                <p className="label-close-modal">
+                  -Deployment is being updated- Close modal
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+      {/* CreateStream */}
+      <h1> Create a stream</h1>
+      <div className="create-stream-component">
         <CreateStream
           streamManagerAddress={config.streamManagerAddress as `0x${string}`}
           amountPerSecond={BigInt(100)}
@@ -197,61 +268,15 @@ function App() {
           tokenList={tokenList}
           cart={<Cart />}
         />
-      </div>
-
-      <div className="status-graph">
-        <select
-          className="dropdown-select"
-          value={chartType}
-          onChange={(e) => setChartType(e.target.value as "bar" | "pie")}
-        >
-          <option value="bar">Bar Chart</option>
-          <option value="pie">Pie Chart</option>
-        </select>
-
-        {createdStreams.length > 0 && (
-          <StreamStatus
-            stream={createdStreams.slice(-1)[0]}
-            chartType={chartType}
-            background="#110036"
-            color="#B40C4C"
-          />
-        )}
-      </div>
-      {createdStreams.length > 0 && (
-        <>
-          <div>
-            <CancelStream
-              stream={createdStreams.slice(-1)[0]}
-              onComplete={() => setCancelStatus(!cancelStatus)}
-            />
-          </div>
-          {/* CancelStream callback */}
-          {cancelStatus && (
-            <p className="label-close-modal">
-              {" "}
-              -Deployment is being cancelled- Close modal
-            </p>
+        {/* CreateStream callback */}
+        <div className="tx-status-display">
+          {isProcessing && <p>Processing Transaction... </p>}
+          {isProcessed && (
+            <p>Transaction Successful! -redirect to another page-</p>
           )}
-        </>
-      )}
-      {createdStreams.length > 0 && (
-        <>
-          <div>
-            <UpdateStream
-              stream={createdStreams.slice(-1)[0]}
-              onComplete={() => setUpdateStatus(!updateStatus)}
-            />
-          </div>
-          {/* UpdateStream callback */}
-          {updateStatus && (
-            <p className="label-close-modal">
-              {" "}
-              -Deployment is being updated- Close modal
-            </p>
-          )}
-        </>
-      )}
+          {processTxError && <p>Tx Error: {processTxError.message}</p>}
+        </div>
+      </div>
     </>
   );
 }
