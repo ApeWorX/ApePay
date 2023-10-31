@@ -74,25 +74,60 @@ function App() {
   const [stream, setStream] = useState<Stream | null>(null);
   const [createdStreams, setCreatedStreams] = useState<Stream[]>([]);
 
-  // Manage callback from onstreamcreate
-  const addStream = (newStream: Stream) => {
-    setCreatedStreams((prevStreams) => [...prevStreams, newStream]);
+  console.log(createdStreams);
+
+  // Append the past streams and the newly created streams to an array
+  const addStreams = (streams: Stream | Stream[]) => {
+    setCreatedStreams((prevStreams) => {
+      const newStreams = Array.isArray(streams) ? streams : [streams];
+      const uniqueNewStreams = newStreams.filter(
+        (newStream) =>
+          !prevStreams.some(
+            (prevStream) => prevStream.streamId === newStream.streamId
+          )
+      );
+      return [...prevStreams, ...uniqueNewStreams];
+    });
   };
 
-  // Fetch the StreamManager and its streams
+  // Fetch the StreamManager and all its logs
+  // Then reconstruct the streams from it
+  // Then set a watcher for new streams
   useEffect(() => {
+    // 1. Initialize StreamManager
     StreamManager.fromAddress(
       config.streamManagerAddress as `0x${string}`,
       publicClient,
       walletClient as WalletClient
     )
       .then((SM) => {
-        console.log("fetching all streams");
-        SM.fetchAllStreams();
-        // SM.onStreamCreated(addStream, address);
+        console.log("SM initialized");
+        // 2. Fetch all past stream logs
+        SM.fetchAllLogs(async (allLogs) => {
+          console.log("Fetching all logs");
+          try {
+            // 3. Convert logs to Stream objects
+            const PastStreams = await Promise.all(
+              allLogs.map((log) =>
+                Stream.fromEventLog(
+                  SM,
+                  log,
+                  publicClient,
+                  walletClient as WalletClient
+                )
+              )
+            );
+            addStreams(PastStreams);
+            // 4. Initialize watcher for new streams.
+            console.log("Watcher initialized");
+            SM.onStreamCreated(addStreams, address);
+          } catch (err) {
+            console.log("Error processing streams", err);
+          }
+        });
       })
       .catch(console.error);
-  }, [addStream, address]);
+  }, [addStreams, address]);
 
   return (
     <>
@@ -105,6 +140,29 @@ function App() {
         }}
       >
         <ConnectButton />
+      </div>
+
+      {/* Display list of past streams */}
+      <div className="list-streams">
+        <h1>Created Streams</h1>
+        {createdStreams.length === 0 ? (
+          <p>Loading past streams...</p>
+        ) : (
+          <ul>
+            {createdStreams.map((stream, index) => (
+              <li key={index}>
+                <p>
+                  <strong>Stream ID:</strong> {Number(stream.streamId)}
+                  {/* {Number(stream.streamId)} */}
+                </p>
+                <p>
+                  <strong>Creator:</strong> {stream.creator}
+                </p>
+                <hr />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       {/* Transaction Status Display */}
       <div

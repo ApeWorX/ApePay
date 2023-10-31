@@ -6,7 +6,6 @@ import {
   stringToHex,
   WalletClient,
   Log,
-  parseAbiItem,
 } from "viem";
 import StreamManagerContractType from "./.build/StreamManager.json";
 
@@ -64,9 +63,9 @@ export class Stream {
     publicClient: PublicClient,
     walletClient?: WalletClient
   ): Promise<Stream> {
-    const creator = log.topics[2] as Address;
-    const streamId = Number(log.topics[3]);
-    const token = log.topics[4] as Address;
+    const creator = ("0x" + (log.topics[2] as string).slice(-40)) as Address;
+    const streamId = isNaN(Number(log.topics[3])) ? 1 : Number(log.topics[3]);
+    const token = ("0x" + (log.topics[1] as string).slice(-40)) as Address;
 
     const streamInfo: StreamInfo = (await publicClient.readContract({
       address: streamManager.address,
@@ -298,7 +297,7 @@ export default class StreamManager {
             return new Stream(
               this,
               log.args.creator,
-              log.args.stream_id,
+              log.args.stream_id as number,
               log.args.token,
               BigInt(log.args.amount_per_second),
               this.publicClient,
@@ -311,25 +310,16 @@ export default class StreamManager {
     });
   }
 
-  async fetchAllStreams() {
-    console.log("into it");
-
+  async fetchAllLogs(callback: (logs: Log[]) => void) {
     try {
       const logs = await this.publicClient.getLogs({
         address: this.address,
+        // TODO: pass block as function params? Otherwise takes too long
         fromBlock: 4596186n,
       });
-
-      return logs.map((log) => {
-        console.log(log)
-        // console.log("sm", this);
-        // console.log("creator", log.topics[2] as Address);
-        // console.log("streamid", Number(log.topics[3]));
-        // console.log("token", log.topics[1] as Address);
-        // console.log("aps");
-      });
+      callback(logs);
     } catch (error) {
-      console.error("Something went sideways:", error);
+      console.error("Error fetching past logs:", error);
     }
   }
 }

@@ -1,3 +1,18 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+.list-streams {
+  position: relative;
+  text-align: center;
+}
+
 .cart {
   border: 1px solid black;
   text-align: center;
@@ -15,10 +30,10 @@
 
 .button-validate-select-token {
   color: red;
-  position:relative;
+  position: relative;
   margin-top: 10px;
   width: 100px;
-  height: 30px
+  height: 30px;
 }
 
 .loading-message-token-balance {
