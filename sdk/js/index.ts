@@ -9,6 +9,7 @@ import {
 } from "viem";
 import StreamManagerContractType from "./.build/StreamManager.json";
 
+
 export interface StreamInfo {
   token: Address;
   amount_per_second: bigint;
@@ -64,7 +65,7 @@ export class Stream {
     walletClient?: WalletClient
   ): Promise<Stream> {
     const creator = ("0x" + (log.topics[2] as string).slice(-40)) as Address;
-    const streamId = isNaN(Number(log.topics[3])) ? 1 : Number(log.topics[3]);
+    const streamId = Number(log.topics[3]);
     const token = ("0x" + (log.topics[1] as string).slice(-40)) as Address;
 
     const streamInfo: StreamInfo = (await publicClient.readContract({
@@ -312,9 +313,10 @@ export default class StreamManager {
 
   async fetchAllLogs(callback: (logs: Log[]) => void) {
     try {
-      const logs = await this.publicClient.getLogs({
+      const logs = await this.publicClient.getContractEvents({
         address: this.address,
-        // TODO: pass block as function params? Otherwise takes too long
+        abi: StreamManagerContractType.abi as Abi,
+        eventName: "StreamCreated",
         fromBlock: 4596186n,
       });
       callback(logs);

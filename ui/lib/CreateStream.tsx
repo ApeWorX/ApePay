@@ -135,7 +135,7 @@ const CreateStream = (props: CreateStreamProps) => {
   StreamManager.fromAddress(
     props.streamManagerAddress as `0x${string}`,
     publicClient,
-    walletClient as WalletClient
+    walletClient,
   )
     .then(setSM)
     .catch(console.error);

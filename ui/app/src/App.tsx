@@ -68,7 +68,7 @@ function App() {
   };
 
   const publicClient = usePublicClient();
-  const walletClient = useWalletClient()?.data;
+  const walletClient = useWalletClient()?.data as WalletClient;
   const { address } = useAccount();
 
   const [stream, setStream] = useState<Stream | null>(null);
@@ -98,7 +98,7 @@ function App() {
     StreamManager.fromAddress(
       config.streamManagerAddress as `0x${string}`,
       publicClient,
-      walletClient as WalletClient
+      walletClient,
     )
       .then((SM) => {
         console.log("SM initialized");
@@ -113,7 +113,7 @@ function App() {
                   SM,
                   log,
                   publicClient,
-                  walletClient as WalletClient
+                  walletClient,
                 )
               )
             );
