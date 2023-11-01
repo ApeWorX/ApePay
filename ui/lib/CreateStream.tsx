@@ -44,7 +44,7 @@ const CreateStream = (props: CreateStreamProps) => {
 
   // Fetch the stream manager
   useEffect(() => {
-    if (SM === null && walletClient !== null) {
+    if (SM === null && walletClient !== undefined) {
       StreamManager.fromAddress(
         props.streamManagerAddress as `0x${string}`,
         publicClient,
@@ -200,7 +200,7 @@ const CreateStream = (props: CreateStreamProps) => {
         SM?.create(
           selectedToken as `0x${string}`,
           props.amountPerSecond,
-          reasonString,
+          reasonString
         )
           .then((result) => {
             props.handleTransactionStatus(false, true, null);

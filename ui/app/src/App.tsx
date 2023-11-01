@@ -81,6 +81,12 @@ function App() {
   const addStreams = (streams: Stream | Stream[]) => {
     setCreatedStreams((prevStreams) => {
       const newStreams = Array.isArray(streams) ? streams : [streams];
+
+      // Convert streamIds to numbers to avoid duplicates in array
+      newStreams.forEach(
+        (stream) => (stream.streamId = Number(stream.streamId))
+      );
+
       const uniqueNewStreams = newStreams.filter(
         (newStream) =>
           !prevStreams.some(
@@ -92,6 +98,7 @@ function App() {
   };
 
   // Fetch logs starting from this block
+  // TODO: find a way to get the SM deployment block
   const fromBlock = 4596186n;
 
   // Fetch the StreamManager and all its logs
@@ -99,7 +106,7 @@ function App() {
   // Then set a watcher for new streams
   useEffect(() => {
     // 1. Initialize StreamManager
-    if (SM === null) {
+    if (SM === null && walletClient !== undefined) {
       StreamManager.fromAddress(
         config.streamManagerAddress as `0x${string}`,
         publicClient,
@@ -129,7 +136,7 @@ function App() {
         })
         .catch(console.error);
     }
-  }, [SM, address]);
+  }, [SM, address, walletClient]);
 
   return (
     <>

@@ -133,8 +133,10 @@ export class Stream {
       throw new Error("Error cancelling stream: wallet client is not set");
 
     if (
-      this.walletClient.account.address != this.creator &&
-      this.walletClient.account.address != (await this.streamManager.owner())
+      this.walletClient.account.address.toString().toUpperCase() !=
+        this.creator.toString().toUpperCase() &&
+      this.walletClient.account.address.toString().toUpperCase() !=
+        (await this.streamManager.owner()).toString().toUpperCase()
     )
       // Both the owner and the creator of the stream can cancel it
       throw new Error(
@@ -316,7 +318,7 @@ export default class StreamManager {
         address: this.address,
         abi: StreamManagerContractType.abi as Abi,
         eventName: "StreamCreated",
-        fromBlock: fromBlock ?? undefined,
+        fromBlock: fromBlock || BigInt(0),
       });
       callback(logs);
     } catch (error) {
