@@ -23,6 +23,7 @@ ul {
 
 .create-stream-component {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border: 1px solid black;
@@ -32,6 +33,7 @@ ul {
   margin: 0px auto;
   margin-top: 20px;
   margin-bottom: 100px;
+  line-height: 30px;
 }
 
 .cart {
@@ -54,17 +56,13 @@ ul {
   height: 30px;
 }
 
-.tx-status-display {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 10vh;
-}
+
 
 /* CREATE STREAM: STEP 2 */
 .slider-select-time {
   margin-bottom: 3em;
 }
+
 
 /* CREATE STREAM: STEP 3 */
 .payment-flow {
