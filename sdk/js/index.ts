@@ -235,6 +235,8 @@ export default class StreamManager {
     if (!accountOverride && !this.walletClient?.account)
       throw new Error("Error on create: no account");
 
+    console.log('wallet client', this.walletClient)
+
     const account =
       accountOverride || (this.walletClient?.account?.address ?? "0x0");
     // NOTE: 0x0 shouldn't ever be the value of `account` because of the above error

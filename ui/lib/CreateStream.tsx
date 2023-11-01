@@ -40,11 +40,11 @@ const CreateStream = (props: CreateStreamProps) => {
 
   const [SM, setSM] = useState<StreamManager | null>(null);
   const publicClient = usePublicClient();
-  const walletClient = useWalletClient()?.data as WalletClient | undefined;
+  const walletClient = useWalletClient().data as WalletClient;
 
   // Fetch the stream manager
   useEffect(() => {
-    if (SM === null) {
+    if (SM === null && walletClient !== null) {
       StreamManager.fromAddress(
         props.streamManagerAddress as `0x${string}`,
         publicClient,
@@ -53,7 +53,7 @@ const CreateStream = (props: CreateStreamProps) => {
         .then(setSM)
         .catch(console.error);
     }
-  }, [SM]);
+  }, [SM, walletClient]);
 
   const { data: tokenData } = useBalance({
     address,

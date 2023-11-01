@@ -74,7 +74,6 @@ function App() {
   const walletClient = useWalletClient()?.data as WalletClient;
   const { address } = useAccount();
 
-  const [stream, setStream] = useState<Stream | null>(null);
   const [SM, setSM] = useState<StreamManager | null>(null);
   const [createdStreams, setCreatedStreams] = useState<Stream[]>([]);
 
@@ -267,7 +266,7 @@ function App() {
         <CreateStream
           streamManagerAddress={config.streamManagerAddress as `0x${string}`}
           amountPerSecond={BigInt(100)}
-          registerStream={setStream}
+          registerStream={addStreams}
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}
           tokenList={tokenList}

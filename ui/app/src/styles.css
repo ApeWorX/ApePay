@@ -72,6 +72,12 @@ ul {
   align-items: center;
 }
 
+.tx-status-display {
+  max-width: 100%;
+  line-height: 1;
+  overflow: hidden;
+}
+
 /* STREAM STATUS */
 .stream-status-bar-container {
   width: 100%;
