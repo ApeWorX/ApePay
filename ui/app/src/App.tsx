@@ -180,6 +180,9 @@ function App() {
               setSelectedStream(selected || null);
             }}
           >
+            <option value="" disabled hidden>
+              Select a stream
+            </option>
             {createdStreams.map((stream) => (
               <option key={stream.streamId} value={stream.streamId}>
                 {stream.streamId}
