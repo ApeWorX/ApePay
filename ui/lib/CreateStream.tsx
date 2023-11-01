@@ -201,8 +201,6 @@ const CreateStream = (props: CreateStreamProps) => {
           selectedToken as `0x${string}`,
           props.amountPerSecond,
           reasonString,
-          undefined,
-          walletClient?.account?.address
         )
           .then((result) => {
             props.handleTransactionStatus(false, true, null);
