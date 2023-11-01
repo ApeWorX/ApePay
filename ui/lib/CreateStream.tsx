@@ -38,6 +38,23 @@ const CreateStream = (props: CreateStreamProps) => {
   const { chain } = useNetwork();
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
 
+  const [SM, setSM] = useState<StreamManager | null>(null);
+  const publicClient = usePublicClient();
+  const walletClient = useWalletClient()?.data as WalletClient | undefined;
+
+  // Fetch the stream manager
+  useEffect(() => {
+    if (SM === null) {
+      StreamManager.fromAddress(
+        props.streamManagerAddress as `0x${string}`,
+        publicClient,
+        walletClient
+      )
+        .then(setSM)
+        .catch(console.error);
+    }
+  }, [SM]);
+
   const { data: tokenData } = useBalance({
     address,
     token: selectedToken as `0x${string}`,
@@ -127,18 +144,6 @@ const CreateStream = (props: CreateStreamProps) => {
   );
 
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
-
-  const [SM, setSM] = useState<StreamManager | null>(null);
-  const publicClient = usePublicClient();
-  const walletClient = useWalletClient()?.data as WalletClient | undefined;
-
-  StreamManager.fromAddress(
-    props.streamManagerAddress as `0x${string}`,
-    publicClient,
-    walletClient,
-  )
-    .then(setSM)
-    .catch(console.error);
 
   const { config: approvalConfig } = usePrepareContractWrite({
     address: selectedToken as `0x${string}`,

@@ -97,35 +97,37 @@ function App() {
   // Then set a watcher for new streams
   useEffect(() => {
     // 1. Initialize StreamManager
-    StreamManager.fromAddress(
-      config.streamManagerAddress as `0x${string}`,
-      publicClient,
-      walletClient
-    )
-      .then((SM) => {
-        setSM(SM);
-        console.log("SM initialized");
-        // 2. Fetch all past stream logs
-        SM.fetchAllLogs(async (allLogs) => {
-          console.log("Fetching all logs");
-          try {
-            // 3. Convert logs to Stream objects
-            const PastStreams = await Promise.all(
-              allLogs.map((log) =>
-                Stream.fromEventLog(SM, log, publicClient, walletClient)
-              )
-            );
-            addStreams(PastStreams);
-            // 4. Initialize watcher for new streams.
-            console.log("Watcher initialized");
-            SM.onStreamCreated(addStreams, address);
-          } catch (err) {
-            console.log("Error processing streams", err);
-          }
-        });
-      })
-      .catch(console.error);
-  }, [address]);
+    if (SM === null) {
+      StreamManager.fromAddress(
+        config.streamManagerAddress as `0x${string}`,
+        publicClient,
+        walletClient
+      )
+        .then((SM) => {
+          setSM(SM);
+          console.log("SM initialized");
+          // 2. Fetch all past stream logs
+          SM.fetchAllLogs(async (allLogs) => {
+            console.log("Fetching all logs");
+            try {
+              // 3. Convert logs to Stream objects
+              const PastStreams = await Promise.all(
+                allLogs.map((log) =>
+                  Stream.fromEventLog(SM, log, publicClient, walletClient)
+                )
+              );
+              addStreams(PastStreams);
+              // 4. Initialize watcher for new streams.
+              console.log("Watcher initialized");
+              SM.onStreamCreated(addStreams, address);
+            } catch (err) {
+              console.log("Error processing streams", err);
+            }
+          });
+        })
+        .catch(console.error);
+    }
+  }, [SM, address]);
 
   return (
     <>
