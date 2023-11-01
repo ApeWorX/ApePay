@@ -9,7 +9,6 @@ import {
 } from "viem";
 import StreamManagerContractType from "./.build/StreamManager.json";
 
-
 export interface StreamInfo {
   token: Address;
   amount_per_second: bigint;
@@ -260,7 +259,6 @@ export default class StreamManager {
       })) as bigint
     );
 
-
     const hash = await this.walletClient?.writeContract({
       chain: null,
       address: this.address,
@@ -312,13 +310,13 @@ export default class StreamManager {
     });
   }
 
-  async fetchAllLogs(callback: (logs: Log[]) => void) {
+  async fetchAllLogs(callback: (logs: Log[]) => void, fromBlock?: bigint) {
     try {
       const logs = await this.publicClient.getContractEvents({
         address: this.address,
         abi: StreamManagerContractType.abi as Abi,
         eventName: "StreamCreated",
-        fromBlock: 4596186n,
+        fromBlock: fromBlock ?? undefined,
       });
       callback(logs);
     } catch (error) {

@@ -91,6 +91,9 @@ function App() {
     });
   };
 
+  // Fetch logs starting from this block
+  const fromBlock = 4596186n;
+
   // Fetch the StreamManager and all its logs
   // Then reconstruct the streams from it
   // Then set a watcher for new streams
@@ -122,7 +125,7 @@ function App() {
             } catch (err) {
               console.log("Error processing streams", err);
             }
-          });
+          }, fromBlock);
         })
         .catch(console.error);
     }
