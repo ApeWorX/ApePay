@@ -15,34 +15,25 @@ const StreamStatus: React.FC<StreamStatusProps> = (props) => {
   const [totalTime, setTotalTime] = useState<bigint | null>(null);
 
   useEffect(() => {
-    const fetchTimeData = async () => {
-      try {
-        const fetchedTimeLeft = await props.stream.timeLeft();
-        setTimeLeft(fetchedTimeLeft);
-
-        const fetchedTotalTime = await props.stream.totalTime();
-        setTotalTime(fetchedTotalTime);
-
-        // If both timeLeft and totalTime are not null, clearInterval
-        if (
-          (fetchedTimeLeft !== null && fetchedTotalTime !== null) ||
-          fetchedTimeLeft === 0n
-        ) {
-          clearInterval(interval);
-        }
-      } catch (error) {
-        console.error("Error fetching time data:", error);
-      }
+    const fetchTimeData = () => {
+      props.stream
+        .totalTime()
+        .then((fetchedTotalTime) => {
+          setTotalTime(fetchedTotalTime);
+          return props.stream.timeLeft();
+        })
+        .then((fetchedTimeLeft) => {
+          setTimeLeft(fetchedTimeLeft);
+        })
+        .catch((error) => {
+          console.error("Error fetching time data:", error);
+        });
     };
 
-    const interval = setInterval(() => {
-      fetchTimeData();
-    }, 1000);
+    const interval = setInterval(fetchTimeData, 5000);
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    return () => clearInterval(interval);
+  }, [props.stream]);
 
   const percentageLeft =
     timeLeft && totalTime ? (Number(timeLeft) / Number(totalTime)) * 100 : 0;

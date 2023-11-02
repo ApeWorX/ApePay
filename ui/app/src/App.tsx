@@ -99,7 +99,7 @@ function App() {
 
   // Fetch logs starting from this block
   // TODO: find a way to get the SM deployment block
-  const fromBlock = 4596186n;
+  const fromBlock = 4615000n;
 
   // Fetch the StreamManager and all its logs
   // Then reconstruct the streams from it
@@ -149,13 +149,13 @@ function App() {
         <ConnectButton />
       </div>
 
-      <h1>Created Streams</h1>
+      <h1>Created Streams from block {String(fromBlock)}</h1>
       {/* Stream list */}
       <div className="list-streams">
         {SM === null ? (
           <p>Fetching SM...</p>
         ) : createdStreams.length === 0 ? (
-          <p>Loading streams...</p>
+          <p>Loading streams from block {String(fromBlock)}...</p>
         ) : (
           <ul>
             {createdStreams
@@ -174,6 +174,8 @@ function App() {
           </ul>
         )}
       </div>
+      {/* Edit specific stream */}
+      <h1> Work on a specific stream</h1>
       {createdStreams.length > 0 && (
         <div className="selected-stream-components">
           {/* Select Stream */}
