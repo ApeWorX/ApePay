@@ -114,24 +114,22 @@ function App() {
       )
         .then((SM) => {
           setSM(SM);
-          console.log("SM initialized");
           // 2. Fetch all past stream logs
-          SM.fetchAllLogs(async (allLogs) => {
-            console.log("Fetching all logs");
-            try {
-              // 3. Convert logs to Stream objects
-              const PastStreams = await Promise.all(
-                allLogs.map((log) =>
-                  Stream.fromEventLog(SM, log, publicClient, walletClient)
-                )
-              );
-              addStreams(PastStreams);
-              // 4. Initialize watcher for new streams.
-              console.log("Watcher initialized");
-              SM.onStreamCreated(addStreams, address);
-            } catch (err) {
-              console.log("Error processing streams", err);
-            }
+          SM.fetchAllLogs((allLogs) => {
+            // 3. Convert logs to Stream objects
+            Promise.all(
+              allLogs.map((log) =>
+                Stream.fromEventLog(SM, log, publicClient, walletClient)
+              )
+            )
+              .then((PastStreams) => {
+                addStreams(PastStreams);
+                // 4. Initialize watcher for new streams.
+                SM.onStreamCreated(addStreams, address);
+              })
+              .catch((err) => {
+                console.log("Error processing streams", err);
+              });
           }, fromBlock);
         })
         .catch(console.error);

@@ -312,17 +312,19 @@ export default class StreamManager {
     });
   }
 
-  async fetchAllLogs(callback: (logs: Log[]) => void, fromBlock?: bigint) {
-    try {
-      const logs = await this.publicClient.getContractEvents({
+  fetchAllLogs(callback: (logs: Log[]) => void, fromBlock?: bigint): void {
+    this.publicClient
+      .getContractEvents({
         address: this.address,
         abi: StreamManagerContractType.abi as Abi,
         eventName: "StreamCreated",
         fromBlock: fromBlock || BigInt(0),
+      })
+      .then((logs) => {
+        callback(logs);
+      })
+      .catch((error) => {
+        console.error("Error fetching past logs:", error);
       });
-      callback(logs);
-    } catch (error) {
-      console.error("Error fetching past logs:", error);
-    }
   }
 }

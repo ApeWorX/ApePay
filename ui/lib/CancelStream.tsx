@@ -88,7 +88,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
         <div className="cancel-stream-label-loading">
           Fetching stream minimum life...
         </div>
-      ) : !isButtonEnabled && !inProgress && startTime !== 0 ? (
+      ) : !isButtonEnabled && !inProgress && startTime !== 0 && Number(timeBeforeCancellability) !== 0 ? (
         <>
           <div className="cancel-stream-label-min-life">
             Deployment cannot be cancelled yet: its minimum life is
