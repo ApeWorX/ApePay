@@ -314,7 +314,8 @@ export default class StreamManager {
 
   onAllStreams(
     handleStream: (stream: Stream) => void,
-    fromBlock?: bigint
+    fromBlock?: bigint,
+    toBlock?: bigint
   ): void {
     this.publicClient
       .getContractEvents({
@@ -322,6 +323,7 @@ export default class StreamManager {
         abi: StreamManagerContractType.abi as Abi,
         eventName: "StreamCreated",
         fromBlock: fromBlock || BigInt(0),
+        toBlock: toBlock || "latest"
       })
       .then((logs: Log[]) => {
         (logs as StreamCreated[])
