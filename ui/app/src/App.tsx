@@ -78,22 +78,17 @@ function App() {
   const [createdStreams, setCreatedStreams] = useState<Stream[]>([]);
 
   // Append the past streams and the newly created streams to an array
-  const addStreams = (streams: Stream | Stream[]) => {
+  const addStreams = (stream: Stream) => {
     setCreatedStreams((prevStreams) => {
-      const newStreams = Array.isArray(streams) ? streams : [streams];
+      // Convert streamId to number to avoid duplicates in array
+      stream.streamId = Number(stream.streamId);
 
-      // Convert streamIds to numbers to avoid duplicates in array
-      newStreams.forEach(
-        (stream) => (stream.streamId = Number(stream.streamId))
+      // Check if the stream is already present
+      const isExistingStream = prevStreams.some(
+        (prevStream) => prevStream.streamId === stream.streamId
       );
 
-      const uniqueNewStreams = newStreams.filter(
-        (newStream) =>
-          !prevStreams.some(
-            (prevStream) => prevStream.streamId === newStream.streamId
-          )
-      );
-      return [...prevStreams, ...uniqueNewStreams];
+      return isExistingStream ? prevStreams : [...prevStreams, stream];
     });
   };
 
@@ -115,22 +110,14 @@ function App() {
         .then((SM) => {
           setSM(SM);
           // 2. Fetch all past stream logs
-          SM.fetchAllLogs((allLogs) => {
+          SM.fetchAllLogs((log) => {
             // 3. Convert logs to Stream objects
-            Promise.all(
-              allLogs.map((log) =>
-                Stream.fromEventLog(SM, log, publicClient, walletClient)
-              )
-            )
-              .then((PastStreams) => {
-                addStreams(PastStreams);
-                // 4. Initialize watcher for new streams.
-                SM.onStreamCreated(addStreams, address);
-              })
-              .catch((err) => {
-                console.log("Error processing streams", err);
-              });
+            Stream.fromEventLog(SM, log, publicClient, walletClient)
+              .then(addStreams)
+              .catch((err) => console.log("Error processing streams", err));
           }, fromBlock);
+          // 4. Initialize watcher for new streams.
+          SM.onStreamCreated(addStreams, address);
         })
         .catch(console.error);
     }

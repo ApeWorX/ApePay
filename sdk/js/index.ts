@@ -312,7 +312,7 @@ export default class StreamManager {
     });
   }
 
-  fetchAllLogs(callback: (logs: Log[]) => void, fromBlock?: bigint): void {
+  fetchAllLogs(handleStream: (log: Log) => void, fromBlock?: bigint): void {
     this.publicClient
       .getContractEvents({
         address: this.address,
@@ -321,7 +321,7 @@ export default class StreamManager {
         fromBlock: fromBlock || BigInt(0),
       })
       .then((logs) => {
-        callback(logs);
+        logs.forEach(handleStream);
       })
       .catch((error) => {
         console.error("Error fetching past logs:", error);
