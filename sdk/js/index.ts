@@ -2,10 +2,10 @@ import {
   Abi,
   Address,
   ByteArray,
-  Log,
   PublicClient,
   stringToHex,
   WalletClient,
+  Log,
 } from "viem";
 import StreamManagerContractType from "./.build/StreamManager.json";
 
@@ -17,6 +17,17 @@ export interface StreamInfo {
   start_time: bigint;
   last_pull: bigint;
   reason: ByteArray;
+}
+
+interface StreamCreated extends Log {
+  args: {
+    token: Address;
+    creator: Address;
+    stream_id: number;
+    amount_per_second: number;
+    start_time: number;
+    reason: string;
+  };
 }
 
 export class Stream {
@@ -52,9 +63,9 @@ export class Stream {
     publicClient: PublicClient,
     walletClient?: WalletClient
   ): Promise<Stream> {
-    const creator = log.topics[2] as Address;
+    const creator = ("0x" + (log.topics[2] as string).slice(-40)) as Address;
     const streamId = Number(log.topics[3]);
-    const token = log.topics[4] as Address;
+    const token = ("0x" + (log.topics[1] as string).slice(-40)) as Address;
 
     const streamInfo: StreamInfo = (await publicClient.readContract({
       address: streamManager.address,
@@ -122,8 +133,10 @@ export class Stream {
       throw new Error("Error cancelling stream: wallet client is not set");
 
     if (
-      this.walletClient.account.address != this.creator &&
-      this.walletClient.account.address != (await this.streamManager.owner())
+      this.walletClient.account.address.toString().toUpperCase() !=
+        this.creator.toString().toUpperCase() &&
+      this.walletClient.account.address.toString().toUpperCase() !=
+        (await this.streamManager.owner()).toString().toUpperCase()
     )
       // Both the owner and the creator of the stream can cancel it
       throw new Error(
@@ -271,33 +284,55 @@ export default class StreamManager {
     );
   }
 
+  streamFromEventLog(log: StreamCreated): Stream {
+    return new Stream(
+      this,
+      log.args.creator,
+      log.args.stream_id as number,
+      log.args.token,
+      BigInt(log.args.amount_per_second),
+      this.publicClient,
+      this.walletClient
+    );
+  }
+
   onStreamCreated(
-    handleStream: (stream: Stream) => null,
+    handleStream: (stream: Stream) => void,
     creator?: Address
   ): void {
-    const onLogs = (logs: Log[]) => {
-      logs
-        .map(
-          // Log is StreamCreated
-          (log: Log) =>
-            new Stream(
-              this,
-              log.topics[2] as Address, // creator
-              Number(log.topics[3]), // streamId
-              log.topics[4] as Address, // token
-              BigInt(log.topics[5] as string), //amount per second
-              this.publicClient,
-              this.walletClient
-            )
-        )
-        .forEach(handleStream);
-    };
     this.publicClient.watchContractEvent({
       address: this.address,
       abi: StreamManagerContractType.abi as Abi,
       eventName: "StreamCreated",
       args: creator ? { creator } : {},
-      onLogs,
+      onLogs: (logs: StreamCreated[]) => {
+        logs.map((log) => this.streamFromEventLog(log)).forEach(handleStream);
+      },
+      onError: (error) => console.log(error),
     });
+  }
+
+  onAllStreams(
+    handleStream: (stream: Stream) => void,
+    fromBlock?: bigint,
+    toBlock?: bigint
+  ): void {
+    this.publicClient
+      .getContractEvents({
+        address: this.address,
+        abi: StreamManagerContractType.abi as Abi,
+        eventName: "StreamCreated",
+        fromBlock: fromBlock || BigInt(0),
+        toBlock: toBlock || "latest",
+        strict: true,
+      })
+      .then((logs: Log[]) => {
+        (logs as StreamCreated[])
+          .map((log) => this.streamFromEventLog(log))
+          .forEach(handleStream);
+      })
+      .catch((error) => {
+        console.error("Error fetching past logs:", error);
+      });
   }
 }

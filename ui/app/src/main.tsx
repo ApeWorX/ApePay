@@ -1,5 +1,4 @@
 import "./polyfills";
-import "./global.css";
 import "@rainbow-me/rainbowkit/styles.css";
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
@@ -11,7 +10,24 @@ import App from "./App";
 
 const { chains, publicClient } = configureChains(
   // NOTE: Testnet deployment on Sepolia
-  [arbitrum, optimism, polygon, sepolia],
+  [
+    arbitrum,
+    optimism,
+    polygon,
+    {
+      ...sepolia,
+      rpcUrls: {
+        ...sepolia.rpcUrls,
+        // The default Sepolia ndoes are pretty overwhelmed
+        default: {
+          http: ["https://gateway.tenderly.co/public/sepolia"],
+        },
+        public: {
+          http: ["https://gateway.tenderly.co/public/sepolia"],
+        },
+      },
+    },
+  ],
   [publicProvider()],
 );
 

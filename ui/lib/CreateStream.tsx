@@ -38,6 +38,23 @@ const CreateStream = (props: CreateStreamProps) => {
   const { chain } = useNetwork();
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
 
+  const [SM, setSM] = useState<StreamManager | null>(null);
+  const publicClient = usePublicClient();
+  const walletClient = useWalletClient().data as WalletClient;
+
+  // Fetch the stream manager
+  useEffect(() => {
+    if (SM === null && walletClient !== undefined) {
+      StreamManager.fromAddress(
+        props.streamManagerAddress as `0x${string}`,
+        publicClient,
+        walletClient
+      )
+        .then(setSM)
+        .catch(console.error);
+    }
+  }, [SM, walletClient]);
+
   const { data: tokenData } = useBalance({
     address,
     token: selectedToken as `0x${string}`,
@@ -61,6 +78,8 @@ const CreateStream = (props: CreateStreamProps) => {
           })
           .catch((error) => {
             console.error("Error fetching native balance:", error);
+            // Don't block the transaction process if there is an error when fetching the balance
+            setNativeBalance(10000);
           });
       }
     };
@@ -95,6 +114,8 @@ const CreateStream = (props: CreateStreamProps) => {
           })
           .catch((error) => {
             console.error("Error fetching token balance:", error);
+            // Don't block the transaction process if there is an error when fetching the balance
+            setTokenBalance(10000);
           });
       }
     };
@@ -123,29 +144,6 @@ const CreateStream = (props: CreateStreamProps) => {
   );
 
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
-
-  const [SM, setSM] = useState<StreamManager | null>(null);
-  const publicClient = usePublicClient();
-  const walletClient = useWalletClient()?.data as WalletClient | undefined;
-
-  useEffect(() => {
-    const fetchStreamManager = async () => {
-      if (SM === null) {
-        try {
-          const newSM = await StreamManager.fromAddress(
-            props.streamManagerAddress,
-            publicClient,
-            walletClient
-          );
-          setSM(newSM);
-        } catch (error) {
-          console.error("Stream Manager Error:", error);
-        }
-      }
-    };
-
-    fetchStreamManager();
-  }, [SM, publicClient, walletClient]);
 
   const { config: approvalConfig } = usePrepareContractWrite({
     address: selectedToken as `0x${string}`,
@@ -202,9 +200,7 @@ const CreateStream = (props: CreateStreamProps) => {
         SM?.create(
           selectedToken as `0x${string}`,
           props.amountPerSecond,
-          reasonString,
-          undefined,
-          walletClient?.account?.address
+          reasonString
         )
           .then((result) => {
             props.handleTransactionStatus(false, true, null);
@@ -276,20 +272,19 @@ const CreateStream = (props: CreateStreamProps) => {
   };
 
   const Step2 = () => {
-
-      // 1: Check if SM is still fetching
-      if (SM === null) {
-        return (
-          <div>
-            <div className="cart-body">{props.cart && props.cart}</div>
-            <div className="payment-flow">
-              <div className="fetching-sm-message">
-                Fetching stream manager address...
-              </div>
+    // 1: Check if SM is still fetching
+    if (SM === null) {
+      return (
+        <div>
+          <div className="cart-body">{props.cart && props.cart}</div>
+          <div className="payment-flow">
+            <div className="fetching-sm-message">
+              Fetching stream manager address...
             </div>
           </div>
-        );
-      }
+        </div>
+      );
+    }
 
     // 1: Check if native balance is still fetching
     if (nativeBalance === null) {

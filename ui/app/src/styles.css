@@ -1,3 +1,49 @@
+/* GLOBAL */
+h1 {
+  text-align: center;
+}
+
+h3 {
+  margin: 10px;
+}
+
+ul {
+  padding: 0px;
+}
+
+/* LIST STREAMS */
+.list-streams {
+  position: relative;
+  text-align: center;
+  width: 30%;
+  margin: 0px auto;
+}
+/* STREAM DATA */
+
+.stream-data {
+  position: relative;
+  margin-top: 10px;
+  line-height: 1;
+  border: 1px solid black;
+  padding: 10px;
+}
+/* CREATE STREAM: STEP 1 */
+
+.create-stream-component {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid black;
+  text-align: center;
+  width: 50%;
+  padding: 20px;
+  margin: 0px auto;
+  margin-top: 20px;
+  margin-bottom: 100px;
+  line-height: 30px;
+}
+
 .cart {
   border: 1px solid black;
   text-align: center;
@@ -5,53 +51,25 @@
   padding: 1em;
 }
 
-/* step 1 */
 .select-token-dropdown {
-  color: red;
   width: 200px;
   height: 50px;
   margin-bottom: 30px;
 }
 
 .button-validate-select-token {
-  color: red;
-  position:relative;
+  position: relative;
   margin-top: 10px;
   width: 100px;
-  height: 30px
+  height: 30px;
 }
 
-.loading-message-token-balance {
-  color: red;
-}
-
-.loading-message-balance {
-  color: red;
-}
-
-/* step 2 */
+/* CREATE STREAM: STEP 2 */
 .slider-select-time {
-  width: 30%;
-  margin-bottom: 5em;
+  margin-bottom: 3em;
 }
 
-.button-validate-transaction {
-  color: red;
-}
-.validate-transaction-message {
-  color: red;
-}
-
-/* step 3 */
-
-.button-create-stream {
-  color: red;
-}
-
-.create-stream-approval-message {
-  color: red;
-}
-
+/* CREATE STREAM: STEP 3 */
 .payment-flow {
   display: flex;
   flex-direction: column;
@@ -59,17 +77,13 @@
   align-items: center;
 }
 
-.status-graph {
-  width: 10%;
-  position: relative;
-  margin-top: 30px;
-  left: 45%;
-  display: flex;
-  flex-direction: column;
+.tx-status-display {
+  max-width: 100%;
+  line-height: 1;
+  overflow: hidden;
 }
 
-/* STREAM STATUS BAR */
-
+/* STREAM STATUS */
 .stream-status-bar-container {
   width: 100%;
   border: 1px solid #111;
@@ -88,28 +102,43 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: black;
+  color: white;
   width: 100%;
   text-align: center;
+}
+
+.status-graph {
+  position: relative;
+  width: 15%;
 }
 
 .dropdown-select {
   position: relative;
   margin-bottom: 10px;
-  margin-top: 50px;
 }
 
-.countdown-label {
-  position: relative;
-  margin-top: 10px;
+/* SELECTED STREAMS */
+.selected-stream-components {
+  border: 1px solid black;
   text-align: center;
+  width: 50%;
+  padding: 20px;
+  margin: 0px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dropdown-streamselected {
+  position: relative;
+  text-align: center;
+  width: 30%;
 }
 
 /* CANCEL STREAM */
 
 .stream-container {
   position: relative;
-  margin-top: 2em;
   display: flex;
   flex-direction: column;
   align-items: center;
