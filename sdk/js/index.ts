@@ -323,7 +323,8 @@ export default class StreamManager {
         abi: StreamManagerContractType.abi as Abi,
         eventName: "StreamCreated",
         fromBlock: fromBlock || BigInt(0),
-        toBlock: toBlock || "latest"
+        toBlock: toBlock || "latest",
+        strict: true,
       })
       .then((logs: Log[]) => {
         (logs as StreamCreated[])
