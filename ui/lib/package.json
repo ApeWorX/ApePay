@@ -1,6 +1,6 @@
 {
   "name": "@apeworx/apepay-react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "ApeWorX LTD.",
   "license": "Apache-2.0",
   "type": "module",
@@ -18,7 +18,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@apeworx/apepay": "^0.1.0",
+    "@apeworx/apepay": "^0.1.1",
     "rc-slider": "^10.2.1",
     "react-minimal-pie-chart": "^8.4.0"
   },
