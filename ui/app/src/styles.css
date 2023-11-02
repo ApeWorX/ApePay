@@ -18,7 +18,15 @@ ul {
   width: 30%;
   margin: 0px auto;
 }
+/* STREAM DATA */
 
+.stream-data {
+  position: relative;
+  margin-top: 10px;
+  line-height: 1;
+  border: 1px solid black;
+  padding: 10px;
+}
 /* CREATE STREAM: STEP 1 */
 
 .create-stream-component {
@@ -56,13 +64,10 @@ ul {
   height: 30px;
 }
 
-
-
 /* CREATE STREAM: STEP 2 */
 .slider-select-time {
   margin-bottom: 3em;
 }
-
 
 /* CREATE STREAM: STEP 3 */
 .payment-flow {
@@ -105,7 +110,6 @@ ul {
 .status-graph {
   position: relative;
   width: 15%;
-  margin-top: 30px;
 }
 
 .dropdown-select {

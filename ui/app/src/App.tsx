@@ -136,6 +136,38 @@ function App() {
     }
   }, [SM, address, walletClient]);
 
+  const [streamInfo, setStreamInfo] = useState({
+    amountPerSecond: null as bigint | null,
+    fundedAmount: null as bigint | null,
+    lastPull: null as bigint | null,
+    maxStreamLife: null as bigint | null,
+    reason: null as Uint8Array | null,
+    startTime: null as bigint | null,
+    token: null as string | null,
+  });
+
+  // Get info about your selected stream
+  useEffect(() => {
+    if (selectedStream) {
+      selectedStream
+        .streamInfo()
+        .then((info) => {
+          setStreamInfo({
+            amountPerSecond: info.amount_per_second,
+            fundedAmount: info.funded_amount,
+            lastPull: info.last_pull,
+            maxStreamLife: info.max_stream_life,
+            reason: info.reason,
+            startTime: info.start_time,
+            token: info.token,
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching stream info:", error);
+        });
+    }
+  }, [selectedStream]);
+
   return (
     <>
       {/* Log in */}
@@ -174,6 +206,7 @@ function App() {
           </ul>
         )}
       </div>
+
       {/* Edit specific stream */}
       <h1> Work on a specific stream</h1>
       {createdStreams.length > 0 && (
@@ -201,11 +234,19 @@ function App() {
             ))}
           </select>
 
-          {/* Stream Status */}
           {selectedStream && (
-            <div className="status-graph">
-              <>
-                <h3> Stream Status</h3>
+            <>
+              {/* Stream Data */}
+              <div className="stream-data">
+                <h3> Data for stream {selectedStream.streamId}</h3>
+                <p> Amount per second: {String(streamInfo.amountPerSecond)}</p>
+                <p> Funded amount: {String(streamInfo.fundedAmount)}</p>
+                <p> Token: {String(streamInfo.token)}</p>
+              </div>
+
+              {/* Stream Status */}
+              <h3> Stream Status</h3>
+              <div className="status-graph">
                 <select
                   className="dropdown-select"
                   value={chartType}
@@ -225,13 +266,9 @@ function App() {
                     color="#B40C4C"
                   />
                 </div>
-              </>
-            </div>
-          )}
+              </div>
 
-          {/* Cancel Stream */}
-          {selectedStream && (
-            <>
+              {/* Cancel Stream */}
               <h3> Cancel Stream</h3>
               <div>
                 <CancelStream
@@ -240,18 +277,15 @@ function App() {
                   onComplete={() => setCancelStatus(!cancelStatus)}
                 />
               </div>
+
               {/* CancelStream callback */}
               {cancelStatus && (
                 <p className="label-close-modal">
                   -Deployment is being cancelled- Close modal
                 </p>
               )}
-            </>
-          )}
 
-          {/* Update Stream */}
-          {selectedStream && (
-            <>
+              {/* Update Stream */}
               <h3> Update Stream</h3>
               <div>
                 <UpdateStream
@@ -260,6 +294,7 @@ function App() {
                   onComplete={() => setUpdateStatus(!updateStatus)}
                 />
               </div>
+
               {/* UpdateStream callback */}
               {updateStatus && (
                 <p className="label-close-modal">
@@ -270,7 +305,8 @@ function App() {
           )}
         </div>
       )}
-      {/* CreateStream */}
+
+      {/* Create a stream */}
       <h1> Create a stream</h1>
       <div className="create-stream-component">
         <CreateStream
