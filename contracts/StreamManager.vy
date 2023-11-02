@@ -219,7 +219,7 @@ def cancel_stream(
     reason: Bytes[MAX_REASON_SIZE] = b"",
     creator: address = msg.sender,
 ) -> uint256:
-    assert msg.sender in [creator, self.owner]
+    assert msg.sender == creator or msg.sender == self.owner
     assert self.streams[creator][stream_id].start_time + MIN_STREAM_LIFE <= block.timestamp
 
     funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
