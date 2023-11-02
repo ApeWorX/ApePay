@@ -110,12 +110,7 @@ function App() {
         .then((SM) => {
           setSM(SM);
           // 2. Fetch all past stream logs
-          SM.fetchAllLogs((log) => {
-            // 3. Convert logs to Stream objects
-            Stream.fromEventLog(SM, log, publicClient, walletClient)
-              .then(addStreams)
-              .catch((err) => console.log("Error processing streams", err));
-          }, fromBlock);
+          SM.onAllStreams(addStreams, fromBlock);
           // 4. Initialize watcher for new streams.
           SM.onStreamCreated(addStreams, address);
         })

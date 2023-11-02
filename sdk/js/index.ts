@@ -284,6 +284,18 @@ export default class StreamManager {
     );
   }
 
+  streamFromEventLog(log: StreamCreated): Stream {
+    return new Stream(
+      this,
+      log.args.creator,
+      log.args.stream_id as number,
+      log.args.token,
+      BigInt(log.args.amount_per_second),
+      this.publicClient,
+      this.walletClient
+    );
+  }
+
   onStreamCreated(
     handleStream: (stream: Stream) => void,
     creator?: Address
@@ -294,25 +306,16 @@ export default class StreamManager {
       eventName: "StreamCreated",
       args: creator ? { creator } : {},
       onLogs: (logs: StreamCreated[]) => {
-        logs
-          .map((log) => {
-            return new Stream(
-              this,
-              log.args.creator,
-              log.args.stream_id as number,
-              log.args.token,
-              BigInt(log.args.amount_per_second),
-              this.publicClient,
-              this.walletClient
-            );
-          })
-          .forEach(handleStream);
+        logs.map((log) => this.streamFromEventLog(log)).forEach(handleStream);
       },
       onError: (error) => console.log(error),
     });
   }
 
-  fetchAllLogs(handleStream: (log: Log) => void, fromBlock?: bigint): void {
+  onAllStreams(
+    handleStream: (stream: Stream) => void,
+    fromBlock?: bigint
+  ): void {
     this.publicClient
       .getContractEvents({
         address: this.address,
@@ -320,8 +323,10 @@ export default class StreamManager {
         eventName: "StreamCreated",
         fromBlock: fromBlock || BigInt(0),
       })
-      .then((logs) => {
-        logs.forEach(handleStream);
+      .then((logs: Log[]) => {
+        (logs as StreamCreated[])
+          .map((log) => this.streamFromEventLog(log))
+          .forEach(handleStream);
       })
       .catch((error) => {
         console.error("Error fetching past logs:", error);
