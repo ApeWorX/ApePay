@@ -226,7 +226,7 @@ def cancel_stream(
     amount_locked: uint256 = funded_amount  - self._amount_unlocked(creator, stream_id)
 
     token: ERC20 = self.streams[creator][stream_id].token
-    assert token.transfer(msg.sender, amount_locked, default_return_value=True)
+    assert token.transfer(creator, amount_locked, default_return_value=True)
 
     self.streams[creator][stream_id].funded_amount = funded_amount - amount_locked
 
