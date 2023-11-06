@@ -285,10 +285,9 @@ export default class StreamManager {
   }
 
   streamFromEventLog = (log: StreamCreated): Stream => {
-
     // TODO: remove console.logs
-    console.log('this in streamfromeventlog', this)
-    console.log('this.publicClient in streamFromEventLog', this.publicClient)
+    console.log("this in streamfromeventlog", this);
+    console.log("this.publicClient in streamFromEventLog", this.publicClient);
 
     return new Stream(
       this,
@@ -311,7 +310,7 @@ export default class StreamManager {
       eventName: "StreamCreated",
       args: creator ? { creator } : {},
       onLogs: (logs: StreamCreated[]) => {
-        logs.map((log) => this.streamFromEventLog(log)).forEach(handleStream);
+        logs.map(this.streamFromEventLog.bind(this)).forEach(handleStream);
       },
       onError: (error) => console.log(error),
     });
@@ -322,10 +321,9 @@ export default class StreamManager {
     fromBlock?: bigint,
     toBlock?: bigint
   ): void {
-
     // TODO: remove console.logs
-    console.log('this in onallstreams', this)
-    console.log('this.publicCluent in onallstreams', this.publicClient)
+    console.log("this in onallstreams", this);
+    console.log("this.publicCluent in onallstreams", this.publicClient);
 
     this.publicClient
       .getContractEvents({
