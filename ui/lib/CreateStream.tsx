@@ -20,6 +20,7 @@ const SECS_PER_DAY = 24 * 60 * 60;
 export interface CreateStreamProps {
   streamManagerAddress: Address;
   tokenList: TokenInfo[];
+  amountPerSecond: bigint;
   cart?: ReactNode;
   registerStream: (stream: Stream) => void;
   renderReasonCode: () => Promise<string>;

@@ -14,6 +14,10 @@ export default defineConfig({
         __dirname,
         "../../node_modules/@apeworx/apepay/index.ts"
       ),
+      "@apeworx/apepay-react": path.resolve(
+        __dirname,
+        "../../node_modules/@apeworx/apepay-react/index.tsx"
+      ),
     },
   },
 });

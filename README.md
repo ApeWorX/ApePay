@@ -88,31 +88,6 @@ To build the demo app for production, do the following:
 $ npm run build --workspace=ui/app
 ```
 
-### Local Setup
-
-In order to work on the SDK without having to run the build everytime you edit it, you can use npm link.
-
-```sh
-$ cd sdk/js npm link
-```
-
-```sh
-$ cd ui/app npm link @apeworx/apepay
-```
-
-Add these lines to ui/app/viteconfig.ts :
-
-resolve: {
-    alias: {
-      "@apeworx/apepay": path.resolve(
-        __dirname,
-        "../../node_modules/@apeworx/apepay/index.ts"
-      ),
-    },
-  },
-
-Now you can see changes made to the SDK in real time in the demo app.
-
 ### Testing
 
 To run tests, just use Ape:

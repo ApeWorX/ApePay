@@ -317,7 +317,6 @@ export default class StreamManager {
     fromBlock?: bigint,
     toBlock?: bigint
   ): void {
-    console.log("hey kong");
 
     this.publicClient
       .getContractEvents({
