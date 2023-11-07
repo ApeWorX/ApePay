@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Stream } from "../../sdk/js/index";
+import { Stream } from "@apeworx/apepay";
 import { formatTime } from "./utils";
 import { useCurrentTime } from "./utils";
 

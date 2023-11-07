@@ -5,11 +5,13 @@ import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
 import "./styles.css";
-import CreateStream from "lib/CreateStream";
-import StreamStatus from "lib/StreamStatus";
-import CancelStream from "lib/CancelStream";
-import UpdateStream from "lib/UpdateStream";
-import StreamManager, { Stream } from "sdk/js/index";
+// import CreateStream from "lib/CreateStream";
+// import StreamStatus from "lib/StreamStatus";
+// import CancelStream from "lib/CancelStream";
+// import UpdateStream from "lib/UpdateStream";
+import StreamManager, { Stream } from "@apeworx/apepay";
+import  { CreateStream, CancelStream, UpdateStream, StreamStatus } from "@apeworx/apepay-react";
+
 import {
   usePublicClient,
   useWalletClient,
@@ -291,7 +293,7 @@ function App() {
       {/* Create a stream */}
       <h1> Create a stream</h1>
       <div className="create-stream-component">
-        <CreateStream
+        {/* <CreateStream
           streamManagerAddress={config.streamManagerAddress as `0x${string}`}
           amountPerSecond={BigInt(100)}
           registerStream={addStreams}
@@ -299,7 +301,7 @@ function App() {
           handleTransactionStatus={handleTransactionStatus}
           tokenList={tokenList}
           cart={<Cart />}
-        />
+        /> */}
         {/* CreateStream callback */}
         <div className="tx-status-display">
           {isProcessing && <p>Processing Transaction... </p>}
