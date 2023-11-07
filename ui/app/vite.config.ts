@@ -10,6 +10,9 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      app: path.resolve(__dirname),
+      lib: path.resolve(__dirname, "../lib/"),
+      sdk: path.resolve(__dirname, "../../sdk/"),
       "@apeworx/apepay": path.resolve(
         __dirname,
         "../../node_modules/@apeworx/apepay/index.ts"
