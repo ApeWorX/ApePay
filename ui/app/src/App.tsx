@@ -167,13 +167,21 @@ function App() {
         <ConnectButton />
       </div>
 
-      <h1>Created Streams from block {String(fromBlock)}</h1>
+      <h1>
+        {fromBlock != null
+          ? `Created Streams from block ${String(fromBlock)}`
+          : "Created Streams"}
+      </h1>
       {/* Stream list */}
       <div className="list-streams">
         {SM === null ? (
           <p>Fetching SM...</p>
         ) : createdStreams.length === 0 ? (
-          <p>Loading streams from block {String(fromBlock)}...</p>
+          <p>
+            {fromBlock != null
+              ? `Loading streams from block ${String(fromBlock)}...`
+              : "Loading all of the created streams"}
+          </p>
         ) : (
           <ul>
             {createdStreams
