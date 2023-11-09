@@ -6,7 +6,12 @@ import config from "./config";
 import "rc-slider/assets/index.css";
 import "./styles.css";
 import StreamManager, { Stream } from "@apeworx/apepay";
-import  { CreateStream, CancelStream, UpdateStream, StreamStatus } from "@apeworx/apepay-react";
+import {
+  CreateStream,
+  CancelStream,
+  UpdateStream,
+  StreamStatus,
+} from "@apeworx/apepay-react";
 
 import {
   usePublicClient,
@@ -14,6 +19,7 @@ import {
   WalletClient,
   useAccount,
 } from "wagmi";
+import "./config";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
@@ -92,7 +98,7 @@ function App() {
 
   // Fetch logs starting from this block
   // TODO: find a way to get the SM deployment block
-  const fromBlock = 4615000n;
+  const fromBlock = config.fromBlock ? BigInt(config.fromBlock) : undefined;
 
   // Fetch the StreamManager and all its logs
   // Then reconstruct the streams from it
