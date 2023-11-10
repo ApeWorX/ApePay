@@ -28,7 +28,7 @@ const { chains, publicClient } = configureChains(
       },
     },
   ],
-  [publicProvider()],
+  [publicProvider()]
 );
 
 const { connectors } = getDefaultWallets({
@@ -50,5 +50,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <App />
       </RainbowKitProvider>
     </WagmiConfig>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

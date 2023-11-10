@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 // Display stream time with the correct units
 export function formatTime(seconds: number) {

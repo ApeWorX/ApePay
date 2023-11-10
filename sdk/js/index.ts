@@ -317,7 +317,6 @@ export default class StreamManager {
     fromBlock?: bigint,
     toBlock?: bigint
   ): void {
-
     this.publicClient
       .getContractEvents({
         address: this.address,
