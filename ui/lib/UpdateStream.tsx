@@ -160,7 +160,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
             disabled={isButtonDisabled}
             className="update-stream-button"
           >
-            Fund stream
+            Fund
           </button>
           <div className="update-stream-error"> {Error && Error}</div>
         </div>

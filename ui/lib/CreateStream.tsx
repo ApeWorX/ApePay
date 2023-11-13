@@ -330,7 +330,7 @@ const CreateStream = (props: CreateStreamProps) => {
           <div className="cart-body">{props.cart && props.cart}</div>
           <div className="payment-flow">
             <div className="loading-message-token-balance">
-              Checking stream token balance...
+              Checking token balance...
             </div>
           </div>
         </div>
@@ -411,7 +411,7 @@ const CreateStream = (props: CreateStreamProps) => {
           )}
           {txError && (
             <div className="validate-transaction-message">
-              Transaction process error.
+              Transaction process error: {String(txError)}.
             </div>
           )}
         </div>

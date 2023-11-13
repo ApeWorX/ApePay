@@ -89,7 +89,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
     <div className="stream-container">
       {minStreamLife === null ? (
         <div className="cancel-stream-label-loading">
-          Fetching stream minimum life...
+          Fetching minimum life...
         </div>
       ) : !isButtonEnabled &&
         !inProgress &&
@@ -118,7 +118,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
         onClick={handleCancel}
         disabled={!isButtonEnabled}
       >
-        Cancel Stream
+        Cancel
       </button>
       <div className="cancel-stream-error"> {error && error}</div>
     </div>
