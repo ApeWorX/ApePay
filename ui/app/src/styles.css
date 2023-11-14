@@ -15,9 +15,21 @@ ul {
 .list-streams {
   position: relative;
   text-align: center;
-  width: 30%;
+  width:25em;
   margin: 0px auto;
 }
+
+.list-creator {
+  font-weight: bold;
+  align-items: center;
+  line-height: 30px;
+}
+
+li {
+  text-align: left;
+  width: 30%;
+}
+
 /* STREAM DATA */
 
 .stream-data {
@@ -40,7 +52,6 @@ ul {
   padding: 20px;
   margin: 0px auto;
   margin-top: 20px;
-  margin-bottom: 100px;
   line-height: 30px;
 }
 

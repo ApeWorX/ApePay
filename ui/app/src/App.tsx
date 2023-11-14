@@ -12,7 +12,7 @@ import {
   UpdateStream,
   StreamStatus,
 } from "@apeworx/apepay-react";
-
+import { Address } from "viem";
 import {
   usePublicClient,
   useWalletClient,
@@ -154,6 +154,24 @@ function App() {
     }
   }, [selectedStream]);
 
+  // Filter streams via creator
+  type GroupedStreams = {
+    [key in Address]?: Stream[];
+  };
+  const groupedStreams = createdStreams.reduce<GroupedStreams>(
+    (groups, stream) => {
+      const creatorKey = stream.creator;
+
+      if (!groups[creatorKey]) {
+        groups[creatorKey] = [];
+      }
+
+      groups[creatorKey]?.push(stream);
+      return groups;
+    },
+    {}
+  );
+
   return (
     <>
       {/* Log in */}
@@ -167,38 +185,26 @@ function App() {
         <ConnectButton />
       </div>
 
-      <h1>
-        {fromBlock != null
-          ? `Created Streams from block ${String(fromBlock)}`
-          : "Created Streams"}
-      </h1>
-      {/* Stream list */}
-      <div className="list-streams">
-        {SM === null ? (
-          <p>Fetching SM...</p>
-        ) : createdStreams.length === 0 ? (
-          <p>
-            {fromBlock != null
-              ? `Loading streams from block ${String(fromBlock)}...`
-              : "Loading all of the created streams"}
-          </p>
-        ) : (
-          <ul>
-            {createdStreams
-              .sort((a, b) => Number(a.streamId) - Number(b.streamId))
-              .map((stream, index) => (
-                <ul key={index}>
-                  <p>
-                    <strong>Stream ID:</strong> {Number(stream.streamId)}
-                  </p>
-                  <p>
-                    <strong>Creator:</strong> {stream.creator}
-                  </p>
-                  <hr />
-                </ul>
-              ))}
-          </ul>
-        )}
+      {/* Create a stream */}
+      <h1> Create a stream</h1>
+      <div className="create-stream-component">
+        <CreateStream
+          streamManagerAddress={config.streamManagerAddress as `0x${string}`}
+          amountPerSecond={BigInt(100)}
+          registerStream={addStreams}
+          renderReasonCode={renderReasonCode}
+          handleTransactionStatus={handleTransactionStatus}
+          tokenList={tokenList}
+          cart={<Cart />}
+        />
+        {/* CreateStream callback */}
+        <div className="tx-status-display">
+          {isProcessing && <p>Processing Transaction... </p>}
+          {isProcessed && (
+            <p>Transaction Successful! -redirect to another page-</p>
+          )}
+          {processTxError && <p>Tx Error: {processTxError.message}</p>}
+        </div>
       </div>
 
       {/* Edit specific stream */}
@@ -221,11 +227,14 @@ function App() {
             <option value="" disabled hidden>
               Select a stream
             </option>
-            {createdStreams.map((stream) => (
-              <option key={stream.streamId} value={stream.streamId}>
-                {stream.streamId}
-              </option>
-            ))}
+            {createdStreams
+              .slice() // Creates a shallow copy to avoid mutating the original array
+              .sort((a, b) => a.streamId - b.streamId)
+              .map((stream) => (
+                <option key={stream.streamId} value={stream.streamId}>
+                  {stream.streamId}
+                </option>
+              ))}
           </select>
 
           {selectedStream && (
@@ -233,9 +242,10 @@ function App() {
               {/* Stream Data */}
               <div className="stream-data">
                 <h3> Data for stream {selectedStream.streamId}</h3>
+                <p> Token: {String(streamInfo.token)}</p>
+                <p> Creator: {selectedStream.creator}</p>
                 <p> Amount per second: {String(streamInfo.amountPerSecond)}</p>
                 <p> Funded amount: {String(streamInfo.fundedAmount)}</p>
-                <p> Token: {String(streamInfo.token)}</p>
               </div>
 
               {/* Stream Status */}
@@ -300,26 +310,46 @@ function App() {
         </div>
       )}
 
-      {/* Create a stream */}
-      <h1> Create a stream</h1>
-      <div className="create-stream-component">
-        <CreateStream
-          streamManagerAddress={config.streamManagerAddress as `0x${string}`}
-          amountPerSecond={BigInt(100000000000)}
-          registerStream={addStreams}
-          renderReasonCode={renderReasonCode}
-          handleTransactionStatus={handleTransactionStatus}
-          tokenList={tokenList}
-          cart={<Cart />}
-        />
-        {/* CreateStream callback */}
-        <div className="tx-status-display">
-          {isProcessing && <p>Processing Transaction... </p>}
-          {isProcessed && (
-            <p>Transaction Successful! -redirect to another page-</p>
-          )}
-          {processTxError && <p>Tx Error: {processTxError.message}</p>}
-        </div>
+      <h1>
+        {fromBlock != null
+          ? `Created Streams from block ${String(fromBlock)}`
+          : "Created Streams"}
+      </h1>
+      {/* Stream list */}
+      <div className="list-streams">
+        {SM === null ? (
+          <p>Fetching SM...</p>
+        ) : createdStreams.length === 0 ? (
+          <p>
+            {fromBlock != null
+              ? `Loading streams from block ${String(fromBlock)}...`
+              : "Loading all of the created streams"}
+          </p>
+        ) : (
+          <ul>
+            {Object.keys(groupedStreams).map((creator) => {
+              const creatorKey = creator as Address;
+
+              return (
+                <div key={creatorKey}>
+                  <h3 className="list-creator">Creator: {creatorKey}</h3>
+                  <ul>
+                    {groupedStreams[creatorKey]
+                      ?.sort((a, b) => Number(a.streamId) - Number(b.streamId))
+                      .map((stream, index) => (
+                        <li key={index}>
+                          <p>
+                            <strong>Stream ID:</strong>{" "}
+                            {Number(stream.streamId)}
+                          </p>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </>
   );
