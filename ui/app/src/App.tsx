@@ -10,14 +10,14 @@ import {
   CreateStream,
   CancelStream,
   UpdateStream,
-  StreamStatus
+  StreamStatus,
 } from "@apeworx/apepay-react";
 import { Address } from "viem";
 import {
   usePublicClient,
   useWalletClient,
   WalletClient,
-  useAccount
+  useAccount,
 } from "wagmi";
 import "./config";
 
@@ -54,7 +54,7 @@ function App() {
   const handleTransactionStatus = (
     processing: boolean,
     processed: boolean,
-    error: Error | null
+    error: Error | null,
   ) => {
     setIsProcessing(processing);
     setIsProcessed(processed);
@@ -89,7 +89,7 @@ function App() {
 
       // Check if the stream is already present
       const isExistingStream = prevStreams.some(
-        (prevStream) => prevStream.streamId === stream.streamId
+        (prevStream) => prevStream.streamId === stream.streamId,
       );
 
       return isExistingStream ? prevStreams : [...prevStreams, stream];
@@ -109,7 +109,7 @@ function App() {
       StreamManager.fromAddress(
         config.streamManagerAddress as `0x${string}`,
         publicClient,
-        walletClient
+        walletClient,
       )
         .then((SM) => {
           setSM(SM);
@@ -129,7 +129,7 @@ function App() {
     maxStreamLife: null as bigint | null,
     reason: null as Uint8Array | null,
     startTime: null as bigint | null,
-    token: null as string | null
+    token: null as string | null,
   });
 
   // Get info about your selected stream
@@ -145,7 +145,7 @@ function App() {
             maxStreamLife: info.max_stream_life,
             reason: info.reason,
             startTime: info.start_time,
-            token: info.token
+            token: info.token,
           });
         })
         .catch((error) => {
@@ -169,7 +169,7 @@ function App() {
       groups[creatorKey]?.push(stream);
       return groups;
     },
-    {}
+    {},
   );
 
   return (
@@ -179,7 +179,7 @@ function App() {
         style={{
           display: "flex",
           justifyContent: "flex-end",
-          padding: 12
+          padding: 12,
         }}
       >
         <ConnectButton />
@@ -219,7 +219,7 @@ function App() {
             onChange={(e) => {
               const selectedStreamId = e.target.value;
               const selected = createdStreams.find(
-                (stream) => String(stream.streamId) === selectedStreamId
+                (stream) => String(stream.streamId) === selectedStreamId,
               );
               setSelectedStream(selected || null);
             }}

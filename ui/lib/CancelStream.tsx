@@ -82,7 +82,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   // Calculate the time in seconds before a stream can be cancelled
   const timeBeforeCancellability = Math.max(
     0,
-    startTime + minStreamLife - currentTime
+    startTime + minStreamLife - currentTime,
   );
 
   return (

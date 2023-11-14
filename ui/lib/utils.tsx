@@ -44,7 +44,7 @@ export const useCurrentTime = () => {
 
 export const roundTxDecimals = (
   number: number,
-  selectedToken: TokenInfo | null
+  selectedToken: TokenInfo | null,
 ): number | null => {
   if (!selectedToken?.decimals) {
     return number;
@@ -55,6 +55,6 @@ export const roundTxDecimals = (
 
   // Convert back to the original scale and return as a floating-point number
   return parseFloat(
-    (Number(roundedNumber) * 10 ** selectedToken.decimals).toString()
+    (Number(roundedNumber) * 10 ** selectedToken.decimals).toString(),
   );
 };

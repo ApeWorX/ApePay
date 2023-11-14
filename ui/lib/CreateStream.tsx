@@ -9,7 +9,7 @@ import {
   usePrepareContractWrite,
   useContractWrite,
   useWaitForTransaction,
-  useNetwork
+  useNetwork,
 } from "wagmi";
 import { fetchBalance } from "@wagmi/core";
 import StreamManager, { Stream } from "@apeworx/apepay";
@@ -28,7 +28,7 @@ export interface CreateStreamProps {
   handleTransactionStatus: (
     processing: boolean,
     processed: boolean,
-    error: Error | null
+    error: Error | null,
   ) => void;
 }
 
@@ -49,7 +49,7 @@ const CreateStream = (props: CreateStreamProps) => {
       StreamManager.fromAddress(
         props.streamManagerAddress as `0x${string}`,
         publicClient,
-        walletClient
+        walletClient,
       )
         .then(setSM)
         .catch(console.error);
@@ -58,7 +58,7 @@ const CreateStream = (props: CreateStreamProps) => {
 
   const { data: tokenData } = useBalance({
     address,
-    token: selectedToken?.address as `0x${string}`
+    token: selectedToken?.address as `0x${string}`,
   });
 
   // Get balances for native tokens
@@ -101,7 +101,7 @@ const CreateStream = (props: CreateStreamProps) => {
       if (address && selectedToken) {
         fetchBalance({
           address,
-          token: selectedToken.address as `0x${string}`
+          token: selectedToken.address as `0x${string}`,
         })
           .then((tokenBalanceData) => {
             if (tokenBalanceData && tokenBalanceData.formatted != undefined) {
@@ -132,7 +132,7 @@ const CreateStream = (props: CreateStreamProps) => {
   }, [address, selectedToken]);
 
   const maxTime = Number(
-    (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond)
+    (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond),
   );
 
   // TODO: Increase stability of deployments beyond a week
@@ -140,8 +140,8 @@ const CreateStream = (props: CreateStreamProps) => {
   const marks = Object.fromEntries(
     Array.from(Array(maxTimeDays).keys()).map((v: number) => [
       v + 1,
-      `${v + 1}`
-    ])
+      `${v + 1}`,
+    ]),
   );
 
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
@@ -154,7 +154,7 @@ const CreateStream = (props: CreateStreamProps) => {
     (
       (selectedTime * Number(props.amountPerSecond)) /
       Math.pow(10, selectedToken?.decimals || 0)
-    ).toFixed(Math.min(selectedToken?.decimals || 0, 3))
+    ).toFixed(Math.min(selectedToken?.decimals || 0, 3)),
   );
 
   const { config: approvalConfig } = usePrepareContractWrite({
@@ -167,13 +167,13 @@ const CreateStream = (props: CreateStreamProps) => {
         stateMutability: "nonpayable",
         inputs: [
           { name: "spender", type: "address" },
-          { name: "amount", type: "uint256" }
+          { name: "amount", type: "uint256" },
         ],
-        outputs: [{ name: "success", type: "bool" }]
-      }
+        outputs: [{ name: "success", type: "bool" }],
+      },
     ],
     functionName: "approve",
-    args: [SM?.address, roundedTxDecimals]
+    args: [SM?.address, roundedTxDecimals],
   });
 
   const {
@@ -182,7 +182,7 @@ const CreateStream = (props: CreateStreamProps) => {
     // isSuccess: Make sure transaction has been approved by user (used to get tx hash)
     isSuccess,
     isError,
-    write: approveStream
+    write: approveStream,
   } = useContractWrite(approvalConfig);
 
   // Then make sure transaction has been processed once it has been approved by user
@@ -196,9 +196,9 @@ const CreateStream = (props: CreateStreamProps) => {
   const {
     error: txError,
     isSuccess: txSuccess,
-    isLoading: txLoading
+    isLoading: txLoading,
   } = useWaitForTransaction({
-    hash: txHash as `0x${string}`
+    hash: txHash as `0x${string}`,
   });
 
   const [buttonCreateClicked, setButtonCreateClicked] = useState(false);
@@ -212,7 +212,7 @@ const CreateStream = (props: CreateStreamProps) => {
         SM?.create(
           selectedToken?.address as `0x${string}`,
           props.amountPerSecond,
-          reasonString
+          reasonString,
         )
           .then((result) => {
             props.handleTransactionStatus(false, true, null);
@@ -254,7 +254,7 @@ const CreateStream = (props: CreateStreamProps) => {
             onChange={(e) => {
               // Find the TokenInfo object that matches the selected address
               const selectedTokenInfo = props.tokenList.find(
-                (token) => token.address === e.target.value
+                (token) => token.address === e.target.value,
               );
               setSelectedToken(selectedTokenInfo || null);
             }}
