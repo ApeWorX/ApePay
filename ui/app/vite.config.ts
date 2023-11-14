@@ -5,7 +5,7 @@ import path from "path";
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
-    target: "es2020",
+    target: "es2020"
   },
   plugins: [react()],
   resolve: {
@@ -20,7 +20,7 @@ export default defineConfig({
       "@apeworx/apepay-react": path.resolve(
         __dirname,
         "../../node_modules/@apeworx/apepay-react/index.tsx"
-      ),
-    },
-  },
+      )
+    }
+  }
 });

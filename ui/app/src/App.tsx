@@ -10,14 +10,14 @@ import {
   CreateStream,
   CancelStream,
   UpdateStream,
-  StreamStatus,
+  StreamStatus
 } from "@apeworx/apepay-react";
 import { Address } from "viem";
 import {
   usePublicClient,
   useWalletClient,
   WalletClient,
-  useAccount,
+  useAccount
 } from "wagmi";
 import "./config";
 
@@ -129,7 +129,7 @@ function App() {
     maxStreamLife: null as bigint | null,
     reason: null as Uint8Array | null,
     startTime: null as bigint | null,
-    token: null as string | null,
+    token: null as string | null
   });
 
   // Get info about your selected stream
@@ -145,7 +145,7 @@ function App() {
             maxStreamLife: info.max_stream_life,
             reason: info.reason,
             startTime: info.start_time,
-            token: info.token,
+            token: info.token
           });
         })
         .catch((error) => {
@@ -179,7 +179,7 @@ function App() {
         style={{
           display: "flex",
           justifyContent: "flex-end",
-          padding: 12,
+          padding: 12
         }}
       >
         <ConnectButton />

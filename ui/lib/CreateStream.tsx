@@ -9,7 +9,7 @@ import {
   usePrepareContractWrite,
   useContractWrite,
   useWaitForTransaction,
-  useNetwork,
+  useNetwork
 } from "wagmi";
 import { fetchBalance } from "@wagmi/core";
 import StreamManager, { Stream } from "@apeworx/apepay";
@@ -58,7 +58,7 @@ const CreateStream = (props: CreateStreamProps) => {
 
   const { data: tokenData } = useBalance({
     address,
-    token: selectedToken?.address as `0x${string}`,
+    token: selectedToken?.address as `0x${string}`
   });
 
   // Get balances for native tokens
@@ -101,7 +101,7 @@ const CreateStream = (props: CreateStreamProps) => {
       if (address && selectedToken) {
         fetchBalance({
           address,
-          token: selectedToken.address as `0x${string}`,
+          token: selectedToken.address as `0x${string}`
         })
           .then((tokenBalanceData) => {
             if (tokenBalanceData && tokenBalanceData.formatted != undefined) {
@@ -140,7 +140,7 @@ const CreateStream = (props: CreateStreamProps) => {
   const marks = Object.fromEntries(
     Array.from(Array(maxTimeDays).keys()).map((v: number) => [
       v + 1,
-      `${v + 1}`,
+      `${v + 1}`
     ])
   );
 
@@ -167,13 +167,13 @@ const CreateStream = (props: CreateStreamProps) => {
         stateMutability: "nonpayable",
         inputs: [
           { name: "spender", type: "address" },
-          { name: "amount", type: "uint256" },
+          { name: "amount", type: "uint256" }
         ],
-        outputs: [{ name: "success", type: "bool" }],
-      },
+        outputs: [{ name: "success", type: "bool" }]
+      }
     ],
     functionName: "approve",
-    args: [SM?.address, roundedTxDecimals],
+    args: [SM?.address, roundedTxDecimals]
   });
 
   const {
@@ -182,7 +182,7 @@ const CreateStream = (props: CreateStreamProps) => {
     // isSuccess: Make sure transaction has been approved by user (used to get tx hash)
     isSuccess,
     isError,
-    write: approveStream,
+    write: approveStream
   } = useContractWrite(approvalConfig);
 
   // Then make sure transaction has been processed once it has been approved by user
@@ -196,9 +196,9 @@ const CreateStream = (props: CreateStreamProps) => {
   const {
     error: txError,
     isSuccess: txSuccess,
-    isLoading: txLoading,
+    isLoading: txLoading
   } = useWaitForTransaction({
-    hash: txHash as `0x${string}`,
+    hash: txHash as `0x${string}`
   });
 
   const [buttonCreateClicked, setButtonCreateClicked] = useState(false);

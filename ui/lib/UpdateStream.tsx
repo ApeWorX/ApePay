@@ -4,7 +4,7 @@ import {
   usePrepareContractWrite,
   useContractWrite,
   useAccount,
-  useBalance,
+  useBalance
 } from "wagmi";
 import Slider from "rc-slider";
 
@@ -29,7 +29,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   const { address } = useAccount();
   const { data: tokenData } = useBalance({
     address,
-    token: props.stream.token,
+    token: props.stream.token
   });
 
   // Largest value displayed on the slider is the amount of tokens user has divided by the daily cost of his stream
@@ -42,7 +42,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
   const marks = Object.fromEntries(
     Array.from(Array(maxTimeDays).keys()).map((v: number) => [
       v + 1,
-      `${v + 1}`,
+      `${v + 1}`
     ])
   );
 
@@ -57,20 +57,20 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
         stateMutability: "nonpayable",
         inputs: [
           { name: "spender", type: "address" },
-          { name: "amount", type: "uint256" },
+          { name: "amount", type: "uint256" }
         ],
-        outputs: [{ name: "success", type: "bool" }],
-      },
+        outputs: [{ name: "success", type: "bool" }]
+      }
     ],
     functionName: "approve",
-    args: [props.stream.streamManager.address, contractAmount],
+    args: [props.stream.streamManager.address, contractAmount]
   });
 
   const {
     isLoading,
     isError,
     isSuccess,
-    write: approveStream,
+    write: approveStream
   } = useContractWrite(approvalConfig);
 
   // Set step logic: (1) set amount and validate transaction & (2) update stream

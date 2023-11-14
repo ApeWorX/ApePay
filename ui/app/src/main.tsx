@@ -20,13 +20,13 @@ const { chains, publicClient } = configureChains(
         ...sepolia.rpcUrls,
         // The default Sepolia ndoes are pretty overwhelmed
         default: {
-          http: ["https://gateway.tenderly.co/public/sepolia"],
+          http: ["https://gateway.tenderly.co/public/sepolia"]
         },
         public: {
-          http: ["https://gateway.tenderly.co/public/sepolia"],
-        },
-      },
-    },
+          http: ["https://gateway.tenderly.co/public/sepolia"]
+        }
+      }
+    }
   ],
   [publicProvider()]
 );
@@ -34,13 +34,13 @@ const { chains, publicClient } = configureChains(
 const { connectors } = getDefaultWallets({
   appName: "ApePay Dashboard",
   projectId: "YOUR_PROJECT_ID",
-  chains,
+  chains
 });
 
 const wagmiConfig = createConfig({
   autoConnect: true,
   connectors,
-  publicClient,
+  publicClient
 });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
