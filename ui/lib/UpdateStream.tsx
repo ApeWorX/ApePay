@@ -151,7 +151,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
       <>
         <div className="stream-container">
           <div className="update-stream-title">
-            {`Add funds for ${selectedTime} additional day${
+            {`Fund for ${selectedTime} additional day${
               selectedTime !== 1 ? "s:" : ":"
             }`}
           </div>
