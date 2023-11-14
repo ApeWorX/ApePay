@@ -20,6 +20,7 @@ import {
   useAccount,
 } from "wagmi";
 import "./config";
+import { Link } from "react-router-dom";
 
 function App() {
   const tokenList: TokenInfo[] = config.tokens;
@@ -246,6 +247,11 @@ function App() {
                 <p> Creator: {selectedStream.creator}</p>
                 <p> Amount per second: {String(streamInfo.amountPerSecond)}</p>
                 <p> Funded amount: {String(streamInfo.fundedAmount)}</p>
+                <Link
+                  to={`/${selectedStream.creator}/${selectedStream.streamId}`}
+                >
+                  Go to Stream {selectedStream.streamId}
+                </Link>
               </div>
 
               {/* Stream Status */}
@@ -338,10 +344,14 @@ function App() {
                       ?.sort((a, b) => Number(a.streamId) - Number(b.streamId))
                       .map((stream, index) => (
                         <li key={index}>
-                          <p>
-                            <strong>Stream ID:</strong>{" "}
-                            {Number(stream.streamId)}
-                          </p>
+                          <Link
+                            to={`/${stream.creator}/${stream.streamId}`}
+                          >
+                            <p>
+                              <strong>Stream ID:</strong>{" "}
+                              {Number(stream.streamId)}
+                            </p>
+                          </Link>
                         </li>
                       ))}
                   </ul>
