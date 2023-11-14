@@ -305,7 +305,7 @@ function App() {
       <div className="create-stream-component">
         <CreateStream
           streamManagerAddress={config.streamManagerAddress as `0x${string}`}
-          amountPerSecond={BigInt(100)}
+          amountPerSecond={BigInt(100000000000)}
           registerStream={addStreams}
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}

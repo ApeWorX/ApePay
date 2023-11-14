@@ -14,6 +14,7 @@ import {
 import { fetchBalance } from "@wagmi/core";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
+import { roundTxDecimals } from "./utils";
 
 const SECS_PER_DAY = 24 * 60 * 60;
 
@@ -145,35 +146,15 @@ const CreateStream = (props: CreateStreamProps) => {
 
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
-  // here
-  function roundToUpperMostDigit(number) {
-    // If the number is less than 1000, round it to the nearest whole number
-    if (number < 1000000000000000) {
-      return Math.ceil(number);
-    }
-
-    let numStr = number.toString();
-    let firstDigit = parseInt(numStr[0], 10);
-
-    // Increment the first digit by 1, but not above 9
-    firstDigit = firstDigit < 9 ? firstDigit + 1 : firstDigit;
-
-    // Replace all subsequent digits with zeroes for large numbers
-    numStr = firstDigit.toString() + "0".repeat(numStr.length - 1);
-
-    return Number(numStr);
-  }
-  // Usage
-  const amount = selectedTime * Number(props.amountPerSecond);
-  const roundedAmount = roundToUpperMostDigit(amount);
-  console.log("rounded amount", roundedAmount);
+  const txCost = selectedTime * Number(props.amountPerSecond);
+  const roundedTxDecimals = roundTxDecimals(txCost, selectedToken);
 
   // Set transaction amount
   const transactionAmount = Number(
     (
       (selectedTime * Number(props.amountPerSecond)) /
-      Math.pow(10, tokenData?.decimals || 0)
-    ).toFixed(Math.min(tokenData?.decimals || 0, 3))
+      Math.pow(10, selectedToken?.decimals || 0)
+    ).toFixed(Math.min(selectedToken?.decimals || 0, 3))
   );
 
   const { config: approvalConfig } = usePrepareContractWrite({
@@ -192,7 +173,7 @@ const CreateStream = (props: CreateStreamProps) => {
       },
     ],
     functionName: "approve",
-    args: [SM?.address, roundedAmount],
+    args: [SM?.address, roundedTxDecimals],
   });
 
   const {
@@ -379,8 +360,8 @@ const CreateStream = (props: CreateStreamProps) => {
               <div>Not enough tokens to pay for transaction.</div>
               <div>
                 Your token balance is: {tokenBalance.toFixed(2)}&nbsp;
-                {tokenData?.symbol} but the transaction costs&nbsp;
-                {transactionAmount}&nbsp;{tokenData?.symbol}
+                {selectedToken?.symbol} but the transaction costs&nbsp;
+                {transactionAmount}&nbsp;{selectedToken?.symbol}
               </div>
             </div>
             <button
@@ -423,7 +404,8 @@ const CreateStream = (props: CreateStreamProps) => {
             disabled={isSuccess}
             style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
           >
-            {`Approve ${transactionAmount}`}&nbsp;{`${tokenData?.symbol}`}
+            {`Approve ${Math.floor(transactionAmount + 1)}`}&nbsp;
+            {`${selectedToken?.symbol}`}
           </button>
           {isLoading && (
             <div className="validate-transaction-message">
@@ -457,8 +439,9 @@ const CreateStream = (props: CreateStreamProps) => {
         <div className="cart-body">{props.cart && props.cart}</div>
         <div className="payment-flow">
           <div className="create-stream-approval-message">
-            {`Total approval amount: ${transactionAmount}`}&nbsp;
-            {`${tokenData?.symbol}`}
+            {`Total approval amount: ${Math.floor(transactionAmount + 1)}`}
+            &nbsp;
+            {`${selectedToken?.symbol}`}
           </div>
           <button
             className="button-create-stream"
