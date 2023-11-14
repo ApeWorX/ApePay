@@ -36,7 +36,7 @@ const CreateStream = (props: CreateStreamProps) => {
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
   const { address } = useAccount();
   const { chain } = useNetwork();
-  const [selectedToken, setSelectedToken] = useState<string | null>(null);
+  const [selectedToken, setSelectedToken] = useState<TokenInfo | null>(null);
 
   const [SM, setSM] = useState<StreamManager | null>(null);
   const publicClient = usePublicClient();
@@ -57,7 +57,7 @@ const CreateStream = (props: CreateStreamProps) => {
 
   const { data: tokenData } = useBalance({
     address,
-    token: selectedToken as `0x${string}`,
+    token: selectedToken?.address as `0x${string}`,
   });
 
   // Get balances for native tokens
@@ -100,7 +100,7 @@ const CreateStream = (props: CreateStreamProps) => {
       if (address && selectedToken) {
         fetchBalance({
           address,
-          token: selectedToken as `0x${string}`,
+          token: selectedToken.address as `0x${string}`,
         })
           .then((tokenBalanceData) => {
             if (tokenBalanceData && tokenBalanceData.formatted != undefined) {
@@ -145,8 +145,39 @@ const CreateStream = (props: CreateStreamProps) => {
 
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
+  // here
+  function roundToUpperMostDigit(number) {
+    // If the number is less than 1000, round it to the nearest whole number
+    if (number < 1000000000000000) {
+      return Math.ceil(number);
+    }
+
+    let numStr = number.toString();
+    let firstDigit = parseInt(numStr[0], 10);
+
+    // Increment the first digit by 1, but not above 9
+    firstDigit = firstDigit < 9 ? firstDigit + 1 : firstDigit;
+
+    // Replace all subsequent digits with zeroes for large numbers
+    numStr = firstDigit.toString() + "0".repeat(numStr.length - 1);
+
+    return Number(numStr);
+  }
+  // Usage
+  const amount = selectedTime * Number(props.amountPerSecond);
+  const roundedAmount = roundToUpperMostDigit(amount);
+  console.log("rounded amount", roundedAmount);
+
+  // Set transaction amount
+  const transactionAmount = Number(
+    (
+      (selectedTime * Number(props.amountPerSecond)) /
+      Math.pow(10, tokenData?.decimals || 0)
+    ).toFixed(Math.min(tokenData?.decimals || 0, 3))
+  );
+
   const { config: approvalConfig } = usePrepareContractWrite({
-    address: selectedToken as `0x${string}`,
+    address: selectedToken?.address as `0x${string}`,
     value: BigInt(0),
     abi: [
       {
@@ -161,7 +192,7 @@ const CreateStream = (props: CreateStreamProps) => {
       },
     ],
     functionName: "approve",
-    args: [SM?.address, selectedTime * Number(props.amountPerSecond)],
+    args: [SM?.address, roundedAmount],
   });
 
   const {
@@ -198,7 +229,7 @@ const CreateStream = (props: CreateStreamProps) => {
       .renderReasonCode()
       .then((reasonString) => {
         SM?.create(
-          selectedToken as `0x${string}`,
+          selectedToken?.address as `0x${string}`,
           props.amountPerSecond,
           reasonString
         )
@@ -216,14 +247,6 @@ const CreateStream = (props: CreateStreamProps) => {
         setButtonCreateClicked(false);
       });
   };
-
-  // Set transaction amount
-  const transactionAmount = Number(
-    (
-      (selectedTime * Number(props.amountPerSecond)) /
-      Math.pow(10, tokenData?.decimals || 0)
-    ).toFixed(Math.min(tokenData?.decimals || 0, 3))
-  );
 
   // Get your current chainID
   let targetChainId: number | undefined;
@@ -244,8 +267,16 @@ const CreateStream = (props: CreateStreamProps) => {
         <div className="payment-flow">
           <select
             className="select-token-dropdown"
-            value={selectedToken || "Select Payment Token"}
-            onChange={(e) => setSelectedToken(e.target.value)}
+            value={
+              selectedToken ? selectedToken.address : "Select Payment Token"
+            }
+            onChange={(e) => {
+              // Find the TokenInfo object that matches the selected address
+              const selectedTokenInfo = props.tokenList.find(
+                (token) => token.address === e.target.value
+              );
+              setSelectedToken(selectedTokenInfo || null);
+            }}
           >
             {selectedToken === null && (
               <option disabled value="Select Payment Token">
@@ -260,6 +291,7 @@ const CreateStream = (props: CreateStreamProps) => {
                 </option>
               ))}
           </select>
+
           <button
             className="button-validate-select-token"
             onClick={() => validateStep(1)}
