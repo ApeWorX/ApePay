@@ -4,3 +4,4 @@ build
 coverage
 dist
 .mypy_cache
+sdk/js/index.ts

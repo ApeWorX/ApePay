@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
+import { TokenInfo } from "@uniswap/token-lists";
 
 // Display stream time with the correct units
 export function formatTime(seconds: number) {
@@ -39,4 +40,21 @@ export const useCurrentTime = () => {
   }, []);
 
   return currentTime;
+};
+
+export const roundTxDecimals = (
+  number: number,
+  selectedToken: TokenInfo | null,
+): number | null => {
+  if (!selectedToken?.decimals) {
+    return number;
+  }
+
+  const divisor = BigInt(10 ** selectedToken.decimals);
+  const roundedNumber = BigInt(number) / divisor + 1n;
+
+  // Convert back to the original scale and return as a floating-point number
+  return parseFloat(
+    (Number(roundedNumber) * 10 ** selectedToken.decimals).toString(),
+  );
 };

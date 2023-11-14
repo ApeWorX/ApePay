@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Stream } from "../../sdk/js/index";
+import { Stream } from "@apeworx/apepay";
 import { formatTime } from "./utils";
 import { useCurrentTime } from "./utils";
 
@@ -80,15 +80,21 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   }, [startTime]);
 
   // Calculate the time in seconds before a stream can be cancelled
-  const timeBeforeCancellability = Math.max(0, startTime + minStreamLife - currentTime);
+  const timeBeforeCancellability = Math.max(
+    0,
+    startTime + minStreamLife - currentTime,
+  );
 
   return (
     <div className="stream-container">
       {minStreamLife === null ? (
         <div className="cancel-stream-label-loading">
-          Fetching stream minimum life...
+          Fetching minimum life...
         </div>
-      ) : !isButtonEnabled && !inProgress && startTime !== 0 && Number(timeBeforeCancellability) !== 0 ? (
+      ) : !isButtonEnabled &&
+        !inProgress &&
+        startTime !== 0 &&
+        Number(timeBeforeCancellability) !== 0 ? (
         <>
           <div className="cancel-stream-label-min-life">
             Deployment cannot be cancelled yet: its minimum life is
@@ -112,7 +118,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
         onClick={handleCancel}
         disabled={!isButtonEnabled}
       >
-        Cancel Stream
+        Cancel
       </button>
       <div className="cancel-stream-error"> {error && error}</div>
     </div>

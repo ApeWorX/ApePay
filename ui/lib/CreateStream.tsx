@@ -12,8 +12,9 @@ import {
   useNetwork,
 } from "wagmi";
 import { fetchBalance } from "@wagmi/core";
-import StreamManager, { Stream } from "../../sdk/js/index";
+import StreamManager, { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
+import { roundTxDecimals } from "./utils";
 
 const SECS_PER_DAY = 24 * 60 * 60;
 
@@ -27,7 +28,7 @@ export interface CreateStreamProps {
   handleTransactionStatus: (
     processing: boolean,
     processed: boolean,
-    error: Error | null
+    error: Error | null,
   ) => void;
 }
 
@@ -36,7 +37,7 @@ const CreateStream = (props: CreateStreamProps) => {
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
   const { address } = useAccount();
   const { chain } = useNetwork();
-  const [selectedToken, setSelectedToken] = useState<string | null>(null);
+  const [selectedToken, setSelectedToken] = useState<TokenInfo | null>(null);
 
   const [SM, setSM] = useState<StreamManager | null>(null);
   const publicClient = usePublicClient();
@@ -48,7 +49,7 @@ const CreateStream = (props: CreateStreamProps) => {
       StreamManager.fromAddress(
         props.streamManagerAddress as `0x${string}`,
         publicClient,
-        walletClient
+        walletClient,
       )
         .then(setSM)
         .catch(console.error);
@@ -57,7 +58,7 @@ const CreateStream = (props: CreateStreamProps) => {
 
   const { data: tokenData } = useBalance({
     address,
-    token: selectedToken as `0x${string}`,
+    token: selectedToken?.address as `0x${string}`,
   });
 
   // Get balances for native tokens
@@ -100,7 +101,7 @@ const CreateStream = (props: CreateStreamProps) => {
       if (address && selectedToken) {
         fetchBalance({
           address,
-          token: selectedToken as `0x${string}`,
+          token: selectedToken.address as `0x${string}`,
         })
           .then((tokenBalanceData) => {
             if (tokenBalanceData && tokenBalanceData.formatted != undefined) {
@@ -131,7 +132,7 @@ const CreateStream = (props: CreateStreamProps) => {
   }, [address, selectedToken]);
 
   const maxTime = Number(
-    (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond)
+    (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond),
   );
 
   // TODO: Increase stability of deployments beyond a week
@@ -140,13 +141,24 @@ const CreateStream = (props: CreateStreamProps) => {
     Array.from(Array(maxTimeDays).keys()).map((v: number) => [
       v + 1,
       `${v + 1}`,
-    ])
+    ]),
   );
 
   const [selectedTime, setSelectedTime] = useState(SECS_PER_DAY); // Defaults 1 day
 
+  const txCost = selectedTime * Number(props.amountPerSecond);
+  const roundedTxDecimals = roundTxDecimals(txCost, selectedToken);
+
+  // Set transaction amount
+  const transactionAmount = Number(
+    (
+      (selectedTime * Number(props.amountPerSecond)) /
+      Math.pow(10, selectedToken?.decimals || 0)
+    ).toFixed(Math.min(selectedToken?.decimals || 0, 3)),
+  );
+
   const { config: approvalConfig } = usePrepareContractWrite({
-    address: selectedToken as `0x${string}`,
+    address: selectedToken?.address as `0x${string}`,
     value: BigInt(0),
     abi: [
       {
@@ -161,7 +173,7 @@ const CreateStream = (props: CreateStreamProps) => {
       },
     ],
     functionName: "approve",
-    args: [SM?.address, selectedTime * Number(props.amountPerSecond)],
+    args: [SM?.address, roundedTxDecimals],
   });
 
   const {
@@ -198,9 +210,9 @@ const CreateStream = (props: CreateStreamProps) => {
       .renderReasonCode()
       .then((reasonString) => {
         SM?.create(
-          selectedToken as `0x${string}`,
+          selectedToken?.address as `0x${string}`,
           props.amountPerSecond,
-          reasonString
+          reasonString,
         )
           .then((result) => {
             props.handleTransactionStatus(false, true, null);
@@ -216,14 +228,6 @@ const CreateStream = (props: CreateStreamProps) => {
         setButtonCreateClicked(false);
       });
   };
-
-  // Set transaction amount
-  const transactionAmount = Number(
-    (
-      (selectedTime * Number(props.amountPerSecond)) /
-      Math.pow(10, tokenData?.decimals || 0)
-    ).toFixed(Math.min(tokenData?.decimals || 0, 3))
-  );
 
   // Get your current chainID
   let targetChainId: number | undefined;
@@ -244,8 +248,16 @@ const CreateStream = (props: CreateStreamProps) => {
         <div className="payment-flow">
           <select
             className="select-token-dropdown"
-            value={selectedToken || "Select Payment Token"}
-            onChange={(e) => setSelectedToken(e.target.value)}
+            value={
+              selectedToken ? selectedToken.address : "Select Payment Token"
+            }
+            onChange={(e) => {
+              // Find the TokenInfo object that matches the selected address
+              const selectedTokenInfo = props.tokenList.find(
+                (token) => token.address === e.target.value,
+              );
+              setSelectedToken(selectedTokenInfo || null);
+            }}
           >
             {selectedToken === null && (
               <option disabled value="Select Payment Token">
@@ -260,6 +272,7 @@ const CreateStream = (props: CreateStreamProps) => {
                 </option>
               ))}
           </select>
+
           <button
             className="button-validate-select-token"
             onClick={() => validateStep(1)}
@@ -330,7 +343,7 @@ const CreateStream = (props: CreateStreamProps) => {
           <div className="cart-body">{props.cart && props.cart}</div>
           <div className="payment-flow">
             <div className="loading-message-token-balance">
-              Checking stream token balance...
+              Checking token balance...
             </div>
           </div>
         </div>
@@ -347,8 +360,8 @@ const CreateStream = (props: CreateStreamProps) => {
               <div>Not enough tokens to pay for transaction.</div>
               <div>
                 Your token balance is: {tokenBalance.toFixed(2)}&nbsp;
-                {tokenData?.symbol} but the transaction costs&nbsp;
-                {transactionAmount}&nbsp;{tokenData?.symbol}
+                {selectedToken?.symbol} but the transaction costs&nbsp;
+                {transactionAmount}&nbsp;{selectedToken?.symbol}
               </div>
             </div>
             <button
@@ -391,7 +404,8 @@ const CreateStream = (props: CreateStreamProps) => {
             disabled={isSuccess}
             style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
           >
-            {`Approve ${transactionAmount}`}&nbsp;{`${tokenData?.symbol}`}
+            {`Approve ${Math.floor(transactionAmount + 1)}`}&nbsp;
+            {`${selectedToken?.symbol}`}
           </button>
           {isLoading && (
             <div className="validate-transaction-message">
@@ -411,7 +425,7 @@ const CreateStream = (props: CreateStreamProps) => {
           )}
           {txError && (
             <div className="validate-transaction-message">
-              Transaction process error.
+              Transaction process error: {String(txError)}.
             </div>
           )}
         </div>
@@ -425,8 +439,9 @@ const CreateStream = (props: CreateStreamProps) => {
         <div className="cart-body">{props.cart && props.cart}</div>
         <div className="payment-flow">
           <div className="create-stream-approval-message">
-            {`Total approval amount: ${transactionAmount}`}&nbsp;
-            {`${tokenData?.symbol}`}
+            {`Total approval amount: ${Math.floor(transactionAmount + 1)}`}
+            &nbsp;
+            {`${selectedToken?.symbol}`}
           </div>
           <button
             className="button-create-stream"

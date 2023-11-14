@@ -13,6 +13,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Prettify code
+        uses: creyD/prettier_action@v4.3
+        with:
+          prettier_options: --check **/*.{js,md,tsx,ts}
+
   build:
     runs-on: ubuntu-latest
 
@@ -22,6 +35,7 @@ jobs:
       - run: ape compile --size
       # Upload ape build files for testing
       - uses: actions/upload-artifact@v3
+
         with:
           name: ape-build-folder
           path: .build/*.json

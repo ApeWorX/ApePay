@@ -18,7 +18,7 @@
     "outDir": "js-dist",
     "baseUrl": "./",
     "paths": {
-      "lib/*": ["ui/lib/*"],
+      "lib/*": ["ui/lib/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

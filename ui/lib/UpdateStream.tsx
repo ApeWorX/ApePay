@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Stream } from "../../sdk/js/index";
+import { Stream } from "@apeworx/apepay";
 import {
   usePrepareContractWrite,
   useContractWrite,
@@ -34,7 +34,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
 
   // Largest value displayed on the slider is the amount of tokens user has divided by the daily cost of his stream
   const maxTime = Number(
-    (tokenData?.value || BigInt(0)) / BigInt(streamDailyCost)
+    (tokenData?.value || BigInt(0)) / BigInt(streamDailyCost),
   );
   const maxTimeDays: number = Math.min(Math.floor(maxTime), 7); // Up to a week
 
@@ -43,7 +43,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     Array.from(Array(maxTimeDays).keys()).map((v: number) => [
       v + 1,
       `${v + 1}`,
-    ])
+    ]),
   );
 
   // Validate first transaction
@@ -151,7 +151,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
       <>
         <div className="stream-container">
           <div className="update-stream-title">
-            {`Add funds for ${selectedTime} additional day${
+            {`Fund for ${selectedTime} additional day${
               selectedTime !== 1 ? "s:" : ":"
             }`}
           </div>
@@ -160,7 +160,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
             disabled={isButtonDisabled}
             className="update-stream-button"
           >
-            Fund stream
+            Add Time
           </button>
           <div className="update-stream-error"> {Error && Error}</div>
         </div>
