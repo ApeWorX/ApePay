@@ -228,7 +228,7 @@ function App() {
               Select a stream
             </option>
             {createdStreams
-              .slice() // Creates a shallow copy to avoid mutating the original array
+              .slice()
               .sort((a, b) => a.streamId - b.streamId)
               .map((stream) => (
                 <option key={stream.streamId} value={stream.streamId}>

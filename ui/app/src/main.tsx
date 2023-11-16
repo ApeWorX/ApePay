@@ -8,6 +8,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import StreamManagerPage from "./StreamManagerPage";
+import CreatePage from "./CreatePage";
 import CreatorPage from "./CreatorPage";
 import StreamPage from "./StreamPage";
 
@@ -57,6 +58,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             {/* <App /> */}
             <Route path="/" element={<App />} />
             <Route path=":sm" element={<StreamManagerPage />} />
+            <Route path=":sm/create" element={<CreatePage />} />
             <Route path=":sm/:creator" element={<CreatorPage />} />
             <Route path=":sm/:creator/:streamId" element={<StreamPage />} />
           </Routes>

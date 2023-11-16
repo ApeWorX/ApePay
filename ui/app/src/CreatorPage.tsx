@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import config from "./config";
 import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
+import BackButton from "./BackButton";
 
 const CreatorPage = () => {
   const { sm, creator } = useParams();
@@ -63,11 +64,8 @@ const CreatorPage = () => {
     });
   };
 
-  console.log(createdStreams);
-  console.log(creator);
-
   return (
-    <div>
+    <>
       <h1>
         {fromBlock != null
           ? `Created Streams from block ${String(fromBlock)} from ${creator}`
@@ -87,20 +85,20 @@ const CreatorPage = () => {
           <ul>
             {createdStreams.map((stream, index) => (
               <li key={index}>
-                  <Link
-                            to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
-                          >
-                            <p>
-                              <strong>Stream ID:</strong>{" "}
-                              {stream.streamId}
-                            </p>
-                          </Link>
+                <Link
+                  to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
+                >
+                  <p>
+                    <strong>Stream ID:</strong> {stream.streamId}
+                  </p>
+                </Link>
               </li>
             ))}
           </ul>
         )}
       </div>
-    </div>
+      <BackButton />
+    </>
   );
 };
 
