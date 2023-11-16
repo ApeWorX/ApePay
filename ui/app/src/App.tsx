@@ -19,7 +19,6 @@ import {
   WalletClient,
   useAccount,
 } from "wagmi";
-import "./config";
 import { Link } from "react-router-dom";
 
 function App() {
@@ -247,11 +246,18 @@ function App() {
                 <p> Creator: {selectedStream.creator}</p>
                 <p> Amount per second: {String(streamInfo.amountPerSecond)}</p>
                 <p> Funded amount: {String(streamInfo.fundedAmount)}</p>
-                <Link
-                  to={`/${selectedStream.creator}/${selectedStream.streamId}`}
-                >
-                  Go to Stream {selectedStream.streamId}
-                </Link>
+                <p>
+                  <Link
+                    to={`/${selectedStream.creator}/${selectedStream.streamId}`}
+                  >
+                    Go to Stream {selectedStream.streamId}
+                  </Link>{" "}
+                </p>
+                <p>
+                  <Link to={`/${selectedStream.streamManager.address}`}>
+                    Go to Stream Manager
+                  </Link>
+                </p>
               </div>
 
               {/* Stream Status */}
