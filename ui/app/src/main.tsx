@@ -55,7 +55,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             {/* <App /> */}
             <Route path="/" element={<App />} />
             <Route
-              path="/:creator/:streamId"
+              path=":sm/:creator/:streamId"
               element={<StreamPage />}
             />
           </Routes>

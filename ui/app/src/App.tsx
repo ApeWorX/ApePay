@@ -345,7 +345,7 @@ function App() {
                       .map((stream, index) => (
                         <li key={index}>
                           <Link
-                            to={`/${stream.creator}/${stream.streamId}`}
+                            to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
                           >
                             <p>
                               <strong>Stream ID:</strong>{" "}
