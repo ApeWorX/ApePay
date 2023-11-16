@@ -15,8 +15,6 @@ const StreamManagerPage = () => {
   const publicClient = usePublicClient();
   const walletClient = useWalletClient()?.data as WalletClient;
 
-  console.log(publicClient);
-
   // Fetch logs starting from this block
   // TODO: let user input dynamically a block
   const fromBlock = config.fromBlock ? BigInt(config.fromBlock) : undefined;
@@ -112,8 +110,7 @@ const StreamManagerPage = () => {
                             to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
                           >
                             <p>
-                              <strong>Stream ID:</strong>{" "}
-                              {Number(stream.streamId)}
+                              <strong>Stream ID:</strong> {stream.streamId}
                             </p>
                           </Link>
                         </li>
