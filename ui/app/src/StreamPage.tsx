@@ -119,69 +119,81 @@ const StreamPage = () => {
       </div>
 
       <h1>Stream {streamId} Details</h1>
-      {stream && (
+      {stream ? (
         <>
-          {/* Stream Data */}
-          <div className="stream-data">
-            <div> SM: {sm} </div>
-            <p> Token: {String(streamInfo.token)}</p>
-            <p> Creator: {creator}</p>
-            <p> Amount per second: {String(streamInfo.amountPerSecond)}</p>
-            <p> Funded amount: {String(streamInfo.fundedAmount)}</p>
-          </div>
+          <div className="stream-components">
+            {/* Stream Data */}
+            <div className="stream-data">
+              <div> SM: {sm} </div>
+              <p> Token: {String(streamInfo.token)}</p>
+              <p> Creator: {creator}</p>
+              <p> Amount per second: {String(streamInfo.amountPerSecond)}</p>
+              <p> Funded amount: {String(streamInfo.fundedAmount)}</p>
+            </div>
 
-          {/* Stream Status */}
-          <h3> Stream Status</h3>
-          <div className="status-graph">
-            <select
-              className="dropdown-select"
-              value={chartType}
-              onChange={(e) => setChartType(e.target.value as "bar" | "pie")}
-            >
-              <option value="bar">Bar Chart</option>
-              <option value="pie">Pie Chart</option>
-            </select>
-            <div className="stream-status-component">
-              <StreamStatus
+            {/* Stream Status */}
+            <div className="stream-status-box">
+              <h3> Stream Status</h3>
+              <div className="status-graph">
+                <select
+                  className="dropdown-select"
+                  value={chartType}
+                  onChange={(e) =>
+                    setChartType(e.target.value as "bar" | "pie")
+                  }
+                >
+                  <option value="bar">Bar Chart</option>
+                  <option value="pie">Pie Chart</option>
+                </select>
+                <div className="stream-status-component">
+                  <StreamStatus
+                    stream={stream}
+                    chartType={chartType}
+                    background="#110036"
+                    color="#B40C4C"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Cancel Stream */}
+            <h3> Cancel Stream</h3>
+            <div>
+              <CancelStream
                 stream={stream}
-                chartType={chartType}
-                background="#110036"
-                color="#B40C4C"
+                onComplete={() => setCancelStatus(!cancelStatus)}
               />
             </div>
+
+            {/* CancelStream callback */}
+            {cancelStatus && (
+              <p className="label-close-modal">
+                -Deployment is being cancelled- Close modal
+              </p>
+            )}
+
+            {/* Update Stream */}
+            <h3> Update Stream</h3>
+            <div>
+              <UpdateStream
+                stream={stream}
+                onComplete={() => setUpdateStatus(!updateStatus)}
+              />
+            </div>
+
+            {/* UpdateStream callback */}
+            {updateStatus && (
+              <p className="label-close-modal">
+                -Deployment is being updated- Close modal
+              </p>
+            )}
           </div>
-
-          {/* Cancel Stream */}
-          <h3> Cancel Stream</h3>
-          <div>
-            <CancelStream
-              stream={stream}
-              onComplete={() => setCancelStatus(!cancelStatus)}
-            />
+        </>
+      ) : (
+        <>
+          <div className="loading-stream-text">
+            Loading the details of stream {streamId}...
           </div>
-
-          {/* CancelStream callback */}
-          {cancelStatus && (
-            <p className="label-close-modal">
-              -Deployment is being cancelled- Close modal
-            </p>
-          )}
-
-          {/* Update Stream */}
-          <h3> Update Stream</h3>
-          <div>
-            <UpdateStream
-              stream={stream}
-              onComplete={() => setUpdateStatus(!updateStatus)}
-            />
-          </div>
-
-          {/* UpdateStream callback */}
-          {updateStatus && (
-            <p className="label-close-modal">
-              -Deployment is being updated- Close modal
-            </p>
-          )}
         </>
       )}
     </>

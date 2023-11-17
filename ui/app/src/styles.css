@@ -117,11 +117,23 @@ li {
 /* STREAM DATA */
 
 .stream-data {
-  position: relative;
-  margin-top: 10px;
-  line-height: 1;
   border: 1px solid black;
   padding: 10px;
+  width: 50%;
+  text-align: center;
+}
+
+/* STREAM PAGE */
+
+.loading-stream-text {
+  text-align: center;
+  font-style: italic;
+}
+
+.stream-components {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* CREATE STREAM: STEP 1 */
@@ -193,6 +205,10 @@ li {
   background-color: #111;
 }
 
+.stream-status-pie {
+  width: 50%;
+}
+
 .stream-status-bar-label {
   position: absolute;
   top: 50%;
@@ -203,13 +219,20 @@ li {
   text-align: center;
 }
 
+.stream-status-box {
+  border: 1px solid black;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+}
+
 .status-graph {
-  position: relative;
-  width: 15%;
+  text-align: center;
 }
 
 .dropdown-select {
-  position: relative;
   margin-bottom: 10px;
 }
 

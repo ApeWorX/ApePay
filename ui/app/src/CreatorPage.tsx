@@ -73,9 +73,15 @@ const CreatorPage = () => {
       </div>
 
       <h2>
-        {fromBlock != null
-          ? `Created Streams from block ${String(fromBlock)} from ${creator}`
-          : "Created Streams"}
+        {fromBlock != null ? (
+          <>
+            {`Created Streams from block ${String(fromBlock)}`}
+            <br />
+            {`by ${creator}`}
+          </>
+        ) : (
+          "Created Streams"
+        )}
       </h2>
       {/* Stream list */}
       <div className="list-streams">
@@ -94,9 +100,7 @@ const CreatorPage = () => {
                 <Link
                   to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
                 >
-                  <p>
-                    <strong>Stream ID:</strong> {stream.streamId}
-                  </p>
+                  ID: {stream.streamId}
                 </Link>
               </li>
             ))}
