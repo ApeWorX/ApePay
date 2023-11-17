@@ -64,8 +64,10 @@ const StreamPage = () => {
         <ConnectButton />
       </div>
 
-      <h1>Create a Stream on {sm}</h1>
-      
+      <h1>
+        Create a Stream <br /> on {sm}
+      </h1>
+
       {/* Create a stream */}
       <div className="create-stream-component">
         <CreateStream

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import StreamManager, { Stream } from "@apeworx/apepay";
 import { Address } from "viem";
-import config from "./config";
 import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import StreamManager, { Stream } from "@apeworx/apepay";
+import config from "./config";
 import Header from "./Header";
 
 const StreamManagerPage = () => {
@@ -18,7 +18,6 @@ const StreamManagerPage = () => {
   const walletClient = useWalletClient()?.data as WalletClient;
 
   // Fetch logs starting from this block
-  // TODO: let user input dynamically a block
   const fromBlock = config.fromBlock ? BigInt(config.fromBlock) : undefined;
 
   // Fetch the StreamManager and all its logs
@@ -80,25 +79,28 @@ const StreamManagerPage = () => {
       </div>
 
       <div>
-        <div className="create-stream-sm-text">
-          <Link to={`/${sm}/create`}>
-            <button className="create-stream-sm-button">
-              Create a Stream with this Stream Manager
-            </button>
-          </Link>
-        </div>
-
-        <h2>
+        <div className="stream-manager-title">
           {fromBlock != null ? (
             <>
-              {`Created Streams from block ${String(fromBlock)}`}
+              {"Created Streams from block "}
+              <strong>{String(fromBlock)}</strong>
               <br />
-              {`on ${sm}`}
+              {"on "}
+              <strong>{sm}</strong>
             </>
           ) : (
-            `Created Streams on ${sm}`
+            <>
+              {"Created Streams on "}
+              <strong>{sm}</strong>
+            </>
           )}
-        </h2>
+        </div>
+
+        <div className="create-stream-sm-text">
+          <Link to={`/${sm}/create`}>
+            <button className="create-stream-sm-button">Create a Stream</button>
+          </Link>
+        </div>
 
         {/* Stream list */}
         <div className="list-streams">
@@ -117,11 +119,9 @@ const StreamManagerPage = () => {
 
                 return (
                   <div key={creator}>
-                    <h3 className="list-creator"> Creator:</h3>
-
-                    <Link to={`/${sm}/${creator}`}>
-                      <h3 className="list-creator"> {creator}</h3>
-                    </Link>
+                    <h3 className="list-creator">
+                      By <Link to={`/${sm}/${creator}`}>{creator}</Link>:
+                    </h3>
 
                     <ul className="list-streams">
                       {groupedStreams[creatorKey]

@@ -6,7 +6,7 @@ const Header = () => {
 
   return (
     <div className="header-button">
-      <button onClick={() => navigate(-1)}>Go Back</button>
+      <button onClick={() => navigate(-1)}> &#8592; Previous</button>
       <button onClick={() => navigate("/")}>Homepage</button>
     </div>
   );

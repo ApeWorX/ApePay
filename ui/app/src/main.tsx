@@ -55,7 +55,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <RainbowKitProvider chains={chains}>
         <Router>
           <Routes>
-            {/* <App /> */}
             <Route path="/" element={<App />} />
             <Route path=":sm" element={<StreamManagerPage />} />
             <Route path=":sm/create" element={<CreatePage />} />

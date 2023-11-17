@@ -118,23 +118,38 @@ const StreamPage = () => {
         <ConnectButton />
       </div>
 
-      <h1>Stream {streamId} Details</h1>
+      <h1>Stream {streamId}</h1>
       {stream ? (
         <>
           <div className="stream-components">
             {/* Stream Data */}
             <div className="stream-data-box">
-              <div>SM: {sm}</div>
-              <p>Token: {String(streamInfo.token)}</p>
-              <p>Creator: {creator}</p>
-              <p>Amount per second: {String(streamInfo.amountPerSecond)}</p>
-              <p>Funded amount: {String(streamInfo.fundedAmount)}</p>
+              <p>
+                <strong>Stream Manager: </strong>
+                {sm}
+              </p>
+              <p>
+                <strong>Token: </strong>
+                {String(streamInfo.token)}
+              </p>
+              <p>
+                <strong>Creator: </strong>
+                {creator}
+              </p>
+              <p>
+                <strong>Amount per second: </strong>
+                {String(streamInfo.amountPerSecond)}
+              </p>
+              <p>
+                <strong>Funded amount: </strong>
+                {String(streamInfo.fundedAmount)}
+              </p>
             </div>
 
             {/* Stream Status */}
             <div className="stream-status-box">
               <h3> Stream Status</h3>
-              <div className="status-graph">
+              <div>
                 <select
                   className="dropdown-select"
                   value={chartType}
@@ -149,8 +164,8 @@ const StreamPage = () => {
                   <StreamStatus
                     stream={stream}
                     chartType={chartType}
-                    background="#110036"
-                    color="#B40C4C"
+                    background="#6200ea"
+                    color="black"
                   />
                 </div>
               </div>
@@ -196,7 +211,7 @@ const StreamPage = () => {
       ) : (
         <>
           <div className="loading-stream-text">
-            Loading the details of stream {streamId}...
+            Fetching data from stream {streamId}...
           </div>
         </>
       )}
