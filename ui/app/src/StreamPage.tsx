@@ -123,12 +123,12 @@ const StreamPage = () => {
         <>
           <div className="stream-components">
             {/* Stream Data */}
-            <div className="stream-data">
-              <div> SM: {sm} </div>
-              <p> Token: {String(streamInfo.token)}</p>
-              <p> Creator: {creator}</p>
-              <p> Amount per second: {String(streamInfo.amountPerSecond)}</p>
-              <p> Funded amount: {String(streamInfo.fundedAmount)}</p>
+            <div className="stream-data-box">
+              <div>SM: {sm}</div>
+              <p>Token: {String(streamInfo.token)}</p>
+              <p>Creator: {creator}</p>
+              <p>Amount per second: {String(streamInfo.amountPerSecond)}</p>
+              <p>Funded amount: {String(streamInfo.fundedAmount)}</p>
             </div>
 
             {/* Stream Status */}
@@ -157,36 +157,40 @@ const StreamPage = () => {
             </div>
 
             {/* Cancel Stream */}
-            <h3> Cancel Stream</h3>
-            <div>
-              <CancelStream
-                stream={stream}
-                onComplete={() => setCancelStatus(!cancelStatus)}
-              />
-            </div>
+            <div className="cancel-stream-box">
+              <h3> Cancel Stream</h3>
+              <div>
+                <CancelStream
+                  stream={stream}
+                  onComplete={() => setCancelStatus(!cancelStatus)}
+                />
+              </div>
 
-            {/* CancelStream callback */}
-            {cancelStatus && (
-              <p className="label-close-modal">
-                -Deployment is being cancelled- Close modal
-              </p>
-            )}
+              {/* CancelStream callback */}
+              {cancelStatus && (
+                <p className="label-close-modal">
+                  -Deployment is being cancelled- Close modal
+                </p>
+              )}
+            </div>
 
             {/* Update Stream */}
-            <h3> Update Stream</h3>
-            <div>
-              <UpdateStream
-                stream={stream}
-                onComplete={() => setUpdateStatus(!updateStatus)}
-              />
-            </div>
+            <div className="update-stream-box">
+              <h3> Update Stream</h3>
+              <div>
+                <UpdateStream
+                  stream={stream}
+                  onComplete={() => setUpdateStatus(!updateStatus)}
+                />
+              </div>
 
-            {/* UpdateStream callback */}
-            {updateStatus && (
-              <p className="label-close-modal">
-                -Deployment is being updated- Close modal
-              </p>
-            )}
+              {/* UpdateStream callback */}
+              {updateStatus && (
+                <p className="label-close-modal">
+                  -Deployment is being updated- Close modal
+                </p>
+              )}
+            </div>
           </div>
         </>
       ) : (

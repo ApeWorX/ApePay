@@ -114,16 +114,29 @@ li {
   width: 30%;
 }
 
-/* STREAM DATA */
+/* STREAM PAGE */
 
-.stream-data {
+.stream-status-box,
+.stream-data-box,
+.cancel-stream-box,
+.update-stream-box {
+  margin-top: 10px;
   border: 1px solid black;
   padding: 10px;
   width: 50%;
   text-align: center;
 }
 
-/* STREAM PAGE */
+.stream-status-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cancel-stream-error {
+  width: 50%;
+  overflow: auto;
+}
 
 .loading-stream-text {
   text-align: center;
@@ -134,6 +147,10 @@ li {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.rc-slider {
+  width: 50% !important;
 }
 
 /* CREATE STREAM: STEP 1 */
@@ -217,15 +234,6 @@ li {
   color: white;
   width: 100%;
   text-align: center;
-}
-
-.stream-status-box {
-  border: 1px solid black;
-  width: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px;
 }
 
 .status-graph {

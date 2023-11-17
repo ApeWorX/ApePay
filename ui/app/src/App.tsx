@@ -3,7 +3,7 @@ import { TokenInfo } from "@uniswap/token-lists";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
-import "rc-slider/assets/index.css";
+// import "rc-slider/assets/index.css";
 import "./styles.css";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import {
