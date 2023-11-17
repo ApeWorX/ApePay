@@ -4,8 +4,7 @@ import StreamManager, { Stream } from "@apeworx/apepay";
 import config from "./config";
 import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import BackButton from "./BackButton";
-import HomeButton from "./HomeButton";
+import Header from "./Header";
 
 const CreatorPage = () => {
   const { sm, creator } = useParams();
@@ -68,16 +67,11 @@ const CreatorPage = () => {
 
   return (
     <>
-      {/* Log in */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          padding: 12,
-        }}
-      >
+      <div className="header">
+        <Header />
         <ConnectButton />
       </div>
+
       <h1>
         {fromBlock != null
           ? `Created Streams from block ${String(fromBlock)} from ${creator}`
@@ -109,8 +103,6 @@ const CreatorPage = () => {
           </ul>
         )}
       </div>
-      <BackButton />
-      <HomeButton />
     </>
   );
 };

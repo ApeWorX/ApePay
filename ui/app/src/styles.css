@@ -11,6 +11,62 @@ ul {
   padding: 0px;
 }
 
+a,
+a:link,
+a:visited {
+  color: inherit;
+  cursor: pointer;
+}
+
+a:hover {
+  transition: all 0.3s ease;
+  color: #6200ea;
+  transform: scale(1.05);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.header-app {
+  justify-content: flex-end;
+}
+
+.header-button button {
+  background-color: #6200ea;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 4px;
+  font-weight: bold;
+  transition:
+    background-color 0.3s,
+    box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.header-button button:hover {
+  background-color: #3700b3; /* Darker shade for hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow on hover */
+}
+
+.header-button button:active {
+  background-color: #6200ea; /* Original color on click */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Less shadow on click */
+}
+
+
+
+/* STREAM MANAGER PAGE */
+.create-stream-sm-text {
+  text-align: center;
+}
+
+
+
 /* LIST STREAMS */
 .list-streams {
   position: relative;
@@ -39,6 +95,7 @@ li {
   border: 1px solid black;
   padding: 10px;
 }
+
 /* CREATE STREAM: STEP 1 */
 
 .create-stream-component {

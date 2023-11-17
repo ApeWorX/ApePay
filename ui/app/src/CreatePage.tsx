@@ -6,8 +6,7 @@ import { TokenInfo } from "@uniswap/token-lists";
 import config from "./config";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "react-router-dom";
-import BackButton from "./BackButton";
-import HomeButton from "./BackButton";
+import Header from "./Header";
 
 const StreamPage = () => {
   const { sm } = useParams();
@@ -60,14 +59,8 @@ const StreamPage = () => {
 
   return (
     <>
-      {/* Log in */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          padding: 12,
-        }}
-      >
+      <div className="header">
+        <Header />
         <ConnectButton />
       </div>
 
@@ -94,9 +87,6 @@ const StreamPage = () => {
           {processTxError && <p>Tx Error: {processTxError.message}</p>}
         </div>
       </div>
-
-      <BackButton />
-      <HomeButton />
     </>
   );
 };

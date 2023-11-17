@@ -17,8 +17,7 @@ import {
   useAccount,
 } from "wagmi";
 import { useParams } from "react-router-dom";
-import BackButton from "./BackButton";
-import HomeButton from "./HomeButton";
+import Header from "./Header";
 
 const StreamPage = () => {
   const { sm, creator, streamId } = useParams();
@@ -113,17 +112,12 @@ const StreamPage = () => {
   }, [stream]);
 
   return (
-    <div>
-      {/* Log in */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          padding: 12,
-        }}
-      >
+    <>
+      <div className="header">
+        <Header />
         <ConnectButton />
       </div>
+
       <h1>Stream {streamId} Details</h1>
       {stream && (
         <>
@@ -190,9 +184,7 @@ const StreamPage = () => {
           )}
         </>
       )}
-      <BackButton />
-      <HomeButton />
-    </div>
+    </>
   );
 };
 

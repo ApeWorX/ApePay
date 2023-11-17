@@ -5,8 +5,7 @@ import { Address } from "viem";
 import config from "./config";
 import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import BackButton from "./BackButton";
-import HomeButton from "./HomeButton";
+import Header from "./Header";
 
 const StreamManagerPage = () => {
   const { sm } = useParams();
@@ -75,19 +74,18 @@ const StreamManagerPage = () => {
 
   return (
     <>
-      {/* Log in */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          padding: 12,
-        }}
-      >
+      <div className="header">
+        <Header />
         <ConnectButton />
       </div>
 
       <div>
-        <Link to={`/${sm}/create`}>create stream</Link>
+        <div className="create-stream-sm-text">
+          <Link to={`/${sm}/create`}>
+            <button>Create a Stream with this Stream Manager</button>
+          </Link>
+        </div>
+
         <h1>
           {fromBlock != null
             ? `Created Streams from block ${String(fromBlock)} on ${sm}`
@@ -141,8 +139,6 @@ const StreamManagerPage = () => {
           )}
         </div>
       </div>
-      <BackButton />
-      <HomeButton />
     </>
   );
 };
