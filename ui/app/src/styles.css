@@ -42,7 +42,6 @@ a:hover {
   justify-content: flex-end;
 }
 
-.header-button button,
 .cancel-stream-button,
 .create-stream-sm-button,
 .update-stream-button,
@@ -50,6 +49,20 @@ a:hover {
 .button-validate-transaction,
 .button-create-stream {
   background-color: #6200ea !important;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 4px;
+  font-weight: bold;
+  transition:
+    background-color 0.3s,
+    box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.header-button button {
+  background-color: grey;
   color: white;
   border: none;
   padding: 10px 20px;
