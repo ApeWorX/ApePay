@@ -18,6 +18,7 @@ import {
 } from "wagmi";
 import { useParams } from "react-router-dom";
 import BackButton from "./BackButton";
+import HomeButton from "./HomeButton";
 
 const StreamPage = () => {
   const { sm, creator, streamId } = useParams();
@@ -187,9 +188,10 @@ const StreamPage = () => {
               -Deployment is being updated- Close modal
             </p>
           )}
-          <BackButton />
         </>
       )}
+      <BackButton />
+      <HomeButton />
     </div>
   );
 };

@@ -22,44 +22,44 @@ import {
 import { Link } from "react-router-dom";
 
 function App() {
-  const tokenList: TokenInfo[] = config.tokens;
+  // const tokenList: TokenInfo[] = config.tokens;
   const [chartType, setChartType] = useState<"bar" | "pie">("bar");
 
   // Let user pick the stream he wants to work on for the status, update, and cancel components
   const [selectedStream, setSelectedStream] = useState<Stream | null>(null);
 
-  // Fake cart for the purpose of the demo
-  const Cart = () => {
-    return (
-      <div className="cart">
-        <div className="cart-item">
-          <div className="cart-info">
-            <span className="cart-title">Cart Title</span>
-            <span className="cart-quantity">#: 1</span>
-            <span className="price">$XX.00/day</span>
-          </div>
-          <div className="cart-details">
-            <strong>Details:</strong>
-            <p>Description of the cart that you are about to pay for.</p>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // // Fake cart for the purpose of the demo
+  // const Cart = () => {
+  //   return (
+  //     <div className="cart">
+  //       <div className="cart-item">
+  //         <div className="cart-info">
+  //           <span className="cart-title">Cart Title</span>
+  //           <span className="cart-quantity">#: 1</span>
+  //           <span className="price">$XX.00/day</span>
+  //         </div>
+  //         <div className="cart-details">
+  //           <strong>Details:</strong>
+  //           <p>Description of the cart that you are about to pay for.</p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   // Manage results from CreateStream component
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [processTxError, setProcessTxError] = useState<Error | null>(null);
-  const [isProcessed, setIsProcessed] = useState<boolean>(false);
-  const handleTransactionStatus = (
-    processing: boolean,
-    processed: boolean,
-    error: Error | null,
-  ) => {
-    setIsProcessing(processing);
-    setIsProcessed(processed);
-    setProcessTxError(error);
-  };
+  // const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  // const [processTxError, setProcessTxError] = useState<Error | null>(null);
+  // const [isProcessed, setIsProcessed] = useState<boolean>(false);
+  // const handleTransactionStatus = (
+  //   processing: boolean,
+  //   processed: boolean,
+  //   error: Error | null,
+  // ) => {
+  //   setIsProcessing(processing);
+  //   setIsProcessed(processed);
+  //   setProcessTxError(error);
+  // };
 
   // Manage cancel status from CancelStream component
   // Use this callback to close the cancel modal
@@ -70,9 +70,9 @@ function App() {
   const [updateStatus, setUpdateStatus] = useState<boolean>(false);
 
   // Generate random string (demo app only);
-  const renderReasonCode = async () => {
-    return Math.random().toString(36).substring(7);
-  };
+  // const renderReasonCode = async () => {
+  //   return Math.random().toString(36).substring(7);
+  // };
 
   const publicClient = usePublicClient();
   const walletClient = useWalletClient()?.data as WalletClient;

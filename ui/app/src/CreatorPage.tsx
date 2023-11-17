@@ -3,8 +3,9 @@ import { useParams, Link } from "react-router-dom";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import config from "./config";
 import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
-import BackButton from "./BackButton";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import BackButton from "./BackButton";
+import HomeButton from "./HomeButton";
 
 const CreatorPage = () => {
   const { sm, creator } = useParams();
@@ -109,6 +110,7 @@ const CreatorPage = () => {
         )}
       </div>
       <BackButton />
+      <HomeButton />
     </>
   );
 };

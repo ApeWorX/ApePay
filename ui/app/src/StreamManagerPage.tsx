@@ -5,6 +5,8 @@ import { Address } from "viem";
 import config from "./config";
 import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import BackButton from "./BackButton";
+import HomeButton from "./HomeButton";
 
 const StreamManagerPage = () => {
   const { sm } = useParams();
@@ -139,6 +141,8 @@ const StreamManagerPage = () => {
           )}
         </div>
       </div>
+      <BackButton />
+      <HomeButton />
     </>
   );
 };
