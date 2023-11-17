@@ -72,11 +72,11 @@ const CreatorPage = () => {
         <ConnectButton />
       </div>
 
-      <h1>
+      <h2>
         {fromBlock != null
           ? `Created Streams from block ${String(fromBlock)} from ${creator}`
           : "Created Streams"}
-      </h1>
+      </h2>
       {/* Stream list */}
       <div className="list-streams">
         {sm === null ? (

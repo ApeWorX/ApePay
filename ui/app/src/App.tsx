@@ -178,11 +178,13 @@ function App() {
         <ConnectButton />
       </div>
 
-      <div>
-        <p> Stream Manager </p>
-        <Link to={`/${config.streamManagerAddress}`}>
-          <p> - {config.streamManagerAddress as `0x${string}`} </p>
-        </Link>
+      <div className="list-stream-managers">
+        <h2> Stream Manager </h2>
+        <ul>
+          <Link to={`/${config.streamManagerAddress}`}>
+            <li> {config.streamManagerAddress as `0x${string}`} </li>
+          </Link>
+        </ul>
       </div>
     </>
   );

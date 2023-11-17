@@ -1,5 +1,6 @@
 /* GLOBAL */
-h1 {
+h1,
+h2 {
   text-align: center;
 }
 
@@ -9,6 +10,10 @@ h3 {
 
 ul {
   padding: 0px;
+}
+
+li {
+  vertical-align: middle;
 }
 
 a,
@@ -21,7 +26,6 @@ a:visited {
 a:hover {
   transition: all 0.3s ease;
   color: #6200ea;
-  transform: scale(1.05);
 }
 
 .header {
@@ -49,23 +53,46 @@ a:hover {
 }
 
 .header-button button:hover {
-  background-color: #3700b3; /* Darker shade for hover */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow on hover */
+  background-color: #3700b3;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .header-button button:active {
-  background-color: #6200ea; /* Original color on click */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Less shadow on click */
+  background-color: #6200ea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+/* HOMEPAGE */
 
+.list-stream-managers {
+  text-align: center;
+}
+
+.list-stream-managers ul {
+  list-style-type: disc;
+  display: inline-block;
+  text-align: left;
+  padding-left: 20px;
+}
 
 /* STREAM MANAGER PAGE */
 .create-stream-sm-text {
   text-align: center;
 }
 
-
+.create-stream-sm-button {
+  background-color: #6200ea;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 4px;
+  font-weight: bold;
+  transition:
+    background-color 0.3s,
+    box-shadow 0.3s;
+  cursor: pointer;
+}
 
 /* LIST STREAMS */
 .list-streams {
@@ -73,6 +100,7 @@ a:hover {
   text-align: center;
   width: 25em;
   margin: 0px auto;
+  line-height: 2em;
 }
 
 .list-creator {

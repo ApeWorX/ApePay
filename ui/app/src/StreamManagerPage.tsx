@@ -82,15 +82,23 @@ const StreamManagerPage = () => {
       <div>
         <div className="create-stream-sm-text">
           <Link to={`/${sm}/create`}>
-            <button>Create a Stream with this Stream Manager</button>
+            <button className="create-stream-sm-button">
+              Create a Stream with this Stream Manager
+            </button>
           </Link>
         </div>
 
-        <h1>
-          {fromBlock != null
-            ? `Created Streams from block ${String(fromBlock)} on ${sm}`
-            : `Created Streams on ${sm}`}
-        </h1>
+        <h2>
+          {fromBlock != null ? (
+            <>
+              {`Created Streams from block ${String(fromBlock)}`}
+              <br />
+              {`on ${sm}`}
+            </>
+          ) : (
+            `Created Streams on ${sm}`
+          )}
+        </h2>
 
         {/* Stream list */}
         <div className="list-streams">
@@ -115,7 +123,7 @@ const StreamManagerPage = () => {
                       <h3 className="list-creator"> {creator}</h3>
                     </Link>
 
-                    <ul>
+                    <ul className="list-streams">
                       {groupedStreams[creatorKey]
                         ?.sort(
                           (a, b) => Number(a.streamId) - Number(b.streamId),
@@ -125,9 +133,7 @@ const StreamManagerPage = () => {
                             <Link
                               to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
                             >
-                              <p>
-                                <strong>Stream ID:</strong> {stream.streamId}
-                              </p>
+                              ID: {stream.streamId}
                             </Link>
                           </li>
                         ))}
