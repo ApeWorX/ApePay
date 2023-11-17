@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import config from "./config";
 // NOTE: Do this or else it won't render (or create your own CSS)
 import "rc-slider/assets/index.css";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import "./styles.css";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import {
@@ -112,6 +113,16 @@ const StreamPage = () => {
 
   return (
     <div>
+      {/* Log in */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          padding: 12,
+        }}
+      >
+        <ConnectButton />
+      </div>
       <h1>Stream {streamId} Details</h1>
       {stream && (
         <>

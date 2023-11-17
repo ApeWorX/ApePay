@@ -185,27 +185,6 @@ function App() {
         <ConnectButton />
       </div>
 
-      {/* Create a stream */}
-      <h1> Create a stream</h1>
-      <div className="create-stream-component">
-        <CreateStream
-          streamManagerAddress={config.streamManagerAddress as `0x${string}`}
-          amountPerSecond={BigInt(100)}
-          registerStream={addStreams}
-          renderReasonCode={renderReasonCode}
-          handleTransactionStatus={handleTransactionStatus}
-          tokenList={tokenList}
-          cart={<Cart />}
-        />
-        {/* CreateStream callback */}
-        <div className="tx-status-display">
-          {isProcessing && <p>Processing Transaction... </p>}
-          {isProcessed && (
-            <p>Transaction Successful! -redirect to another page-</p>
-          )}
-          {processTxError && <p>Tx Error: {processTxError.message}</p>}
-        </div>
-      </div>
 
       {/* Edit specific stream */}
       <h1> Work on a specific stream</h1>

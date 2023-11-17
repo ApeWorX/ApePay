@@ -4,6 +4,7 @@ import StreamManager, { Stream } from "@apeworx/apepay";
 import { Address } from "viem";
 import config from "./config";
 import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const StreamManagerPage = () => {
   const { sm } = useParams();
@@ -71,58 +72,74 @@ const StreamManagerPage = () => {
   );
 
   return (
-    <div>
-      <Link to={`/${sm}/create`}>create stream</Link>
-      <h1>
-        {fromBlock != null
-          ? `Created Streams from block ${String(fromBlock)} on ${sm}`
-          : `Created Streams on ${sm}`}
-      </h1>
-      {/* Stream list */}
-      <div className="list-streams">
-        {sm === null ? (
-          <p>Fetching SM...</p>
-        ) : createdStreams.length === 0 ? (
-          <p>
-            {fromBlock != null
-              ? `Loading streams from block ${String(fromBlock)}...`
-              : "Loading all of the created streams"}
-          </p>
-        ) : (
-          <ul>
-            {Object.keys(groupedStreams).map((creator) => {
-              const creatorKey = creator as Address;
-
-              return (
-                <div key={creator}>
-                  <h3 className="list-creator"> Creator:</h3>
-
-                  <Link to={`/${sm}/${creator}`}>
-                    <h3 className="list-creator"> {creator}</h3>
-                  </Link>
-
-                  <ul>
-                    {groupedStreams[creatorKey]
-                      ?.sort((a, b) => Number(a.streamId) - Number(b.streamId))
-                      .map((stream, index) => (
-                        <li key={index}>
-                          <Link
-                            to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
-                          >
-                            <p>
-                              <strong>Stream ID:</strong> {stream.streamId}
-                            </p>
-                          </Link>
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </ul>
-        )}
+    <>
+      {/* Log in */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          padding: 12,
+        }}
+      >
+        <ConnectButton />
       </div>
-    </div>
+
+      <div>
+        <Link to={`/${sm}/create`}>create stream</Link>
+        <h1>
+          {fromBlock != null
+            ? `Created Streams from block ${String(fromBlock)} on ${sm}`
+            : `Created Streams on ${sm}`}
+        </h1>
+
+        {/* Stream list */}
+        <div className="list-streams">
+          {sm === null ? (
+            <p>Fetching SM...</p>
+          ) : createdStreams.length === 0 ? (
+            <p>
+              {fromBlock != null
+                ? `Loading streams from block ${String(fromBlock)}...`
+                : "Loading all of the created streams"}
+            </p>
+          ) : (
+            <ul>
+              {Object.keys(groupedStreams).map((creator) => {
+                const creatorKey = creator as Address;
+
+                return (
+                  <div key={creator}>
+                    <h3 className="list-creator"> Creator:</h3>
+
+                    <Link to={`/${sm}/${creator}`}>
+                      <h3 className="list-creator"> {creator}</h3>
+                    </Link>
+
+                    <ul>
+                      {groupedStreams[creatorKey]
+                        ?.sort(
+                          (a, b) => Number(a.streamId) - Number(b.streamId),
+                        )
+                        .map((stream, index) => (
+                          <li key={index}>
+                            <Link
+                              to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
+                            >
+                              <p>
+                                <strong>Stream ID:</strong> {stream.streamId}
+                              </p>
+                            </Link>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
+    </>
   );
 };
 
