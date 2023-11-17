@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import BackButton from "./BackButton";
 import { CreateStream } from "@apeworx/apepay-react";
-import StreamManager, { Stream } from "@apeworx/apepay";
+import { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
 import config from "./config";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useNavigate } from "react-router-dom";
 
 const StreamPage = () => {
   const { sm } = useParams();
+  const navigate = useNavigate();
 
   // Fake cart for the purpose of the demo
   const Cart = () => {
@@ -30,7 +32,8 @@ const StreamPage = () => {
   };
 
   const addStreams = (stream: Stream) => {
-    console.log("stream");
+    console.log("stream created");
+    navigate(`/${sm}/${stream.creator}/${stream.streamId}`);
   };
 
   const tokenList: TokenInfo[] = config.tokens;
