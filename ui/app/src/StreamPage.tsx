@@ -118,7 +118,9 @@ const StreamPage = () => {
         <ConnectButton />
       </div>
 
-      <h1>Stream {streamId}</h1>
+      <h2>
+        Stream {streamId} by <br /> {creator}
+      </h2>
       {stream ? (
         <>
           <div className="stream-components">
