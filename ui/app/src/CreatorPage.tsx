@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import StreamManager, { Stream } from "@apeworx/apepay";
 import config from "./config";
 import { usePublicClient, useWalletClient, WalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import StreamManager, { Stream } from "@apeworx/apepay";
+import { StreamStatus } from "@apeworx/apepay-react";
 import Header from "./Header";
 
 const CreatorPage = () => {
@@ -96,11 +97,19 @@ const CreatorPage = () => {
         ) : (
           <ul>
             {createdStreams.map((stream, index) => (
-              <li key={index}>
+              <li className="list-creator-streams" key={index}>
                 <Link
                   to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
                 >
-                  ID: {stream.streamId}
+                  <span>ID: {stream.streamId}</span>
+                  <div className="stream-status-component">
+                    <StreamStatus
+                      stream={stream}
+                      chartType={"bar"}
+                      background="#6200ea"
+                      color="black"
+                    />
+                  </div>
                 </Link>
               </li>
             ))}

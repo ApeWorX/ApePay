@@ -120,17 +120,35 @@ li {
 
 /* LIST STREAMS */
 .list-streams {
-  position: relative;
-  text-align: center;
   width: 30em;
   margin: 0px auto;
   line-height: 2em;
+  text-align: center;
 }
 
 .list-creator {
   font-weight: bold;
   align-items: center;
   line-height: 30px;
+}
+
+.list-creator-streams {
+  text-align: center;
+  width: 100%;
+  list-style-type: none;
+  border: 2px solid black;
+  margin-top: 15px;
+  border-radius: 5px;
+}
+
+.list-creator-streams span {
+  display: block;
+  width: 100%;
+}
+
+.list-creator-streams:hover {
+  transform: scale(1.02);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* STREAM PAGE */
