@@ -7,6 +7,12 @@ import { publicProvider } from "wagmi/providers/public";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import StreamManagerPage from "./StreamManagerPage";
+import CreatePage from "./CreatePage";
+import CreatorPage from "./CreatorPage";
+import StreamPage from "./StreamPage";
+
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 const { chains, publicClient } = configureChains(
   // NOTE: Testnet deployment on Sepolia
@@ -47,7 +53,15 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <WagmiConfig config={wagmiConfig}>
       <RainbowKitProvider chains={chains}>
-        <App />
+        <Router>
+          <Routes>
+            <Route path="/" element={<App />} />
+            <Route path=":sm" element={<StreamManagerPage />} />
+            <Route path=":sm/create" element={<CreatePage />} />
+            <Route path=":sm/:creator" element={<CreatorPage />} />
+            <Route path=":sm/:creator/:streamId" element={<StreamPage />} />
+          </Routes>
+        </Router>
       </RainbowKitProvider>
     </WagmiConfig>
   </React.StrictMode>,
