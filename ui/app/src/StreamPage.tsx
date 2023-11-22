@@ -152,11 +152,7 @@ const StreamPage = () => {
               </p>
               <p>
                 <strong>Start time: </strong>
-                {streamInfo.startTime
-                  ? new Date(
-                      Number(streamInfo.startTime) * 1000,
-                    ).toLocaleString()
-                  : "fetching..."}
+                {new Date(Number(stream.startTime) * 1000).toLocaleString()}
               </p>
             </div>
 
