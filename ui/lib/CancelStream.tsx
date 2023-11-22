@@ -15,25 +15,20 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
   const [inProgress, setInProgress] = useState(false);
   // Get the minimum stream life, before which a stream cannot be Canceled
   const minStreamLife = Number(props.stream.streamManager.MIN_STREAM_LIFE);
-  // Get the starting time of a stream
-  const [startTime, setStartTime] = useState<number>(0);
   // Manage error handling
   const [error, setError] = useState<string | null>(null);
   // currenTime updates every second
   const currentTime = useCurrentTime();
+  // Calculate the time in seconds before a stream can be cancelled
+  const timeBeforeCancellability =
+    Number(props.stream.startTime) + minStreamLife - currentTime;
 
   // Check if the stream is cancellable and set the button state accordingly.
   useEffect(() => {
-    // Check if the stream is cancellable and set the button state accordingly
-    const checkStreamCancelable = async () => {
-      try {
-        const isCancelable = await props.stream.isCancelable();
-        if (isCancelable) {
-          setButtonEnabled(isCancelable);
-          clearInterval(interval);
-        }
-      } catch (error) {
-        console.error("Error checking stream cancellability:", error);
+    const checkStreamCancelable = () => {
+      if (props.stream.isCancelable()) {
+        setButtonEnabled(true);
+        clearInterval(interval);
       }
     };
     checkStreamCancelable;
@@ -62,42 +57,12 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
     }
   };
 
-  // Fetch starttime
-  useEffect(() => {
-    const getStartTime = async () => {
-      try {
-        const streamInfo = await props.stream.streamInfo();
-        setStartTime(Number(streamInfo.start_time));
-        if (streamInfo && streamInfo.start_time !== 0n) {
-          clearInterval(interval);
-        }
-      } catch (error) {
-        console.error("Error getting stream token");
-      }
-    };
-    const interval = setInterval(getStartTime, 1000);
-    return () => clearInterval(interval);
-  }, [startTime]);
-
-  // Calculate the time in seconds before a stream can be cancelled
-  const timeBeforeCancellability = Math.max(
-    0,
-    startTime + minStreamLife - currentTime,
-  );
-
   return (
     <div className="stream-container">
-      {minStreamLife === null ? (
-        <div className="cancel-stream-label-loading">
-          Fetching minimum life...
-        </div>
-      ) : !isButtonEnabled &&
-        !inProgress &&
-        startTime !== 0 &&
-        Number(timeBeforeCancellability) !== 0 ? (
+      {!isButtonEnabled && !inProgress && timeBeforeCancellability > 0 ? (
         <>
           <div className="cancel-stream-label-min-life">
-            Deployment cannot be cancelled yet: its minimum life is
+            Simulation cannot be cancelled yet: its minimum life is
             {formatTime(Number(minStreamLife))}.
           </div>
           <div className="cancel-stream-label-cancel-time">

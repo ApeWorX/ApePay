@@ -36,6 +36,7 @@ export class Stream {
   streamId: number;
   token: Address;
   amountPerSecond: bigint;
+  startTime: number;
   publicClient: PublicClient;
   walletClient?: WalletClient;
 
@@ -45,6 +46,7 @@ export class Stream {
     streamId: number,
     token: Address,
     amountPerSecond: bigint,
+    startTime: number,
     publicClient: PublicClient,
     walletClient?: WalletClient,
   ) {
@@ -53,6 +55,7 @@ export class Stream {
     this.streamId = streamId;
     this.token = token;
     this.amountPerSecond = amountPerSecond;
+    this.startTime = startTime;
     this.publicClient = publicClient;
     this.walletClient = walletClient;
   }
@@ -65,6 +68,7 @@ export class Stream {
   ): Promise<Stream> {
     const creator = ("0x" + (log.topics[2] as string).slice(-40)) as Address;
     const streamId = Number(log.topics[3]);
+    const startTime = Number(log.topics[4]);
     const token = ("0x" + (log.topics[1] as string).slice(-40)) as Address;
 
     const streamInfo: StreamInfo = (await publicClient.readContract({
@@ -81,6 +85,7 @@ export class Stream {
       token,
       // amount_per_second can't be changed once the stream has been created
       BigInt(streamInfo.amount_per_second),
+      startTime,
       publicClient,
       walletClient,
     );
@@ -162,13 +167,8 @@ export class Stream {
     });
   }
 
-  async isCancelable(): Promise<boolean> {
-    return (await this.publicClient.readContract({
-      address: this.streamManager.address,
-      abi: StreamManagerContractType.abi as Abi,
-      functionName: "stream_is_cancelable",
-      args: [this.creator, this.streamId],
-    })) as boolean;
+  isCancelable(): boolean {
+    return this.streamManager.MIN_STREAM_LIFE < (Date.now() / 1000) - Number(this.startTime);
   }
 }
 
@@ -279,6 +279,7 @@ export default class StreamManager {
       streamId,
       token,
       amountPerSecond,
+      startTime as number,
       this.publicClient,
       this.walletClient,
     );
@@ -291,6 +292,7 @@ export default class StreamManager {
       log.args.stream_id as number,
       log.args.token,
       BigInt(log.args.amount_per_second),
+      log.args.start_time,
       this.publicClient,
       this.walletClient,
     );
