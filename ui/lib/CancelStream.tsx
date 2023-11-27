@@ -5,7 +5,7 @@ import { useCurrentTime } from "./utils";
 
 interface CancelStreamProps {
   stream: Stream;
-  streamWording?: string;
+  productName?: string;
   onComplete: () => void;
 }
 
@@ -63,7 +63,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
       {!isButtonEnabled && !inProgress && timeBeforeCancellability > 0 ? (
         <>
           <div className="cancel-stream-label-min-life">
-            {props.streamWording || "Stream"} cannot be cancelled yet: its
+            {props.productName || "Stream"} cannot be cancelled yet: its
             minimum life is
             {formatTime(Number(minStreamLife))}.
           </div>
@@ -85,7 +85,7 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
         onClick={handleCancel}
         disabled={!isButtonEnabled}
       >
-        Cancel {props.streamWording || "Stream"}
+        Cancel {props.productName || "Stream"}
       </button>
       <div className="cancel-stream-error"> {error && error}</div>
     </div>

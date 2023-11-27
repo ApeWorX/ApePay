@@ -187,7 +187,7 @@ const StreamPage = () => {
               <div>
                 <CancelStream
                   stream={stream}
-                  streamWording={"Simulation"}
+                  productName={"Simulation"}
                   onComplete={() => setCancelStatus(!cancelStatus)}
                 />
               </div>
