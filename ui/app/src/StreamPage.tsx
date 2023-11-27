@@ -132,7 +132,7 @@ const StreamPage = () => {
               </p>
               <p>
                 <strong>Token: </strong>
-                {String(streamInfo.token)}
+                {streamInfo.token ? String(streamInfo.token) : "fetching..."}
               </p>
               <p>
                 <strong>Creator: </strong>
@@ -140,11 +140,19 @@ const StreamPage = () => {
               </p>
               <p>
                 <strong>Amount per second: </strong>
-                {String(streamInfo.amountPerSecond)}
+                {streamInfo.amountPerSecond
+                  ? String(streamInfo.amountPerSecond)
+                  : "fetching..."}
               </p>
               <p>
                 <strong>Funded amount: </strong>
-                {String(streamInfo.fundedAmount)}
+                {streamInfo.fundedAmount
+                  ? String(streamInfo.fundedAmount)
+                  : "fetching..."}
+              </p>
+              <p>
+                <strong>Start time: </strong>
+                {new Date(Number(stream.startTime) * 1000).toLocaleString()}
               </p>
             </div>
 
@@ -179,6 +187,7 @@ const StreamPage = () => {
               <div>
                 <CancelStream
                   stream={stream}
+                  productName={"Simulation"}
                   onComplete={() => setCancelStatus(!cancelStatus)}
                 />
               </div>
@@ -186,7 +195,7 @@ const StreamPage = () => {
               {/* CancelStream callback */}
               {cancelStatus && (
                 <p className="label-close-modal">
-                  -Deployment is being cancelled- Close modal
+                  -Stream is being cancelled- Close modal
                 </p>
               )}
             </div>
@@ -204,7 +213,7 @@ const StreamPage = () => {
               {/* UpdateStream callback */}
               {updateStatus && (
                 <p className="label-close-modal">
-                  -Deployment is being updated- Close modal
+                  -Stream is being updated- Close modal
                 </p>
               )}
             </div>

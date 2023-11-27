@@ -297,3 +297,8 @@ li {
   width: 50%;
   overflow: auto;
 }
+
+.cancel-stream-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

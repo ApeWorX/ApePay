@@ -135,7 +135,6 @@ const CreateStream = (props: CreateStreamProps) => {
     (tokenData?.value || BigInt(0)) / BigInt(props.amountPerSecond),
   );
 
-  // TODO: Increase stability of deployments beyond a week
   const maxTimeDays: number = Math.min(Math.floor(maxTime / SECS_PER_DAY), 7); // Up to a week
   const marks = Object.fromEntries(
     Array.from(Array(maxTimeDays).keys()).map((v: number) => [
