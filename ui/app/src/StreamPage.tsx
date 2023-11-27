@@ -195,7 +195,7 @@ const StreamPage = () => {
               {/* CancelStream callback */}
               {cancelStatus && (
                 <p className="label-close-modal">
-                  -Simulation is being cancelled- Close modal
+                  -Stream is being cancelled- Close modal
                 </p>
               )}
             </div>
@@ -213,7 +213,7 @@ const StreamPage = () => {
               {/* UpdateStream callback */}
               {updateStatus && (
                 <p className="label-close-modal">
-                  -Simulation is being updated- Close modal
+                  -Stream is being updated- Close modal
                 </p>
               )}
             </div>
