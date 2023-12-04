@@ -14,13 +14,13 @@ packages = [
 python = ">=3.8,<4"
 eth-ape = "^0.6.21"
 pydantic = "^1.10.13"
+silverback = ">=0.1.0,<0.3"
 
 [tool.poetry.group.test.dependencies]
 ape-foundry = "^0.6.16"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
-silverback = "^0.1.0"
 
 [build-system]
 requires = ["poetry-core"]
