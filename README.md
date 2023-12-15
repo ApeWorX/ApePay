@@ -190,7 +190,19 @@ To publish the React Component library, do the same thing as the SDK exepct use 
 
 #### Demo App and Management Console
 
-TBD
+If you need to deploy the demo app to prod from scratch, just create a new heroku project and add these buildpacks from the Heroku CLI (or directly in your Heroku dashboard)
+
+```sh
+$ heroku buildpacks:clear
+$ heroku buildpacks:add heroku/python
+$ heroku buildpacks:add heroku/nodejs
+```
+
+Then just run:
+
+```sh
+$ git push heroku main
+```
 
 ## License
 

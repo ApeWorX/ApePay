@@ -1,5 +1,6 @@
 {
   "name": "apepay-js-root",
+  "type": "module",
   "private": true,
   "workspaces": [
     "sdk/js",
@@ -9,7 +10,11 @@
   "scripts": {
     "format": "prettier -w ui && prettier -w sdk",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "clean": "rm -rf js-dist"
+    "clean": "rm -rf js-dist",
+    "build": "bash build-script.sh"
+  },
+  "engines": {
+    "node": "16.15.1"
   },
   "dependencies": {
     "@types/node": "^18.16.12",
@@ -26,6 +31,7 @@
     "eslint-plugin-react": "^7.33.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
+    "express": "^4.18.2",
     "prettier": "^3.0.1",
     "react-router-dom": "^6.18.0",
     "typescript": "^5.1.6",
