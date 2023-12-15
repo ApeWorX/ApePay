@@ -236,13 +236,14 @@ const CreateStream = (props: CreateStreamProps) => {
     setSelectedToken(null);
 
     // Filter the tokens based on the chainId
-    const filteredTokens = props.tokenList.filter((token) => token.chainId === targetChainId);
+    const filteredTokens = props.tokenList.filter(
+      (token) => token.chainId === targetChainId,
+    );
 
     // If there's only one token, set it as the selected token
     if (filteredTokens.length === 1) {
       setSelectedToken(filteredTokens[0]);
     }
-
   }, [props.tokenList, targetChainId]);
 
   // Select the payment token among tokens with the same chainID
