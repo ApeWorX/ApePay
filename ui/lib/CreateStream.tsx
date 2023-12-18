@@ -229,15 +229,22 @@ const CreateStream = (props: CreateStreamProps) => {
   };
 
   // Get your current chainID
-  let targetChainId: number | undefined;
-  if (chain) {
-    targetChainId = chain.id;
-  }
+  const targetChainId = chain ? chain.id : undefined;
 
-  // reset selectedToken if chainId changes
   useEffect(() => {
+    // Reset the selectedToken when the targetChainId changes
     setSelectedToken(null);
-  }, [targetChainId]);
+
+    // Filter the tokens based on the chainId
+    const filteredTokens = props.tokenList.filter(
+      (token) => token.chainId === targetChainId,
+    );
+
+    // If there's only one token, set it as the selected token
+    if (filteredTokens.length === 1) {
+      setSelectedToken(filteredTokens[0]);
+    }
+  }, [props.tokenList, targetChainId]);
 
   // Select the payment token among tokens with the same chainID
   const Step1 = () => {
