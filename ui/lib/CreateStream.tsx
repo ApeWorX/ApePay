@@ -10,6 +10,7 @@ import {
   useContractWrite,
   useWaitForTransaction,
   useNetwork,
+  useContractRead,
 } from "wagmi";
 import { fetchBalance } from "@wagmi/core";
 import StreamManager, { Stream } from "@apeworx/apepay";
@@ -245,6 +246,34 @@ const CreateStream = (props: CreateStreamProps) => {
       setSelectedToken(filteredTokens[0]);
     }
   }, [props.tokenList, targetChainId]);
+
+
+  // WIP: fix this
+  const erc20ABI = [
+    {
+      constant: true,
+      inputs: [
+        { name: "_owner", type: "address" },
+        { name: "_spender", type: "address" },
+      ],
+      name: "allowance",
+      outputs: [{ name: "", type: "uint256" }],
+      type: "function",
+    },
+  ];
+
+  const [allowance, setAllowance] = useState<number>(0);
+
+  const { data: allowanceData } = useContractRead({
+    address: selectedToken?.address as Address,
+    abi: erc20ABI,
+    functionName: "allowance",
+    args: [address, props.streamManagerAddress],
+    watch: true,
+  });
+
+  console.log("allowance", allowanceData);
+
 
   // Select the payment token among tokens with the same chainID
   const Step1 = () => {
