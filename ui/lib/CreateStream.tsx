@@ -457,9 +457,12 @@ const CreateStream = (props: CreateStreamProps) => {
           {isAllowanceSufficient ? (
             <button
               className="button-validate-transaction allowance"
-              onClick={() => validateStep(2)}
+              onClick={createStream}
+              disabled={buttonCreateClicked}
             >
-              {`Proceed to Next Step`}
+              {`Run for ${selectedTime / SECS_PER_DAY} day${
+                selectedTime !== SECS_PER_DAY ? "s" : ""
+              }`}
             </button>
           ) : (
             <button
@@ -484,8 +487,8 @@ const CreateStream = (props: CreateStreamProps) => {
           )}
           {txLoading && (
             <div className="validate-transaction-message">
-              Transaction approved: you will be redirected once it has been
-              processed...
+              Transaction approved: you will move to the next step once it has
+              been processed...
             </div>
           )}
           {txError && (
@@ -513,7 +516,7 @@ const CreateStream = (props: CreateStreamProps) => {
             onClick={createStream}
             disabled={buttonCreateClicked}
           >
-            {`Open Stream for ${selectedTime / SECS_PER_DAY} day${
+            {`Run for ${selectedTime / SECS_PER_DAY} day${
               selectedTime !== SECS_PER_DAY ? "s" : ""
             }`}
           </button>
