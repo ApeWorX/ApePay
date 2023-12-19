@@ -247,7 +247,6 @@ const CreateStream = (props: CreateStreamProps) => {
     }
   }, [props.tokenList, targetChainId]);
 
-  const [allowance, setAllowance] = useState<number | null>(null);
   const [isAllowanceSufficient, setIsAllowanceSufficient] =
     useState<boolean>(false);
 
@@ -284,7 +283,6 @@ const CreateStream = (props: CreateStreamProps) => {
     // Check if allowance data is available and update allowance state
     if (allowanceData !== null && allowanceData !== undefined) {
       const fetchedAllowance = Number(allowanceData.toString());
-      setAllowance(fetchedAllowance);
 
       // Check if the fetched allowance is sufficient for the transaction cost
       if (txCost !== undefined) {
