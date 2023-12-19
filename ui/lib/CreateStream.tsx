@@ -272,24 +272,26 @@ const CreateStream = (props: CreateStreamProps) => {
     abi: erc20ABI,
     args: [address, props.streamManagerAddress],
     watch: true,
+    onError(error) {
+      console.log("Error fetching allowance", error);
+    },
+    onSettled(data, error) {
+      console.log("Allowance settled", { data, error });
+    },
   });
 
   useEffect(() => {
-    if (allowanceData) {
+    // Check if allowance data is available and update allowance state
+    if (allowanceData !== null && allowanceData !== undefined) {
       const fetchedAllowance = Number(allowanceData.toString());
       setAllowance(fetchedAllowance);
-    }
-  }, [allowanceData]);
 
-  // Effect hook to check if the allowance is sufficient
-  useEffect(() => {
-    if (allowance !== null && txCost !== undefined) {
-      setIsAllowanceSufficient(allowance >= txCost);
+      // Check if the fetched allowance is sufficient for the transaction cost
+      if (txCost !== undefined) {
+        setIsAllowanceSufficient(fetchedAllowance >= txCost);
+      }
     }
-  }, [allowance, txCost]);
-
-  console.log("allowance", allowance);
-  console.log("cost", txCost);
+  }, [allowanceData, txCost]);
 
   // Select the payment token among tokens with the same chainID
   const Step1 = () => {
@@ -436,6 +438,9 @@ const CreateStream = (props: CreateStreamProps) => {
       <div>
         <div className="cart-body">{props.cart && props.cart}</div>
         <div className="payment-flow">
+          <div className="stream-duration">
+            Select the number of days you want to run your stream
+          </div>
           <Slider
             className="slider-select-time"
             min={1}
@@ -449,30 +454,23 @@ const CreateStream = (props: CreateStreamProps) => {
             }
             disabled={isSuccess}
           />
-
-          {isAllowanceSufficient && (
-            <>
-              <button
-                className="button-validate-transaction allowance"
-                onClick={() => validateStep(2)}
-              >
-                {`Approve ${Math.floor(transactionAmount + 1)}`}&nbsp;
-                {`${selectedToken?.symbol}`}
-              </button>
-            </>
-          )}
-          {!isAllowanceSufficient && (
-            <>
-              <button
-                className="button-validate-transaction"
-                onClick={approveStream}
-                disabled={isSuccess}
-                style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
-              >
-                {`Approve ${Math.floor(transactionAmount + 1)}`}&nbsp;
-                {`${selectedToken?.symbol}`}
-              </button>
-            </>
+          {isAllowanceSufficient ? (
+            <button
+              className="button-validate-transaction allowance"
+              onClick={() => validateStep(2)}
+            >
+              {`Proceed to Next Step`}
+            </button>
+          ) : (
+            <button
+              className="button-validate-transaction"
+              onClick={approveStream}
+              disabled={isSuccess}
+              style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
+            >
+              {`Approve ${Math.floor(transactionAmount + 1)}`}{" "}
+              {`${selectedToken?.symbol}`}
+            </button>
           )}
           {isLoading && (
             <div className="validate-transaction-message">

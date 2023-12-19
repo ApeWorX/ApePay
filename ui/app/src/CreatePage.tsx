@@ -72,7 +72,7 @@ const StreamPage = () => {
       <div className="create-stream-component">
         <CreateStream
           streamManagerAddress={sm as `0x${string}`}
-          amountPerSecond={BigInt(30000000000000)}
+          amountPerSecond={BigInt(10000000000000)}
           registerStream={addStreams}
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}
