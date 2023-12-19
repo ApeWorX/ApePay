@@ -247,16 +247,49 @@ const CreateStream = (props: CreateStreamProps) => {
     }
   }, [props.tokenList, targetChainId]);
 
-  const [allowance, setAllowance] = useState<number>(0);
+  const [allowance, setAllowance] = useState<number | null>(null);
+  const [isAllowanceSufficient, setIsAllowanceSufficient] =
+    useState<boolean>(false);
 
+  // ABI used to fetch the current user allowance
+  const erc20ABI = [
+    {
+      constant: true,
+      inputs: [
+        { name: "_owner", type: "address" },
+        { name: "_spender", type: "address" },
+      ],
+      name: "allowance",
+      outputs: [{ name: "", type: "uint256" }],
+      type: "function",
+    },
+  ];
+
+  // Fetch current user allowance
   const { data: allowanceData } = useContractRead({
     address: selectedToken?.address as Address,
     functionName: "allowance",
+    abi: erc20ABI,
     args: [address, props.streamManagerAddress],
     watch: true,
   });
 
-  console.log("allowance", allowanceData);
+  useEffect(() => {
+    if (allowanceData) {
+      const fetchedAllowance = Number(allowanceData.toString());
+      setAllowance(fetchedAllowance);
+    }
+  }, [allowanceData]);
+
+  // Effect hook to check if the allowance is sufficient
+  useEffect(() => {
+    if (allowance !== null && txCost !== undefined) {
+      setIsAllowanceSufficient(allowance >= txCost);
+    }
+  }, [allowance, txCost]);
+
+  console.log("allowance", allowance);
+  console.log("cost", txCost);
 
   // Select the payment token among tokens with the same chainID
   const Step1 = () => {
@@ -416,15 +449,31 @@ const CreateStream = (props: CreateStreamProps) => {
             }
             disabled={isSuccess}
           />
-          <button
-            className="button-validate-transaction"
-            onClick={approveStream}
-            disabled={isSuccess}
-            style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
-          >
-            {`Approve ${Math.floor(transactionAmount + 1)}`}&nbsp;
-            {`${selectedToken?.symbol}`}
-          </button>
+
+          {isAllowanceSufficient && (
+            <>
+              <button
+                className="button-validate-transaction allowance"
+                onClick={() => validateStep(2)}
+              >
+                {`Approve ${Math.floor(transactionAmount + 1)}`}&nbsp;
+                {`${selectedToken?.symbol}`}
+              </button>
+            </>
+          )}
+          {!isAllowanceSufficient && (
+            <>
+              <button
+                className="button-validate-transaction"
+                onClick={approveStream}
+                disabled={isSuccess}
+                style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
+              >
+                {`Approve ${Math.floor(transactionAmount + 1)}`}&nbsp;
+                {`${selectedToken?.symbol}`}
+              </button>
+            </>
+          )}
           {isLoading && (
             <div className="validate-transaction-message">
               Waiting for your confirmation.
