@@ -72,12 +72,13 @@ const StreamPage = () => {
       <div className="create-stream-component">
         <CreateStream
           streamManagerAddress={sm as `0x${string}`}
+          tokenList={tokenList}
           amountPerSecond={BigInt(10000000000000)}
+          cart={<Cart />}
+          productName={"simulation"}
           registerStream={addStreams}
           renderReasonCode={renderReasonCode}
           handleTransactionStatus={handleTransactionStatus}
-          tokenList={tokenList}
-          cart={<Cart />}
         />
         {/* CreateStream callback */}
         <div className="tx-status-display">

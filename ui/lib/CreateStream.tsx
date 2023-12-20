@@ -24,6 +24,7 @@ export interface CreateStreamProps {
   tokenList: TokenInfo[];
   amountPerSecond: bigint;
   cart?: ReactNode;
+  productName?: string;
   registerStream: (stream: Stream) => void;
   renderReasonCode: () => Promise<string>;
   handleTransactionStatus: (
@@ -297,6 +298,10 @@ const CreateStream = (props: CreateStreamProps) => {
       <div>
         <div className="cart-body">{props.cart && props.cart}</div>
         <div className="payment-flow">
+          <div className="select-token-label">
+            {" "}
+            Select a token to pay for your {props.productName || "Stream"}{" "}
+          </div>
           <select
             className="select-token-dropdown"
             value={
@@ -437,7 +442,8 @@ const CreateStream = (props: CreateStreamProps) => {
         <div className="cart-body">{props.cart && props.cart}</div>
         <div className="payment-flow">
           <div className="stream-duration">
-            Select the number of days you want to run your stream
+            Select the number of days you want to run your{" "}
+            {props.productName || "Stream"}
           </div>
           <Slider
             className="slider-select-time"
@@ -458,9 +464,9 @@ const CreateStream = (props: CreateStreamProps) => {
               onClick={createStream}
               disabled={buttonCreateClicked}
             >
-              {`Run for ${selectedTime / SECS_PER_DAY} day${
-                selectedTime !== SECS_PER_DAY ? "s" : ""
-              }`}
+              {`Run ${props.productName || "Stream"} for ${
+                selectedTime / SECS_PER_DAY
+              } day${selectedTime !== SECS_PER_DAY ? "s" : ""}`}
             </button>
           ) : (
             <button
@@ -514,9 +520,9 @@ const CreateStream = (props: CreateStreamProps) => {
             onClick={createStream}
             disabled={buttonCreateClicked}
           >
-            {`Run for ${selectedTime / SECS_PER_DAY} day${
-              selectedTime !== SECS_PER_DAY ? "s" : ""
-            }`}
+            {`Run ${props.productName || "Stream"} for ${
+              selectedTime / SECS_PER_DAY
+            } day${selectedTime !== SECS_PER_DAY ? "s" : ""}`}
           </button>
         </div>
       </div>
