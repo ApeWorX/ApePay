@@ -8,31 +8,24 @@ jobs:
   publish-npm:
     runs-on: ubuntu-latest
     steps:
-    - name: Check out code
-      uses: actions/checkout@v3
+      - name: Check out code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: "16"
-        registry-url: "https://registry.npmjs.org"
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          registry-url: "https://registry.npmjs.org"
 
-    - name: Install dependencies for JS SDK
-      run: npm install
-      working-directory: packages/sdk/js
+      - name: Install dependencies
+        run: npm install
 
-    - name: Publish JS SDK to NPM
-      run: npm publish
-      working-directory: packages/sdk/js
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish JS SDK to NPM
+        run: npm publish --workspace=sdk/js
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-    - name: Install dependencies for React components
-      run: npm install
-      working-directory: packages/ui/lib
-
-    - name: Publish React components to NPM
-      run: npm publish
-      working-directory: packages/ui/lib
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish React components to NPM
+        run: npm publish --workspace=ui/lib
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
