@@ -1,7 +1,7 @@
 {
   "name": "apepay-js-root",
   "type": "module",
-  "private": true,
+  "private": false,
   "workspaces": [
     "sdk/js",
     "ui/lib",
