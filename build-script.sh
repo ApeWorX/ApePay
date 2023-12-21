@@ -28,11 +28,11 @@ ape plugins install . --upgrade
 ape compile
 
 
-echo "Building ui/lib workspace..."
-npm run build --workspace=ui/lib
-
 echo "Building sdk/js workspace..."
 npm run build --workspace=sdk/js
+
+echo "Building ui/lib workspace..."
+npm run build --workspace=ui/lib
 
 echo "Building ui/app workspace..."
 npm run build --workspace=ui/app
