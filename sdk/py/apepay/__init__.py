@@ -72,9 +72,10 @@ class StreamManager(BaseInterfaceModel):
     def normalize_address(cls, value: Any) -> AddressType:
         return cls.conversion_manager.convert(value, AddressType)
 
-    @field_validator("contract_type", mode="before")
     @classmethod
-    def fetch_contract_type(cls, value: Any, info: ValidationInfo) -> Optional[ContractType]:
+    def fetch_contract_type(
+        cls, value: Optional[Any] = None, address: Optional[AddressType] = None
+    ) -> ContractType:
         # 0. If pre-loaded, default to that type
         if value:
             return value
@@ -90,9 +91,7 @@ class StreamManager(BaseInterfaceModel):
 
         # 2. If contract cache has it, use that
         try:
-            if info.data.get("address") and (
-                contract_type := cls.chain_manager.contracts.get(info.data["address"])
-            ):
+            if address and (contract_type := cls.chain_manager.contracts.get(address)):
                 return contract_type
 
         except Exception:
@@ -107,7 +106,12 @@ class StreamManager(BaseInterfaceModel):
             raise ValueError("Invalid manifest")
 
         cls._local_contracts = manifest.contract_types
-        return cls._local_contracts.get("StreamManager")
+        return cls._local_contracts["StreamManager"]
+
+    @field_validator("contract_type", mode="before")
+    @classmethod
+    def validate_contract_type(cls, value: Any, info: ValidationInfo) -> Optional[ContractType]:
+        return cls.fetch_contract_type(value, info.data.get("address"))
 
     @property
     def contract(self) -> ContractInstance:
