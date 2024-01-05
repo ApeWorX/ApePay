@@ -2,14 +2,17 @@ from datetime import timedelta
 from typing import Any
 
 from apepay.utils import time_unit_to_timedelta
-from pydantic import BaseSettings, validator
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="APEPAY_", case_sensitive=True)
+
     WARNING_LEVEL: timedelta = timedelta(days=2)
     CRITICAL_LEVEL: timedelta = timedelta(hours=12)
 
-    @validator("WARNING_LEVEL", "CRITICAL_LEVEL", pre=True)
+    @field_validator("WARNING_LEVEL", "CRITICAL_LEVEL", mode="before")
     def _normalize_timedelta(cls, value: Any) -> timedelta:
         if isinstance(value, timedelta):
             return value
@@ -27,7 +30,3 @@ class Settings(BaseSettings):
         else:
             multiplier, time_unit = value.split(" ")
             return int(multiplier) * time_unit_to_timedelta(time_unit)
-
-    class Config:
-        env_prefix = "APEPAY_"
-        case_sensitive = True

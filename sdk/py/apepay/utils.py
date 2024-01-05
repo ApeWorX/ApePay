@@ -7,7 +7,7 @@ from typing import AsyncIterator, Iterator
 def async_wrap_iter(it: Iterator) -> AsyncIterator:
     """Wrap blocking iterator into an asynchronous one"""
     loop = asyncio.get_event_loop()
-    q = asyncio.Queue(1)
+    q: asyncio.Queue = asyncio.Queue(1)
     exception = None
     _END = object()
 
