@@ -1,7 +1,6 @@
 # Ape stuff
 .build/
 .cache/
-sdk/py/apepay/manifest.json
 
 # Python
 .env
