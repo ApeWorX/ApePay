@@ -19,7 +19,7 @@ from ape.types import AddressType, ContractLog
 from ape.utils import BaseInterfaceModel, cached_property
 from ethpm_types import ContractType, PackageManifest
 from hexbytes import HexBytes
-from pydantic import ValidationError, ValidationInfo, field_validator
+from pydantic import ValidationError, ValidationInfo, field_validator, model_validator
 
 from .exceptions import (
     FundsNotClaimable,
@@ -30,6 +30,8 @@ from .exceptions import (
     ValidatorFailed,
 )
 from .utils import time_unit_to_timedelta
+
+SDict = Dict[str, Any]
 
 MAX_DURATION_SECONDS = int(timedelta.max.total_seconds()) - 1
 
@@ -108,10 +110,11 @@ class StreamManager(BaseInterfaceModel):
         cls._local_contracts = manifest.contract_types
         return cls._local_contracts["StreamManager"]
 
-    @field_validator("contract_type", mode="before")
-    @classmethod
-    def validate_contract_type(cls, value: Any, info: ValidationInfo) -> Optional[ContractType]:
-        return cls.fetch_contract_type(value, info.data.get("address"))
+    # NOTE: self type notation because pydantic does some weird type massaging with this decorator
+    @model_validator(mode="after")
+    def validate_contract_type(self: "StreamManager") -> "StreamManager":
+        self.contract_type = StreamManager.fetch_contract_type(self.contract_type, self.address)
+        return self
 
     @property
     def contract(self) -> ContractInstance:
