@@ -8,7 +8,7 @@ import StreamManager, { Stream } from "@apeworx/apepay";
 import {
   UpdateStream,
   StreamStatus,
-  CancelStream
+  CancelStream,
 } from "@apeworx/apepay-react";
 import {
   usePublicClient,
