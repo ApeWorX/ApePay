@@ -10,6 +10,7 @@ import {
   useContractWrite,
   useWaitForTransaction,
   useNetwork,
+  useContractRead,
 } from "wagmi";
 import { fetchBalance } from "@wagmi/core";
 import StreamManager, { Stream } from "@apeworx/apepay";
@@ -23,6 +24,7 @@ export interface CreateStreamProps {
   tokenList: TokenInfo[];
   amountPerSecond: bigint;
   cart?: ReactNode;
+  productName?: string;
   registerStream: (stream: Stream) => void;
   renderReasonCode: () => Promise<string>;
   handleTransactionStatus: (
@@ -246,12 +248,60 @@ const CreateStream = (props: CreateStreamProps) => {
     }
   }, [props.tokenList, targetChainId]);
 
+  const [isAllowanceSufficient, setIsAllowanceSufficient] =
+    useState<boolean>(false);
+
+  // ABI used to fetch the current user allowance
+  const erc20ABI = [
+    {
+      constant: true,
+      inputs: [
+        { name: "_owner", type: "address" },
+        { name: "_spender", type: "address" },
+      ],
+      name: "allowance",
+      outputs: [{ name: "", type: "uint256" }],
+      type: "function",
+    },
+  ];
+
+  // Fetch current user allowance
+  const { data: allowanceData } = useContractRead({
+    address: selectedToken?.address as Address,
+    functionName: "allowance",
+    abi: erc20ABI,
+    args: [address, props.streamManagerAddress],
+    watch: true,
+    onError(error) {
+      console.log("Error fetching allowance", error);
+    },
+    onSettled(data, error) {
+      console.log("Allowance settled", { data, error });
+    },
+  });
+
+  useEffect(() => {
+    // Check if allowance data is available and update allowance state
+    if (allowanceData !== null && allowanceData !== undefined) {
+      const fetchedAllowance = Number(allowanceData.toString());
+
+      // Check if the fetched allowance is sufficient for the transaction cost
+      if (txCost !== undefined) {
+        setIsAllowanceSufficient(fetchedAllowance >= txCost);
+      }
+    }
+  }, [allowanceData, txCost]);
+
   // Select the payment token among tokens with the same chainID
   const Step1 = () => {
     return (
       <div>
         <div className="cart-body">{props.cart && props.cart}</div>
         <div className="payment-flow">
+          <div className="select-token-label">
+            {" "}
+            Select a token to pay for your {props.productName || "Stream"}{" "}
+          </div>
           <select
             className="select-token-dropdown"
             value={
@@ -298,7 +348,7 @@ const CreateStream = (props: CreateStreamProps) => {
           <div className="cart-body">{props.cart && props.cart}</div>
           <div className="payment-flow">
             <div className="fetching-sm-message">
-              Fetching stream manager address...
+              Fetching contract address...
             </div>
           </div>
         </div>
@@ -391,6 +441,10 @@ const CreateStream = (props: CreateStreamProps) => {
       <div>
         <div className="cart-body">{props.cart && props.cart}</div>
         <div className="payment-flow">
+          <div className="stream-duration">
+            Select the number of days you want to run your{" "}
+            {props.productName || "Stream"}
+          </div>
           <Slider
             className="slider-select-time"
             min={1}
@@ -404,15 +458,27 @@ const CreateStream = (props: CreateStreamProps) => {
             }
             disabled={isSuccess}
           />
-          <button
-            className="button-validate-transaction"
-            onClick={approveStream}
-            disabled={isSuccess}
-            style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
-          >
-            {`Approve ${Math.floor(transactionAmount + 1)}`}&nbsp;
-            {`${selectedToken?.symbol}`}
-          </button>
+          {isAllowanceSufficient ? (
+            <button
+              className="button-validate-transaction allowance"
+              onClick={createStream}
+              disabled={buttonCreateClicked}
+            >
+              {`Run ${props.productName || "Stream"} for ${
+                selectedTime / SECS_PER_DAY
+              } day${selectedTime !== SECS_PER_DAY ? "s" : ""}`}
+            </button>
+          ) : (
+            <button
+              className="button-validate-transaction"
+              onClick={approveStream}
+              disabled={isSuccess}
+              style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
+            >
+              {`Approve ${Math.floor(transactionAmount + 1)}`}{" "}
+              {`${selectedToken?.symbol}`}
+            </button>
+          )}
           {isLoading && (
             <div className="validate-transaction-message">
               Waiting for your confirmation.
@@ -425,8 +491,8 @@ const CreateStream = (props: CreateStreamProps) => {
           )}
           {txLoading && (
             <div className="validate-transaction-message">
-              Transaction approved: you will be redirected once it has been
-              processed...
+              Transaction approved: you will move to the next step once it has
+              been processed...
             </div>
           )}
           {txError && (
@@ -454,9 +520,9 @@ const CreateStream = (props: CreateStreamProps) => {
             onClick={createStream}
             disabled={buttonCreateClicked}
           >
-            {`Open Stream for ${selectedTime / SECS_PER_DAY} day${
-              selectedTime !== SECS_PER_DAY ? "s" : ""
-            }`}
+            {`Run ${props.productName || "Stream"} for ${
+              selectedTime / SECS_PER_DAY
+            } day${selectedTime !== SECS_PER_DAY ? "s" : ""}`}
           </button>
         </div>
       </div>
