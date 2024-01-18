@@ -7,15 +7,13 @@ import React, {
 } from "react";
 
 type ThemeContextType = {
-  theme: string; // The current theme
-  setTheme: (theme: string) => void; // Function to update the theme
+  theme: string;
+  setTheme: (theme: string) => void;
 };
 
-
-
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "sakura", // Default value
-  setTheme: () => {}, // Default function
+  theme: "sakura",
+  setTheme: () => {},
 });
 
 type ThemeProviderProps = {
@@ -29,8 +27,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     document.body.className = theme;
     localStorage.setItem("theme", theme);
   }, [theme]);
-
-  // No need for toggleTheme if it's not being used
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
