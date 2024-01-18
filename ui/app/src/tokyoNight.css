@@ -1,0 +1,13 @@
+body.tokyoNight {
+  background-color: #004687;
+}
+
+.app.tokyoNight {
+  color: #fff;
+  background-color: #004687;
+}
+
+.app.tokyoNight .theme-toggle-button {
+  background-color: #00ffd2;
+  color: #fff;
+}

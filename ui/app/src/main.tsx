@@ -11,6 +11,7 @@ import StreamManagerPage from "./StreamManagerPage";
 import CreatePage from "./CreatePage";
 import CreatorPage from "./CreatorPage";
 import StreamPage from "./StreamPage";
+import { ThemeProvider } from "./ThemeContext";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
@@ -51,18 +52,20 @@ const wagmiConfig = createConfig({
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <Router>
-          <Routes>
-            <Route path="/" element={<App />} />
-            <Route path=":sm" element={<StreamManagerPage />} />
-            <Route path=":sm/create" element={<CreatePage />} />
-            <Route path=":sm/:creator" element={<CreatorPage />} />
-            <Route path=":sm/:creator/:streamId" element={<StreamPage />} />
-          </Routes>
-        </Router>
-      </RainbowKitProvider>
-    </WagmiConfig>
+    <ThemeProvider>
+      <WagmiConfig config={wagmiConfig}>
+        <RainbowKitProvider chains={chains}>
+          <Router>
+            <Routes>
+              <Route path="/" element={<App />} />
+              <Route path=":sm" element={<StreamManagerPage />} />
+              <Route path=":sm/create" element={<CreatePage />} />
+              <Route path=":sm/:creator" element={<CreatorPage />} />
+              <Route path=":sm/:creator/:streamId" element={<StreamPage />} />
+            </Routes>
+          </Router>
+        </RainbowKitProvider>
+      </WagmiConfig>
+    </ThemeProvider>
   </React.StrictMode>,
 );

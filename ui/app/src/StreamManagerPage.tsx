@@ -6,8 +6,11 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import config from "./config";
 import Header from "./Header";
+import { Button } from "evergreen-ui";
+import { useTheme } from "./ThemeContext";
 
 const StreamManagerPage = () => {
+  const { theme } = useTheme();
   const { sm } = useParams();
   const [createdStreams, setCreatedStreams] = useState<Stream[]>([]);
   const [streamManager, setStreamManager] = useState<StreamManager | null>(
@@ -72,7 +75,7 @@ const StreamManagerPage = () => {
   );
 
   return (
-    <>
+    <div className={`app ${theme}`}>
       <div className="header">
         <Header />
         <ConnectButton />
@@ -98,7 +101,9 @@ const StreamManagerPage = () => {
 
         <div className="create-stream-sm-text">
           <Link to={`/${sm}/create`}>
-            <button className="create-stream-sm-button">Create a Stream</button>
+            <Button appearance="primary" intent="success" height={40}>
+              Create a Stream
+            </Button>
           </Link>
         </div>
 
@@ -145,7 +150,7 @@ const StreamManagerPage = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

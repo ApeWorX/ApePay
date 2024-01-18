@@ -1,0 +1,14 @@
+body.sakura {
+  background-color: #a2d2ff;
+}
+
+.app.sakura {
+  color: #333;
+  background-color: #a2d2ff;
+}
+
+
+.app.sakura .theme-toggle-button {
+  background-color: #ffafcc;
+  color: #333;
+}

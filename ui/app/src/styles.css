@@ -1,8 +1,12 @@
 /* GLOBAL */
-
+html,
 body {
-  background-color: #f0e8d9;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
 }
+
 h1,
 h2 {
   text-align: center;
@@ -43,7 +47,6 @@ a:hover {
 }
 
 .cancel-stream-button,
-.create-stream-sm-button,
 .update-stream-button,
 .button-validate-select-token,
 .button-validate-transaction,

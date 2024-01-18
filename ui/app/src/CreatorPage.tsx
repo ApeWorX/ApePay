@@ -6,8 +6,11 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import { StreamStatus } from "@apeworx/apepay-react";
 import Header from "./Header";
+import { useTheme } from "./ThemeContext";
 
 const CreatorPage = () => {
+  const { theme } = useTheme();
+
   const { sm, creator } = useParams();
   const [createdStreams, setCreatedStreams] = useState<Stream[]>([]);
   const [streamManager, setStreamManager] = useState<StreamManager | null>(
@@ -68,53 +71,55 @@ const CreatorPage = () => {
 
   return (
     <>
-      <div className="header">
-        <Header />
-        <ConnectButton />
-      </div>
+      <div className={`app ${theme}`}>
+        <div className="header">
+          <Header />
+          <ConnectButton />
+        </div>
 
-      <h2>
-        {fromBlock != null ? (
-          <>
-            {`Created Streams from block ${String(fromBlock)}`}
-            <br />
-            {`by ${creator}`}
-          </>
-        ) : (
-          "Created Streams"
-        )}
-      </h2>
-      {/* Stream list */}
-      <div className="list-streams">
-        {sm === null ? (
-          <p>Fetching SM...</p>
-        ) : createdStreams.length === 0 ? (
-          <p>
-            {fromBlock != null
-              ? `Loading streams from block ${String(fromBlock)}...`
-              : "Loading all of the created streams"}
-          </p>
-        ) : (
-          <ul>
-            {createdStreams.map((stream, index) => (
-              <li className="list-creator-streams" key={index}>
-                <Link
-                  to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
-                >
-                  <span>ID: {stream.streamId}</span>
-                  <div className="stream-status-component">
-                    <StreamStatus
-                      stream={stream}
-                      chartType={"bar"}
-                      background="#6200ea"
-                      color="black"
-                    />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <h2>
+          {fromBlock != null ? (
+            <>
+              {`Created Streams from block ${String(fromBlock)}`}
+              <br />
+              {`by ${creator}`}
+            </>
+          ) : (
+            "Created Streams"
+          )}
+        </h2>
+        {/* Stream list */}
+        <div className="list-streams">
+          {sm === null ? (
+            <p>Fetching SM...</p>
+          ) : createdStreams.length === 0 ? (
+            <p>
+              {fromBlock != null
+                ? `Loading streams from block ${String(fromBlock)}...`
+                : "Loading all of the created streams"}
+            </p>
+          ) : (
+            <ul>
+              {createdStreams.map((stream, index) => (
+                <li className="list-creator-streams" key={index}>
+                  <Link
+                    to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
+                  >
+                    <span>ID: {stream.streamId}</span>
+                    <div className="stream-status-component">
+                      <StreamStatus
+                        stream={stream}
+                        chartType={"bar"}
+                        background="#6200ea"
+                        color="black"
+                      />
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </>
   );

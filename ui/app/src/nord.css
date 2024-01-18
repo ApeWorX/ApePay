@@ -1,0 +1,13 @@
+body.nord {
+  background-color: white;
+}
+
+.app.nord {
+  color: green;
+  background-color: pink;
+}
+
+.app.nord .theme-toggle-button {
+  background-color: grey;
+  color: purple;
+}
