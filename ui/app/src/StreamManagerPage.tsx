@@ -101,7 +101,12 @@ const StreamManagerPage = () => {
 
         <div className="create-stream-sm-text">
           <Link to={`/${sm}/create`}>
-            <Button appearance="primary" intent="success" height={40}>
+            <Button
+              className="theme-stream-button"
+              appearance="primary"
+              intent="success"
+              height={40}
+            >
               Create a Stream
             </Button>
           </Link>

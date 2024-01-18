@@ -1,5 +1,6 @@
 body.sakura {
   background-color: #a2d2ff;
+  font-family: "Kdam Thmor Pro", sans-serif;
 }
 
 .app.sakura {
@@ -7,8 +8,26 @@ body.sakura {
   background-color: #a2d2ff;
 }
 
-
 .app.sakura .theme-toggle-button {
   background-color: #ffafcc;
   color: #333;
+}
+
+.app.sakura .theme-header-button {
+  margin: 5px;
+  margin-right: 5px;
+  background-color: #bde0fe;
+}
+
+.app.sakura .theme-header-button:hover {
+  background-color: #ffc8dd;
+}
+
+.app.sakura .theme-stream-button {
+  background-color: #ffafcc;
+  color: #333;
+}
+
+.app.sakura .theme-stream-button:hover {
+  background-color: #ffc8dd;
 }
