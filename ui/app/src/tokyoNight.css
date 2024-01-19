@@ -1,14 +1,80 @@
+:root {
+  --polynesian-blue: #004687;
+  --federal-blue: #0a0047;
+  --black: #000000;
+  --rose-bonbon: #ff4499;
+  --aquamarine: #00ffd2;
+}
+
 body.tokyoNight {
-  background-color: #004687;
+  background-color: var(--federal-blue);
   font-family: "Tomorrow", sans-serif;
 }
 
 .app.tokyoNight {
-  color: #fff;
-  background-color: #004687;
+  color: var(--rose-bonbon);
+  background-color: var(--federal-blue);
 }
 
 .app.tokyoNight .theme-toggle-button {
-  background-color: #00ffd2;
-  color: #fff;
+  font-family: "Tomorrow", sans-serif;
+  background-color: var(--aquamarine);
+  color: var(--federal-blue);
+  border: none;
+}
+.app.tokyoNight .theme-toggle-button:hover {
+  background-color: var(--federal-blue);
+  color: var(--rose-bonbon);
+  font-family: "Tomorrow", sans-serif;
+  border: none;
+}
+
+.app.tokyoNight .theme-stream-button {
+  background-color: var(--aquamarine);
+  color: var(--federal-blue);
+  font-family: "Tomorrow", sans-serif;
+}
+.app.tokyoNight .theme-stream-button:hover {
+  background-color: var(--polynesian-blue);
+  color: var(--rose-bonbon);
+  font-family: "Tomorrow", sans-serif;
+  border: none;
+}
+
+.app.tokyoNight a:hover {
+  color: var(--polynesian-blue);
+}
+
+.app.tokyoNight .theme-header-button {
+  font-family: "Tomorrow", sans-serif;
+  background-color: var(--rose-bonbon);
+  color: var(--federal-blue);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.app.tokyoNight .theme-header-button:hover {
+  background-color: var(--aquamarine);
+  color: var(--federal-blue);
+  border: none;
+}
+
+.app.tokyoNight .list-creator-streams {
+  border: 1px solid var(--rose-bonbon);
+}
+
+.app.tokyoNight .stream-status-bar-label {
+  color: var(--federal-blue);
+}
+
+.app.tokyoNight .stream-status-box,
+.app.tokyoNight .stream-data-box,
+.app.tokyoNight .cancel-stream-box,
+.app.tokyoNight .update-stream-box {
+  border: 1px solid white;
+  padding: 10px;
+}
+
+.app.tokyoNight .stream-data-subtitle {
+  color: var(--aquamarine);
 }

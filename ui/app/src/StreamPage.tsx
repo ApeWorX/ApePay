@@ -18,9 +18,11 @@ import {
 } from "wagmi";
 import { useParams } from "react-router-dom";
 import Header from "./Header";
+import { useTheme } from "./ThemeContext";
 
 const StreamPage = () => {
   const { sm, creator, streamId } = useParams();
+  const { theme } = useTheme();
 
   const [chartType, setChartType] = useState<"bar" | "pie">("bar");
 
@@ -112,7 +114,7 @@ const StreamPage = () => {
   }, [stream]);
 
   return (
-    <>
+    <div className={`app ${theme}`}>
       <div className="header">
         <Header />
         <ConnectButton />
@@ -127,31 +129,31 @@ const StreamPage = () => {
             {/* Stream Data */}
             <div className="stream-data-box">
               <p>
-                <strong>Stream Manager: </strong>
+                <strong className="stream-data-subtitle">Stream Manager: </strong>
                 {sm}
               </p>
               <p>
-                <strong>Token: </strong>
+                <strong className="stream-data-subtitle">Token: </strong>
                 {streamInfo.token ? String(streamInfo.token) : "fetching..."}
               </p>
               <p>
-                <strong>Creator: </strong>
+                <strong className="stream-data-subtitle">Creator: </strong>
                 {creator}
               </p>
               <p>
-                <strong>Amount per second: </strong>
+                <strong className="stream-data-subtitle">Amount per second: </strong>
                 {streamInfo.amountPerSecond
                   ? String(streamInfo.amountPerSecond)
                   : "fetching..."}
               </p>
               <p>
-                <strong>Funded amount: </strong>
+                <strong className="stream-data-subtitle">Funded amount: </strong>
                 {streamInfo.fundedAmount
                   ? String(streamInfo.fundedAmount)
                   : "fetching..."}
               </p>
               <p>
-                <strong>Start time: </strong>
+                <strong className="stream-data-subtitle">Start time: </strong>
                 {new Date(Number(stream.startTime) * 1000).toLocaleString()}
               </p>
             </div>
@@ -175,7 +177,7 @@ const StreamPage = () => {
                     stream={stream}
                     chartType={chartType}
                     background="#6200ea"
-                    color="black"
+                    color="#ff4499"
                   />
                 </div>
               </div>
@@ -226,7 +228,7 @@ const StreamPage = () => {
           </div>
         </>
       )}
-    </>
+    </div>
   );
 };
 

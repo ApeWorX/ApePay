@@ -7,8 +7,13 @@ body {
   width: 100%;
 }
 
-.theme-toggle-button {
-  
+.theme-header-button {
+  margin: 5px;
+  margin-right: 5px;
+}
+
+.theme-stream-button {
+  margin: 10px;
 }
 
 h1,
@@ -74,8 +79,6 @@ a:hover {
 
 button:hover {
   transition: all 0.3s ease;
-  background-color: #421f74;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 li {
@@ -99,7 +102,7 @@ li {
 /* STREAM MANAGER PAGE */
 
 .stream-manager-title {
-  margin-top: 10px;
+  margin: 10px;
   font-size: 20px;
   text-align: center;
 }

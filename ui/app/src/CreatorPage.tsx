@@ -110,8 +110,8 @@ const CreatorPage = () => {
                       <StreamStatus
                         stream={stream}
                         chartType={"bar"}
-                        background="#6200ea"
-                        color="black"
+                        background="#00FFD2"
+                        color="#ff4499"
                       />
                     </div>
                   </Link>
