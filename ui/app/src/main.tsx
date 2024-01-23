@@ -1,6 +1,6 @@
 import "./polyfills";
 import "@rainbow-me/rainbowkit/styles.css";
-import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
 import { polygon, optimism, arbitrum, sepolia } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
@@ -12,8 +12,8 @@ import CreatePage from "./CreatePage";
 import CreatorPage from "./CreatorPage";
 import StreamPage from "./StreamPage";
 import { ThemeProvider } from "./ThemeContext";
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ThemedRainbowKitProvider from "./ThemedRainbowKit";
 
 const { chains, publicClient } = configureChains(
   // NOTE: Testnet deployment on Sepolia
@@ -54,7 +54,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider>
       <WagmiConfig config={wagmiConfig}>
-        <RainbowKitProvider chains={chains}>
+        <ThemedRainbowKitProvider chains={chains}>
           <Router>
             <Routes>
               <Route path="/" element={<App />} />
@@ -64,7 +64,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route path=":sm/:creator/:streamId" element={<StreamPage />} />
             </Routes>
           </Router>
-        </RainbowKitProvider>
+        </ThemedRainbowKitProvider>
       </WagmiConfig>
     </ThemeProvider>
   </React.StrictMode>,

@@ -6,6 +6,7 @@ import "./styles.css";
 import "./sakura.css";
 import "./tokyoNight.css";
 import { useTheme } from "./ThemeContext";
+import Header from "./Header";
 
 function App() {
   const { theme } = useTheme();
@@ -13,7 +14,8 @@ function App() {
   return (
     <>
       <div className={`app ${theme}`}>
-        <div className="header header-app">
+        <div className="header">
+          <Header />
           <ConnectButton />
         </div>
 
