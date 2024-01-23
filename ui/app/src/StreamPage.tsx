@@ -121,7 +121,8 @@ const StreamPage = () => {
       </div>
 
       <h2>
-        Stream {streamId} by <br /> {creator}
+        Stream <span className="stream-data-subtitle"> {streamId} </span>by
+        <br /> <span className="stream-data-subtitle"> {creator} </span>
       </h2>
       {stream ? (
         <>
@@ -129,7 +130,9 @@ const StreamPage = () => {
             {/* Stream Data */}
             <div className="stream-data-box">
               <p>
-                <strong className="stream-data-subtitle">Stream Manager: </strong>
+                <strong className="stream-data-subtitle">
+                  Stream Manager:{" "}
+                </strong>
                 {sm}
               </p>
               <p>
@@ -141,13 +144,17 @@ const StreamPage = () => {
                 {creator}
               </p>
               <p>
-                <strong className="stream-data-subtitle">Amount per second: </strong>
+                <strong className="stream-data-subtitle">
+                  Amount per second:{" "}
+                </strong>
                 {streamInfo.amountPerSecond
                   ? String(streamInfo.amountPerSecond)
                   : "fetching..."}
               </p>
               <p>
-                <strong className="stream-data-subtitle">Funded amount: </strong>
+                <strong className="stream-data-subtitle">
+                  Funded amount:{" "}
+                </strong>
                 {streamInfo.fundedAmount
                   ? String(streamInfo.fundedAmount)
                   : "fetching..."}

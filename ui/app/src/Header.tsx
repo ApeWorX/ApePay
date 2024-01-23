@@ -3,23 +3,32 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "./ThemeContext";
 import { Button, SelectMenu, ArrowLeftIcon } from "evergreen-ui";
 
-const Header = () => {
+interface HeaderProps {
+  showNavButtons?: boolean; 
+}
+
+const Header: React.FC<HeaderProps> = ({ showNavButtons = true }) => {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
-  const themes = ["sakura", "tokyoNight", "nord"]; 
+  const themes = ["sakura", "tokyoNight", "nord"];
 
   return (
     <div className={`app ${theme}`}>
-      <Button
-        className="theme-header-button"
-        iconBefore={ArrowLeftIcon}
-        onClick={() => navigate(-1)}
-      >
-        Previous
-      </Button>
-      <Button className="theme-header-button" onClick={() => navigate("/")}>
-        Homepage
-      </Button>
+      {showNavButtons && (
+        <>
+          <Button
+            className="theme-header-button"
+            iconBefore={ArrowLeftIcon}
+            onClick={() => navigate(-1)}
+          >
+            Previous
+          </Button>
+          <Button className="theme-header-button" onClick={() => navigate("/")}>
+            Homepage
+          </Button>
+        </>
+      )}
+
       <SelectMenu
         title="Select Theme"
         options={themes.map((t) => ({ label: t, value: t }))}

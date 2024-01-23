@@ -15,7 +15,7 @@ function App() {
     <>
       <div className={`app ${theme}`}>
         <div className="header">
-          <Header />
+          <Header showNavButtons={false} />
           <ConnectButton />
         </div>
 
@@ -24,7 +24,9 @@ function App() {
           <ul>
             <Link to={`/${config.streamManagerAddress}`}>
               <li>
-                <h3>{config.streamManagerAddress as `0x${string}`} </h3>
+                <h3 className="stream-data-subtitle">
+                  {config.streamManagerAddress as `0x${string}`}
+                </h3>
               </li>
             </Link>
           </ul>

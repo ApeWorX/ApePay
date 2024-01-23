@@ -86,15 +86,17 @@ const StreamManagerPage = () => {
           {fromBlock != null ? (
             <>
               {"Created Streams from block "}
-              <strong>{String(fromBlock)}</strong>
+              <strong className="stream-data-subtitle">
+                {String(fromBlock)}
+              </strong>
               <br />
               {"on "}
-              <strong>{sm}</strong>
+              <strong className="stream-data-subtitle">{sm}</strong>
             </>
           ) : (
             <>
               {"Created Streams on "}
-              <strong>{sm}</strong>
+              <strong className="stream-data-subtitle">{sm}</strong>
             </>
           )}
         </div>
@@ -129,7 +131,14 @@ const StreamManagerPage = () => {
                 return (
                   <div key={creator}>
                     <h3 className="list-creator">
-                      By <Link to={`/${sm}/${creator}`}>{creator}</Link>:
+                      By{" "}
+                      <Link
+                        className="stream-data-subtitle"
+                        to={`/${sm}/${creator}`}
+                      >
+                        {creator}
+                      </Link>
+                      :
                     </h3>
 
                     <ul className="list-streams">

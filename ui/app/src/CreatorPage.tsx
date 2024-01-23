@@ -77,17 +77,24 @@ const CreatorPage = () => {
           <ConnectButton />
         </div>
 
-        <h2>
+        <div className="stream-manager-title">
           {fromBlock != null ? (
             <>
-              {`Created Streams from block ${String(fromBlock)}`}
+              {"Created Streams from block "}
+              <strong className="stream-data-subtitle">
+                {String(fromBlock)}
+              </strong>
               <br />
-              {`by ${creator}`}
+              {"by "}
+              <strong className="stream-data-subtitle">{creator}</strong>
             </>
           ) : (
-            "Created Streams"
+            <>
+              {"Created Streams by "}
+              <strong className="stream-data-subtitle">{creator}</strong>
+            </>
           )}
-        </h2>
+        </div>
         {/* Stream list */}
         <div className="list-streams">
           {sm === null ? (
