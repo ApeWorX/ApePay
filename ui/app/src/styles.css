@@ -55,8 +55,6 @@ a:hover {
   justify-content: flex-end;
 }
 
-.cancel-stream-button,
-.update-stream-button,
 .button-validate-select-token,
 .button-validate-transaction,
 .button-create-stream {
@@ -293,6 +291,8 @@ li {
   width: 50%;
   overflow: auto;
 }
+
+
 
 .cancel-stream-button:disabled {
   opacity: 0.5;

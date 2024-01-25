@@ -72,7 +72,7 @@ body.tokyoNight {
 .app.tokyoNight .stream-data-box,
 .app.tokyoNight .cancel-stream-box,
 .app.tokyoNight .update-stream-box {
-  border: 1px solid white;
+  border: 1px solid var(--aquamarine);
   padding: 10px;
 }
 
@@ -86,7 +86,7 @@ body.tokyoNight {
 }
 
 .app.tokyoNight .stream-status-bar-label {
-  color: #00ffd2;
+  color: #004687;
 }
 
 .app.tokyoNight .stream-status-pie text {
@@ -95,6 +95,37 @@ body.tokyoNight {
 
 .app.tokyoNight .stream-status-component {
   min-width: 120px;
+}
+
+.app.tokyoNight .cancel-stream-button,
+.app.tokyoNight .update-stream-button {
+  font-family: "Tomorrow", sans-serif;
+  background-color: var(--aquamarine);
+  color: var(--federal-blue);
+  border: none;
+}
+
+.app.tokyoNight .cancel-stream-button:hover,
+.app.tokyoNight .update-stream-button:hover {
+  background-color: var(--rose-bonbon);
+  border: none;
+}
+
+.app.tokyoNight .rc-slider-dot {
+  background-color: var(--rose-bonbon);
+  border: 2px solid var(--aquamarine);
+}
+
+.app.tokyoNight .rc-slider-step {
+  background: var(--rose-bonbon) !important;
+}
+
+.app.tokyoNight .rc-slider-mark-text {
+  color: var(--aquamarine);
+}
+
+.app.tokyoNight .rc-slider-handle {
+  background-color: var(--aquamarine);
 }
 
 @keyframes pulsate {

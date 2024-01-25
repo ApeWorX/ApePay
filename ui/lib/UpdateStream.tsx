@@ -7,6 +7,7 @@ import {
   useBalance,
 } from "wagmi";
 import Slider from "rc-slider";
+import { Button } from "evergreen-ui";
 
 interface UpdateStreamProps {
   stream: Stream;
@@ -102,11 +103,11 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                   typeof value === "number" && setSelectedTime(value)
                 }
               />
-              <button onClick={approveStream} className="update-stream-button">
+              <Button onClick={approveStream} className="update-stream-button">
                 {`Validate adding funds for ${selectedTime} additional day${
                   selectedTime !== 1 ? "s" : ""
                 }`}
-              </button>
+              </Button>
             </>
           ) : (
             <>
@@ -155,13 +156,13 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
               selectedTime !== 1 ? "s:" : ":"
             }`}
           </div>
-          <button
+          <Button
             onClick={handleUpdate}
             disabled={isButtonDisabled}
             className="update-stream-button"
           >
             Add Time
-          </button>
+          </Button>
           <div className="update-stream-error"> {Error && Error}</div>
         </div>
       </>
