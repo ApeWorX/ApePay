@@ -196,7 +196,9 @@ const StreamPage = () => {
                     </Pane>
                   }
                 >
-                  <Button>{chartType || "Select chart type..."}</Button>
+                  <Button className="custom-popover">
+                    {chartType || "Select chart type..."}
+                  </Button>
                 </Popover>
                 <div className="stream-status-component">
                   <StreamStatus

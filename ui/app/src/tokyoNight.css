@@ -128,6 +128,12 @@ body.tokyoNight {
   background-color: var(--aquamarine);
 }
 
+.app.tokyoNight .custom-popover:hover,
+.app.tokyoNight .custom-popover:active,
+.app.tokyoNight .custom-popover:focus {
+  background-color: var(--rose-bonbon) !important;
+}
+
 @keyframes pulsate {
   0% {
     box-shadow:
