@@ -80,14 +80,40 @@ body.tokyoNight {
   color: var(--aquamarine);
 }
 
+.app.tokyoNight .ub-pst_relative {
+  background-color: #00ffd2;
+  margin-bottom: 20px;
+}
+
+.app.tokyoNight .stream-status-bar-label {
+  color: #00ffd2;
+}
+
+.app.tokyoNight .stream-status-pie text {
+  fill: #00ffd2;
+}
+
+.app.tokyoNight .stream-status-component {
+  min-width: 120px;
+}
+
 @keyframes pulsate {
   0% {
-    box-shadow: 0 0 5px var(--aquamarine), 0 0 10px var(--aquamarine), 0 0 15px var(--aquamarine);
+    box-shadow:
+      0 0 5px var(--aquamarine),
+      0 0 10px var(--aquamarine),
+      0 0 15px var(--aquamarine);
   }
   50% {
-    box-shadow: 0 0 15px var(--aquamarine), 0 0 20px var(--aquamarine), 0 0 25px var(--aquamarine);
+    box-shadow:
+      0 0 15px var(--aquamarine),
+      0 0 20px var(--aquamarine),
+      0 0 25px var(--aquamarine);
   }
   100% {
-    box-shadow: 0 0 5px var(--aquamarine), 0 0 10px var(--aquamarine), 0 0 15px var(--aquamarine);
+    box-shadow:
+      0 0 5px var(--aquamarine),
+      0 0 10px var(--aquamarine),
+      0 0 15px var(--aquamarine);
   }
 }

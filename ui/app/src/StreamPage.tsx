@@ -19,6 +19,7 @@ import {
 import { useParams } from "react-router-dom";
 import Header from "./Header";
 import { useTheme } from "./ThemeContext";
+import { Popover, Menu, Button, Pane } from "evergreen-ui";
 
 const StreamPage = () => {
   const { sm, creator, streamId } = useParams();
@@ -113,6 +114,16 @@ const StreamPage = () => {
     }
   }, [stream]);
 
+  // UI; to pass as props to the component
+  const themeColors = {
+    sakura: { background: "#ff4499", color: "#ff4499" },
+    tokyoNight: { background: "#ff4499", color: "#ff4499" },
+  };
+
+  type ThemeName = "sakura" | "tokyoNight";
+  const background = themeColors[theme as ThemeName].background;
+  const color = themeColors[theme as ThemeName].color;
+
   return (
     <div className={`app ${theme}`}>
       <div className="header">
@@ -169,22 +180,30 @@ const StreamPage = () => {
             <div className="stream-status-box">
               <h3> Stream Status</h3>
               <div>
-                <select
-                  className="dropdown-select"
-                  value={chartType}
-                  onChange={(e) =>
-                    setChartType(e.target.value as "bar" | "pie")
+                <Popover
+                  content={
+                    <Pane className="custom-popover">
+                      <Menu>
+                        <Menu.Group>
+                          <Menu.Item onSelect={() => setChartType("bar")}>
+                            Bar Chart
+                          </Menu.Item>
+                          <Menu.Item onSelect={() => setChartType("pie")}>
+                            Pie Chart
+                          </Menu.Item>
+                        </Menu.Group>
+                      </Menu>
+                    </Pane>
                   }
                 >
-                  <option value="bar">Bar Chart</option>
-                  <option value="pie">Pie Chart</option>
-                </select>
+                  <Button>{chartType || "Select chart type..."}</Button>
+                </Popover>
                 <div className="stream-status-component">
                   <StreamStatus
                     stream={stream}
                     chartType={chartType}
-                    background="#6200ea"
-                    color="#ff4499"
+                    background={background}
+                    color={color}
                   />
                 </div>
               </div>
