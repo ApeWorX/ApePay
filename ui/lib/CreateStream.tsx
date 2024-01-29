@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from "react";
+import React, { useState, useEffect } from "react";
 import Slider from "rc-slider";
 import { Address, WalletClient } from "viem";
 import {
@@ -10,6 +10,7 @@ import {
   useContractWrite,
   useWaitForTransaction,
   useNetwork,
+  useContractRead,
 } from "wagmi";
 import { fetchBalance } from "@wagmi/core";
 import StreamManager, { Stream } from "@apeworx/apepay";
@@ -22,7 +23,7 @@ export interface CreateStreamProps {
   streamManagerAddress: Address;
   tokenList: TokenInfo[];
   amountPerSecond: bigint;
-  cart?: ReactNode;
+  productName?: string;
   registerStream: (stream: Stream) => void;
   renderReasonCode: () => Promise<string>;
   handleTransactionStatus: (
@@ -246,12 +247,59 @@ const CreateStream = (props: CreateStreamProps) => {
     }
   }, [props.tokenList, targetChainId]);
 
+  const [isAllowanceSufficient, setIsAllowanceSufficient] =
+    useState<boolean>(false);
+
+  // ABI used to fetch the current user allowance
+  const erc20ABI = [
+    {
+      constant: true,
+      inputs: [
+        { name: "_owner", type: "address" },
+        { name: "_spender", type: "address" },
+      ],
+      name: "allowance",
+      outputs: [{ name: "", type: "uint256" }],
+      type: "function",
+    },
+  ];
+
+  // Fetch current user allowance
+  const { data: allowanceData } = useContractRead({
+    address: selectedToken?.address as Address,
+    functionName: "allowance",
+    abi: erc20ABI,
+    args: [address, props.streamManagerAddress],
+    watch: true,
+    onError(error) {
+      console.log("Error fetching allowance", error);
+    },
+    onSettled(data, error) {
+      console.log("Allowance settled", { data, error });
+    },
+  });
+
+  useEffect(() => {
+    // Check if allowance data is available and update allowance state
+    if (allowanceData !== null && allowanceData !== undefined) {
+      const fetchedAllowance = Number(allowanceData.toString());
+
+      // Check if the fetched allowance is sufficient for the transaction cost
+      if (txCost !== undefined) {
+        setIsAllowanceSufficient(fetchedAllowance >= txCost);
+      }
+    }
+  }, [allowanceData, txCost]);
+
   // Select the payment token among tokens with the same chainID
   const Step1 = () => {
     return (
-      <div>
-        <div className="cart-body">{props.cart && props.cart}</div>
+      <>
         <div className="payment-flow">
+          <div className="select-token-label">
+            {" "}
+            Select a token to pay for your {props.productName || "Stream"}{" "}
+          </div>
           <select
             className="select-token-dropdown"
             value={
@@ -286,7 +334,7 @@ const CreateStream = (props: CreateStreamProps) => {
             Next
           </button>
         </div>
-      </div>
+      </>
     );
   };
 
@@ -294,36 +342,33 @@ const CreateStream = (props: CreateStreamProps) => {
     // 1: Check if SM is still fetching
     if (SM === null) {
       return (
-        <div>
-          <div className="cart-body">{props.cart && props.cart}</div>
+        <>
           <div className="payment-flow">
             <div className="fetching-sm-message">
-              Fetching stream manager address...
+              Fetching contract address...
             </div>
           </div>
-        </div>
+        </>
       );
     }
 
     // 1: Check if native balance is still fetching
     if (nativeBalance === null) {
       return (
-        <div>
-          <div className="cart-body">{props.cart && props.cart}</div>
+        <>
           <div className="payment-flow">
             <div className="loading-message-balance">
               Checking native token balance...
             </div>
           </div>
-        </div>
+        </>
       );
     }
 
     // 2: Check for enough native tokens for transaction fees
     if (nativeBalance < 0.001) {
       return (
-        <div>
-          <div className="cart-body">{props.cart && props.cart}</div>
+        <>
           <div className="payment-flow">
             <div className="error-message-balance">
               <p>Not enough native tokens to pay for transaction fees</p>
@@ -338,29 +383,27 @@ const CreateStream = (props: CreateStreamProps) => {
               Go to Hop Exchange
             </button>
           </div>
-        </div>
+        </>
       );
     }
 
     // 3: Check if the transaction amount and token balance are still loading
     if (tokenBalance === null) {
       return (
-        <div>
-          <div className="cart-body">{props.cart && props.cart}</div>
+        <>
           <div className="payment-flow">
             <div className="loading-message-token-balance">
               Checking token balance...
             </div>
           </div>
-        </div>
+        </>
       );
     }
 
     // 4: Check for enough of the selected token for the stream
     if (transactionAmount >= tokenBalance) {
       return (
-        <div>
-          <div className="cart-body">{props.cart && props.cart}</div>
+        <>
           <div className="payment-flow">
             <div className="error-message-balance">
               <div>Not enough tokens to pay for transaction.</div>
@@ -382,15 +425,18 @@ const CreateStream = (props: CreateStreamProps) => {
               Go to Uniswap
             </button>
           </div>
-        </div>
+        </>
       );
     }
 
     // 5: If all checks pass, show the slider for stream length
     return (
-      <div>
-        <div className="cart-body">{props.cart && props.cart}</div>
+      <>
         <div className="payment-flow">
+          <div className="stream-duration">
+            Select the number of days you want to run your{" "}
+            {props.productName || "Stream"}
+          </div>
           <Slider
             className="slider-select-time"
             min={1}
@@ -404,15 +450,27 @@ const CreateStream = (props: CreateStreamProps) => {
             }
             disabled={isSuccess}
           />
-          <button
-            className="button-validate-transaction"
-            onClick={approveStream}
-            disabled={isSuccess}
-            style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
-          >
-            {`Approve ${Math.floor(transactionAmount + 1)}`}&nbsp;
-            {`${selectedToken?.symbol}`}
-          </button>
+          {isAllowanceSufficient ? (
+            <button
+              className="button-validate-transaction allowance"
+              onClick={createStream}
+              disabled={buttonCreateClicked}
+            >
+              {`Run ${props.productName || "Stream"} for ${
+                selectedTime / SECS_PER_DAY
+              } day${selectedTime !== SECS_PER_DAY ? "s" : ""}`}
+            </button>
+          ) : (
+            <button
+              className="button-validate-transaction"
+              onClick={approveStream}
+              disabled={isSuccess}
+              style={{ backgroundColor: isSuccess ? "grey" : "initial" }}
+            >
+              {`Approve ${Math.floor(transactionAmount + 1)}`}{" "}
+              {`${selectedToken?.symbol}`}
+            </button>
+          )}
           {isLoading && (
             <div className="validate-transaction-message">
               Waiting for your confirmation.
@@ -425,8 +483,8 @@ const CreateStream = (props: CreateStreamProps) => {
           )}
           {txLoading && (
             <div className="validate-transaction-message">
-              Transaction approved: you will be redirected once it has been
-              processed...
+              Transaction approved: you will move to the next step once it has
+              been processed...
             </div>
           )}
           {txError && (
@@ -435,14 +493,13 @@ const CreateStream = (props: CreateStreamProps) => {
             </div>
           )}
         </div>
-      </div>
+      </>
     );
   };
 
   const Step3 = () => {
     return (
-      <div>
-        <div className="cart-body">{props.cart && props.cart}</div>
+      <>
         <div className="payment-flow">
           <div className="create-stream-approval-message">
             {`Total approval amount: ${Math.floor(transactionAmount + 1)}`}
@@ -454,12 +511,12 @@ const CreateStream = (props: CreateStreamProps) => {
             onClick={createStream}
             disabled={buttonCreateClicked}
           >
-            {`Open Stream for ${selectedTime / SECS_PER_DAY} day${
-              selectedTime !== SECS_PER_DAY ? "s" : ""
-            }`}
+            {`Run ${props.productName || "Stream"} for ${
+              selectedTime / SECS_PER_DAY
+            } day${selectedTime !== SECS_PER_DAY ? "s" : ""}`}
           </button>
         </div>
-      </div>
+      </>
     );
   };
 

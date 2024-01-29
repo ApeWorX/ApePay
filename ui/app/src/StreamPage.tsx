@@ -6,9 +6,9 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import "./styles.css";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import {
-  CancelStream,
   UpdateStream,
   StreamStatus,
+  CancelStream,
 } from "@apeworx/apepay-react";
 import {
   usePublicClient,
@@ -83,13 +83,13 @@ const StreamPage = () => {
   }, [SM, address, walletClient]);
 
   const [streamInfo, setStreamInfo] = useState({
-    amountPerSecond: null as bigint | null,
-    fundedAmount: null as bigint | null,
-    lastPull: null as bigint | null,
-    maxStreamLife: null as bigint | null,
-    reason: null as Uint8Array | null,
-    startTime: null as bigint | null,
     token: null as string | null,
+    amountPerSecond: null as bigint | null,
+    maxStreamLife: null as bigint | null,
+    fundedAmount: null as bigint | null,
+    startTime: null as bigint | null,
+    lastPull: null as bigint | null,
+    reason: null as Uint8Array | null,
   });
 
   // Get info about your stream
@@ -99,13 +99,13 @@ const StreamPage = () => {
         .streamInfo()
         .then((info) => {
           setStreamInfo({
-            amountPerSecond: info.amount_per_second,
-            fundedAmount: info.funded_amount,
-            lastPull: info.last_pull,
-            maxStreamLife: info.max_stream_life,
-            reason: info.reason,
-            startTime: info.start_time,
             token: info.token,
+            amountPerSecond: info.amount_per_second,
+            maxStreamLife: info.max_stream_life,
+            fundedAmount: info.funded_amount,
+            startTime: info.start_time,
+            lastPull: info.last_pull,
+            reason: info.reason,
           });
         })
         .catch((error) => {

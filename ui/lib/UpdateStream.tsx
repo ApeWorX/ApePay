@@ -3,6 +3,7 @@ import { Stream } from "@apeworx/apepay";
 import {
   usePrepareContractWrite,
   useContractWrite,
+  useContractRead,
   useAccount,
   useBalance,
 } from "wagmi";
@@ -84,6 +85,50 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     }
   }, [isSuccess]);
 
+  const [isAllowanceSufficient, setIsAllowanceSufficient] =
+    useState<boolean>(false);
+
+  // ABI used to fetch the current user allowance
+  const erc20ABI = [
+    {
+      constant: true,
+      inputs: [
+        { name: "_owner", type: "address" },
+        { name: "_spender", type: "address" },
+      ],
+      name: "allowance",
+      outputs: [{ name: "", type: "uint256" }],
+      type: "function",
+    },
+  ];
+
+  // Fetch current user allowance
+  const { data: allowanceData } = useContractRead({
+    address: props.stream.token,
+    functionName: "allowance",
+    abi: erc20ABI,
+    args: [address, props.stream.streamManager.address],
+    watch: true,
+    onError(error) {
+      console.log("Error fetching allowance", error);
+    },
+    onSettled(data, error) {
+      console.log("Allowance settled", { data, error });
+    },
+  });
+
+  useEffect(() => {
+    // Check if allowance data is available and update allowance state
+    if (allowanceData !== null && allowanceData !== undefined) {
+      const fetchedAllowance = Number(allowanceData.toString());
+
+      // Check if the fetched allowance is sufficient for the transaction cost
+      if (contractAmount !== undefined) {
+        setIsAllowanceSufficient(fetchedAllowance >= contractAmount);
+      }
+    }
+  }, [allowanceData, contractAmount]);
+
   // Step 1: set number of tokens you want to add
   const Step1 = () => {
     return (
@@ -103,11 +148,26 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                   typeof value === "number" && setSelectedTime(value)
                 }
               />
-              <Button onClick={approveStream} className="update-stream-button">
-                {`Validate adding funds for ${selectedTime} additional day${
-                  selectedTime !== 1 ? "s" : ""
-                }`}
-              </Button>
+              {isAllowanceSufficient ? (
+                <button
+                  className="update-stream-button allowance"
+                  onClick={handleUpdate}
+                  disabled={isButtonDisabled}
+                >
+                  {`Add funds for ${selectedTime} additional day${
+                    selectedTime !== 1 ? "s" : ""
+                  }`}
+                </button>
+              ) : (
+                <button
+                  className="update-stream-button"
+                  onClick={approveStream}
+                >
+                  {`Validate adding funds for ${selectedTime} additional day${
+                    selectedTime !== 1 ? "s" : ""
+                  }`}
+                </button>
+              )}
             </>
           ) : (
             <>
