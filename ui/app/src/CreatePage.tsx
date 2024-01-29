@@ -7,8 +7,10 @@ import config from "./config";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
+import { useTheme } from "./ThemeContext";
 
 const StreamPage = () => {
+  const { theme } = useTheme();
   const { sm } = useParams();
   const navigate = useNavigate();
 
@@ -39,14 +41,15 @@ const StreamPage = () => {
   const [isProcessed, setIsProcessed] = useState<boolean>(false);
 
   return (
-    <>
+    <div className={`app ${theme}`}>
       <div className="header">
         <Header />
         <ConnectButton />
       </div>
       <div className="container">
         <h1>
-          Create a Stream <br /> on {sm}
+          Create a Stream <br /> on{" "}
+          <strong className="stream-data-subtitle">{sm}</strong>
         </h1>
 
         {/* Fake cart for the purpose of the demo */}
@@ -84,7 +87,7 @@ const StreamPage = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

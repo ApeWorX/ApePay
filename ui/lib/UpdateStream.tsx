@@ -159,14 +159,14 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                   }`}
                 </button>
               ) : (
-                <button
+                <Button
                   className="update-stream-button"
                   onClick={approveStream}
                 >
                   {`Validate adding funds for ${selectedTime} additional day${
                     selectedTime !== 1 ? "s" : ""
                   }`}
-                </button>
+                </Button>
               )}
             </>
           ) : (

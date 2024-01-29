@@ -16,6 +16,8 @@ import { fetchBalance } from "@wagmi/core";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import { TokenInfo } from "@uniswap/token-lists";
 import { roundTxDecimals } from "./utils";
+import { Popover, Pane, Menu, Button } from "evergreen-ui";
+
 
 const SECS_PER_DAY = 24 * 60 * 60;
 
@@ -297,7 +299,6 @@ const CreateStream = (props: CreateStreamProps) => {
       <>
         <div className="payment-flow">
           <div className="select-token-label">
-            {" "}
             Select a token to pay for your {props.productName || "Stream"}{" "}
           </div>
           <select
@@ -327,12 +328,12 @@ const CreateStream = (props: CreateStreamProps) => {
               ))}
           </select>
 
-          <button
+          <Button
             className="button-validate-select-token"
             onClick={() => validateStep(1)}
           >
             Next
-          </button>
+          </Button>
         </div>
       </>
     );
@@ -376,12 +377,12 @@ const CreateStream = (props: CreateStreamProps) => {
                 Your native token balance is:&nbsp;{nativeBalance.toFixed(4)}
               </p>
             </div>
-            <button
+            <Button
               className="button-redirect-hop"
               onClick={() => window.open("https://hop.exchange/", "_blank")}
             >
               Go to Hop Exchange
-            </button>
+            </Button>
           </div>
         </>
       );
@@ -413,7 +414,7 @@ const CreateStream = (props: CreateStreamProps) => {
                 {transactionAmount}&nbsp;{selectedToken?.symbol}
               </div>
             </div>
-            <button
+            <Button
               className="button-redirect-uniswap"
               onClick={() => {
                 const uniswapURL = `https://app.uniswap.org/#/swap?outputCurrency=${selectedToken}&exactAmount=${
@@ -423,7 +424,7 @@ const CreateStream = (props: CreateStreamProps) => {
               }}
             >
               Go to Uniswap
-            </button>
+            </Button>
           </div>
         </>
       );
@@ -451,7 +452,7 @@ const CreateStream = (props: CreateStreamProps) => {
             disabled={isSuccess}
           />
           {isAllowanceSufficient ? (
-            <button
+            <Button
               className="button-validate-transaction allowance"
               onClick={createStream}
               disabled={buttonCreateClicked}
@@ -459,9 +460,9 @@ const CreateStream = (props: CreateStreamProps) => {
               {`Run ${props.productName || "Stream"} for ${
                 selectedTime / SECS_PER_DAY
               } day${selectedTime !== SECS_PER_DAY ? "s" : ""}`}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               className="button-validate-transaction"
               onClick={approveStream}
               disabled={isSuccess}
@@ -469,7 +470,7 @@ const CreateStream = (props: CreateStreamProps) => {
             >
               {`Approve ${Math.floor(transactionAmount + 1)}`}{" "}
               {`${selectedToken?.symbol}`}
-            </button>
+            </Button>
           )}
           {isLoading && (
             <div className="validate-transaction-message">
@@ -506,7 +507,7 @@ const CreateStream = (props: CreateStreamProps) => {
             &nbsp;
             {`${selectedToken?.symbol}`}
           </div>
-          <button
+          <Button
             className="button-create-stream"
             onClick={createStream}
             disabled={buttonCreateClicked}
@@ -514,7 +515,7 @@ const CreateStream = (props: CreateStreamProps) => {
             {`Run ${props.productName || "Stream"} for ${
               selectedTime / SECS_PER_DAY
             } day${selectedTime !== SECS_PER_DAY ? "s" : ""}`}
-          </button>
+          </Button>
         </div>
       </>
     );

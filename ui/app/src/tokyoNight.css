@@ -82,7 +82,6 @@ body.tokyoNight {
 
 .app.tokyoNight .ub-pst_relative {
   background-color: #00ffd2;
-  margin-bottom: 20px;
 }
 
 .app.tokyoNight .stream-status-bar-label {
@@ -111,6 +110,11 @@ body.tokyoNight {
   border: none;
 }
 
+.app.tokyoNight .cancel-stream-button:disabled,
+.app.tokyoNight .update-stream-button:disabled {
+  opacity: 0.4;
+}
+
 .app.tokyoNight .rc-slider-dot {
   background-color: var(--rose-bonbon);
   border: 2px solid var(--aquamarine);
@@ -118,6 +122,10 @@ body.tokyoNight {
 
 .app.tokyoNight .rc-slider-step {
   background: var(--rose-bonbon) !important;
+}
+
+.app.tokyoNight .rc-slider-disabled {
+  background: var(--black) !important;
 }
 
 .app.tokyoNight .rc-slider-mark-text {
@@ -132,6 +140,31 @@ body.tokyoNight {
 .app.tokyoNight .custom-popover:active,
 .app.tokyoNight .custom-popover:focus {
   background-color: var(--rose-bonbon) !important;
+}
+
+.app.tokyoNight .cart,
+.app.tokyoNight .create-stream-component {
+  border-color: var(--aquamarine);
+}
+
+.app.tokyoNight .button-redirect-uniswap,
+.app.tokyoNight .button-validate-transaction,
+.app.tokyoNight .button-create-stream,
+.app.tokyoNight .button-validate-select-token,
+.app.tokyoNight .button-redirect-hop {
+  font-family: "Tomorrow", sans-serif;
+  background-color: var(--aquamarine) !important;
+  color: var(--federal-blue);
+  border: none;
+}
+
+.app.tokyoNight .button-redirect-uniswap:hover,
+.app.tokyoNight .button-validate-transaction:hover,
+.app.tokyoNight .button-create-stream:hover,
+.app.tokyoNight .button-validate-select-token:hover,
+.app.tokyoNight .button-redirect-hop:hover {
+  background-color: var(--rose-bonbon) !important;
+  border: none;
 }
 
 @keyframes pulsate {
