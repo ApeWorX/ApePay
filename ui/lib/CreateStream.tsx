@@ -18,7 +18,6 @@ import { TokenInfo } from "@uniswap/token-lists";
 import { roundTxDecimals } from "./utils";
 import { Popover, Pane, Menu, Button } from "evergreen-ui";
 
-
 const SECS_PER_DAY = 24 * 60 * 60;
 
 export interface CreateStreamProps {
@@ -299,38 +298,36 @@ const CreateStream = (props: CreateStreamProps) => {
       <>
         <div className="payment-flow">
           <div className="select-token-label">
-            Select a token to pay for your {props.productName || "Stream"}{" "}
+            Select a token to pay for your {props.productName || "Stream"}
           </div>
-          <select
-            className="select-token-dropdown"
-            value={
-              selectedToken ? selectedToken.address : "Select Payment Token"
+          <Popover
+            content={
+              <Pane>
+                <Menu>
+                  {props.tokenList
+                    .filter((token) => token.chainId === targetChainId)
+                    .map((token) => (
+                      <Menu.Item
+                        key={token.address}
+                        onSelect={() => {
+                          setSelectedToken(token);
+                        }}
+                      >
+                        {token.symbol}
+                      </Menu.Item>
+                    ))}
+                </Menu>
+              </Pane>
             }
-            onChange={(e) => {
-              // Find the TokenInfo object that matches the selected address
-              const selectedTokenInfo = props.tokenList.find(
-                (token) => token.address === e.target.value,
-              );
-              setSelectedToken(selectedTokenInfo || null);
-            }}
           >
-            {selectedToken === null && (
-              <option disabled value="Select Payment Token">
-                Select a token
-              </option>
-            )}
-            {props.tokenList
-              .filter((token) => token.chainId === targetChainId)
-              .map((token) => (
-                <option key={token.address} value={token.address}>
-                  {token.symbol}
-                </option>
-              ))}
-          </select>
-
+            <Button className="select-token-dropdown">
+              {selectedToken ? selectedToken.symbol : "Select Payment Token"}
+            </Button>
+          </Popover>
           <Button
             className="button-validate-select-token"
             onClick={() => validateStep(1)}
+            disabled={!selectedToken}
           >
             Next
           </Button>

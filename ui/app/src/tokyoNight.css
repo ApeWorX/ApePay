@@ -111,7 +111,9 @@ body.tokyoNight {
 }
 
 .app.tokyoNight .cancel-stream-button:disabled,
-.app.tokyoNight .update-stream-button:disabled {
+.app.tokyoNight .update-stream-button:disabled,
+.app.tokyoNight .button-create-stream:disabled,
+.app.tokyoNight .button-validate-transaction:disabled {
   opacity: 0.4;
 }
 
