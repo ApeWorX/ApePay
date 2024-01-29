@@ -1,10 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "./ThemeContext";
-import { Button, SelectMenu, ArrowLeftIcon } from "evergreen-ui";
+import { Button, Popover, Pane, ArrowLeftIcon } from "evergreen-ui";
 
 interface HeaderProps {
-  showNavButtons?: boolean; 
+  showNavButtons?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({ showNavButtons = true }) => {
@@ -28,15 +28,19 @@ const Header: React.FC<HeaderProps> = ({ showNavButtons = true }) => {
           </Button>
         </>
       )}
-
-      <SelectMenu
-        title="Select Theme"
-        options={themes.map((t) => ({ label: t, value: t }))}
-        selected={theme}
-        onSelect={(item) => setTheme(String(item.value))}
+      <Popover
+        content={
+          <Pane padding={16} display="flex" flexDirection="column">
+            {themes.map((t) => (
+              <Button key={t} onClick={() => setTheme(t)}>
+                {t}
+              </Button>
+            ))}
+          </Pane>
+        }
       >
         <Button className="theme-toggle-button">{theme}</Button>
-      </SelectMenu>
+      </Popover>
     </div>
   );
 };
