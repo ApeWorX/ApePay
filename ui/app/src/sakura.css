@@ -1,31 +1,197 @@
+:root {
+  --dark-blue: #a2d2ff;
+  --light-blue: #bde0fe;
+  --dark-pink: #ffafcc;
+  --standard-pink: #ffc8dd;
+  --light-pink: #fff6f9;
+}
+
+.app.sakura a:hover {
+  color: var(--light-blue);
+}
+
 body.sakura {
-  background-color: #a2d2ff;
+  background-color: var(--dark-blue);
   font-family: "Kdam Thmor Pro", sans-serif;
 }
 
 .app.sakura {
-  color: #333;
-  background-color: #a2d2ff;
+  color: var(--dark-pink);
+  background-color: var(--dark-blue);
 }
 
 .app.sakura .theme-toggle-button {
-  background-color: #ffafcc;
-  color: #333;
-}
+  font-family: "Kdam Thmor Pro", sans-serif;
 
-.app.sakura .theme-header-button {
-  background-color: #bde0fe;
+  background-color: var(--light-pink);
+  color: var(--dark-blue);
+  border: none;
 }
-
-.app.sakura .theme-header-button:hover {
-  background-color: #ffc8dd;
+.app.sakura .theme-toggle-button:hover {
+  background-color: var(--dark-blue);
+  color: var(--dark-pink);
+  font-family: "Kdam Thmor Pro", sans-serif;
+  border: none;
 }
 
 .app.sakura .theme-stream-button {
-  background-color: #ffafcc;
-  color: #333;
+  background-color: var(--light-pink);
+  color: var(--dark-blue);
+  font-family: "Kdam Thmor Pro", sans-serif;
+  animation: sakuraPulsate 1.5s infinite ease-in-out;
+}
+.app.sakura .theme-stream-button:hover {
+  background-color: var(--dark-blue);
+  color: var(--dark-pink);
+  font-family: "Kdam Thmor Pro", sans-serif;
+  border: none;
 }
 
-.app.sakura .theme-stream-button:hover {
-  background-color: #ffc8dd;
+.app.sakura .theme-header-button {
+  font-family: "Kdam Thmor Pro", sans-serif;
+  background-color: var(--dark-pink);
+  color: var(--dark-blue);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.app.sakura .theme-header-button:hover {
+  background-color: var(--light-pink);
+  color: var(--dark-blue);
+  border: none;
+}
+
+.app.sakura .list-creator-streams {
+  border: 1px solid var(--dark-pink);
+}
+
+.app.sakura .stream-status-bar-label {
+  color: var(--dark-blue);
+}
+
+.app.sakura .stream-status-box,
+.app.sakura .stream-data-box,
+.app.sakura .cancel-stream-box,
+.app.sakura .update-stream-box {
+  border: 1px solid var(--light-pink);
+  padding: 10px;
+}
+
+.app.sakura .stream-data-subtitle {
+  color: var(--light-pink);
+}
+
+.app.sakura .stream-data-subtitle:hover {
+  color: var(--standard-pink);
+}
+
+.app.sakura .ub-pst_relative {
+  background-color: var(--light-pink);
+}
+
+.app.sakura .stream-status-bar-label {
+  color: #004687;
+}
+
+.app.sakura .stream-status-pie text {
+  fill: var(--light-pink);
+}
+
+.app.sakura .stream-status-component {
+  min-width: 120px;
+}
+
+.app.sakura .cancel-stream-button,
+.app.sakura .update-stream-button {
+  font-family: "Kdam Thmor Pro", sans-serif;
+  background-color: var(--light-pink);
+  color: var(--dark-blue);
+  border: none;
+}
+
+.app.sakura .theme-header-button:hover,
+.app.sakura .cancel-stream-button:hover,
+.app.sakura .update-stream-button:hover {
+  background-color: var(--dark-pink);
+  border: none;
+}
+
+.app.sakura .cancel-stream-button:disabled,
+.app.sakura .update-stream-button:disabled,
+.app.sakura .button-create-stream:disabled,
+.app.sakura .button-validate-transaction:disabled {
+  opacity: 0.4;
+}
+
+.app.sakura .rc-slider-dot {
+  background-color: var(--dark-pink);
+  border: 2px solid var(--light-pink);
+}
+
+.app.sakura .rc-slider-step {
+  background: var(--dark-pink) !important;
+}
+
+.app.sakura .rc-slider-disabled {
+  background: var(--black) !important;
+}
+
+.app.sakura .rc-slider-mark-text {
+  color: var(--light-pink);
+}
+
+.app.sakura .rc-slider-handle {
+  background-color: var(--light-pink);
+}
+
+.app.sakura .custom-popover:hover,
+.app.sakura .custom-popover:active,
+.app.sakura .custom-popover:focus {
+  background-color: var(--dark-pink) !important;
+}
+
+.app.sakura .cart,
+.app.sakura .create-stream-component {
+  border-color: var(--light-pink);
+}
+
+.app.sakura .button-redirect-uniswap,
+.app.sakura .button-validate-transaction,
+.app.sakura .button-create-stream,
+.app.sakura .button-validate-select-token,
+.app.sakura .button-redirect-hop {
+  font-family: "Kdam Thmor Pro", sans-serif;
+  background-color: var(--light-pink) !important;
+  color: var(--dark-blue);
+  border: none;
+}
+
+.app.sakura .button-redirect-uniswap:hover,
+.app.sakura .button-validate-transaction:hover,
+.app.sakura .button-create-stream:hover,
+.app.sakura .button-validate-select-token:hover,
+.app.sakura .button-redirect-hop:hover {
+  background-color: var(--dark-pink) !important;
+  border: none;
+}
+
+@keyframes sakuraPulsate {
+  0% {
+    box-shadow:
+      0 0 5px var(--standard-pink),
+      0 0 10px var(--standard-pink),
+      0 0 15px var(--standard-pink);
+  }
+  50% {
+    box-shadow:
+      0 0 15px var(--standard-pink),
+      0 0 20px var(--standard-pink),
+      0 0 25px var(--standard-pink);
+  }
+  100% {
+    box-shadow:
+      0 0 5px var(--standard-pink),
+      0 0 10px var(--standard-pink),
+      0 0 15px var(--standard-pink);
+  }
 }

@@ -42,7 +42,6 @@ a:visited {
 
 a:hover {
   transition: all 0.3s ease;
-  color: #6200ea;
 }
 
 .header {
@@ -58,7 +57,6 @@ a:hover {
 .button-validate-select-token,
 .button-validate-transaction,
 .button-create-stream {
-  color: white;
   border: none;
   padding: 10px 20px;
   margin: 5px;
@@ -68,10 +66,6 @@ a:hover {
     background-color 0.3s,
     box-shadow 0.3s;
   cursor: pointer;
-}
-
-.button:active {
-  background-color: #6200ea;
 }
 
 button:hover {
@@ -129,7 +123,6 @@ li {
   text-align: center;
   width: 100%;
   list-style-type: none;
-  border: 2px solid black;
   margin-top: 15px;
   border-radius: 5px;
 }
@@ -151,10 +144,10 @@ li {
 .cancel-stream-box,
 .update-stream-box {
   margin-top: 10px;
-  border: 1px solid black;
   padding: 10px;
   width: 50%;
   text-align: center;
+  overflow: hidden;
 }
 
 .loading-stream-text {
@@ -179,7 +172,6 @@ li {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid black;
   text-align: center;
   width: 50%;
   padding: 20px;
@@ -189,7 +181,6 @@ li {
 }
 
 .cart {
-  border: 1px solid black;
   text-align: center;
   margin: 1em;
   padding: 1em;
@@ -244,7 +235,6 @@ li {
 
 .stream-status-bar-progress {
   height: 100%;
-  background-color: #111;
 }
 
 .stream-status-pie {
@@ -261,13 +251,6 @@ li {
   text-align: center;
 }
 
-.dropdown-select {
-  margin-bottom: 10px;
-  border: 1px solid #6200ea;
-  padding: 10px 30px 10px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
 
 /* CANCEL STREAM */
 
@@ -287,8 +270,6 @@ li {
   width: 50%;
   overflow: auto;
 }
-
-
 
 .cancel-stream-button:disabled {
   opacity: 0.5;

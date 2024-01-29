@@ -116,7 +116,7 @@ const StreamPage = () => {
 
   // UI; to pass as props to the component
   const themeColors = {
-    sakura: { background: "#ff4499", color: "#00ffd2" },
+    sakura: { background: "#ffafcc", color: "#bde0fe" },
     tokyoNight: { background: "#ff4499", color: "#00ffd2" },
   };
 
