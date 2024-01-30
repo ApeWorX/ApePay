@@ -149,7 +149,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                 }
               />
               {isAllowanceSufficient ? (
-                <button
+                <Button
                   className="update-stream-button allowance"
                   onClick={handleUpdate}
                   disabled={isButtonDisabled}
@@ -157,7 +157,7 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                   {`Add funds for ${selectedTime} additional day${
                     selectedTime !== 1 ? "s" : ""
                   }`}
-                </button>
+                </Button>
               ) : (
                 <Button
                   className="update-stream-button"

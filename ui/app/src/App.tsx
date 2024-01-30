@@ -5,6 +5,7 @@ import config from "./config";
 import "./styles.css";
 import "./sakura.css";
 import "./tokyoNight.css";
+import "./nord.css";
 import { useTheme } from "./ThemeContext";
 import Header from "./Header";
 

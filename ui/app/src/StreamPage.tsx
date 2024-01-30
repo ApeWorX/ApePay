@@ -118,9 +118,10 @@ const StreamPage = () => {
   const themeColors = {
     sakura: { background: "#ffafcc", color: "#bde0fe" },
     tokyoNight: { background: "#ff4499", color: "#00ffd2" },
+    nord: { background: "#D8DEE9", color: "#4C566A" },
   };
 
-  type ThemeName = "sakura" | "tokyoNight";
+  type ThemeName = "sakura" | "tokyoNight" | "nord";
   const background = themeColors[theme as ThemeName].background;
   const color = themeColors[theme as ThemeName].color;
 

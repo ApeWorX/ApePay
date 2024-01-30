@@ -238,6 +238,7 @@ li {
 }
 
 .stream-status-pie {
+  margin-top: 10px;
   width: 50%;
 }
 
@@ -251,6 +252,9 @@ li {
   text-align: center;
 }
 
+.stream-status-component {
+  margin-top: 10px;
+}
 
 /* CANCEL STREAM */
 

@@ -69,6 +69,17 @@ const CreatorPage = () => {
     });
   };
 
+  // UI; to pass as props to the component
+  const themeColors = {
+    sakura: { background: "#ffafcc", color: "#bde0fe" },
+    tokyoNight: { background: "#ff4499", color: "#00ffd2" },
+    nord: { background: "#2E3440", color: "#4C566A" },
+  };
+
+  type ThemeName = "sakura" | "tokyoNight" | "nord";
+  const background = themeColors[theme as ThemeName].background;
+  const color = themeColors[theme as ThemeName].color;
+
   return (
     <>
       <div className={`app ${theme}`}>
@@ -117,8 +128,8 @@ const CreatorPage = () => {
                       <StreamStatus
                         stream={stream}
                         chartType={"bar"}
-                        background="#00FFD2"
-                        color="#ff4499"
+                        background={background}
+                        color={color}
                       />
                     </div>
                   </Link>

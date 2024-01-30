@@ -84,10 +84,6 @@ body.tokyoNight {
   color: var(--aquamarine);
 }
 
-.app.tokyoNight .stream-data-subtitle:hover {
-  color: var(--polynesian-blue);
-}
-
 .app.tokyoNight .ub-pst_relative {
   background-color: var(--aquamarine);
 }
