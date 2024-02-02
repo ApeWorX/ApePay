@@ -3,10 +3,12 @@ import { Stream } from "@apeworx/apepay";
 import {
   usePrepareContractWrite,
   useContractWrite,
+  useContractRead,
   useAccount,
   useBalance,
 } from "wagmi";
 import Slider from "rc-slider";
+import { Button } from "evergreen-ui";
 
 interface UpdateStreamProps {
   stream: Stream;
@@ -83,6 +85,50 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
     }
   }, [isSuccess]);
 
+  const [isAllowanceSufficient, setIsAllowanceSufficient] =
+    useState<boolean>(false);
+
+  // ABI used to fetch the current user allowance
+  const erc20ABI = [
+    {
+      constant: true,
+      inputs: [
+        { name: "_owner", type: "address" },
+        { name: "_spender", type: "address" },
+      ],
+      name: "allowance",
+      outputs: [{ name: "", type: "uint256" }],
+      type: "function",
+    },
+  ];
+
+  // Fetch current user allowance
+  const { data: allowanceData } = useContractRead({
+    address: props.stream.token,
+    functionName: "allowance",
+    abi: erc20ABI,
+    args: [address, props.stream.streamManager.address],
+    watch: true,
+    onError(error) {
+      console.log("Error fetching allowance", error);
+    },
+    onSettled(data, error) {
+      console.log("Allowance settled", { data, error });
+    },
+  });
+
+  useEffect(() => {
+    // Check if allowance data is available and update allowance state
+    if (allowanceData !== null && allowanceData !== undefined) {
+      const fetchedAllowance = Number(allowanceData.toString());
+
+      // Check if the fetched allowance is sufficient for the transaction cost
+      if (contractAmount !== undefined) {
+        setIsAllowanceSufficient(fetchedAllowance >= contractAmount);
+      }
+    }
+  }, [allowanceData, contractAmount]);
+
   // Step 1: set number of tokens you want to add
   const Step1 = () => {
     return (
@@ -102,11 +148,26 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
                   typeof value === "number" && setSelectedTime(value)
                 }
               />
-              <button onClick={approveStream} className="update-stream-button">
-                {`Validate adding funds for ${selectedTime} additional day${
-                  selectedTime !== 1 ? "s" : ""
-                }`}
-              </button>
+              {isAllowanceSufficient ? (
+                <Button
+                  className="update-stream-button allowance"
+                  onClick={handleUpdate}
+                  disabled={isButtonDisabled}
+                >
+                  {`Add funds for ${selectedTime} additional day${
+                    selectedTime !== 1 ? "s" : ""
+                  }`}
+                </Button>
+              ) : (
+                <Button
+                  className="update-stream-button"
+                  onClick={approveStream}
+                >
+                  {`Validate adding funds for ${selectedTime} additional day${
+                    selectedTime !== 1 ? "s" : ""
+                  }`}
+                </Button>
+              )}
             </>
           ) : (
             <>
@@ -155,13 +216,13 @@ const UpdateStream: React.FC<UpdateStreamProps> = (props) => {
               selectedTime !== 1 ? "s:" : ":"
             }`}
           </div>
-          <button
+          <Button
             onClick={handleUpdate}
             disabled={isButtonDisabled}
             className="update-stream-button"
           >
             Add Time
-          </button>
+          </Button>
           <div className="update-stream-error"> {Error && Error}</div>
         </div>
       </>

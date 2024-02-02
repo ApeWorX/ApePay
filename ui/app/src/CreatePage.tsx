@@ -7,29 +7,12 @@ import config from "./config";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
+import { useTheme } from "./ThemeContext";
 
 const StreamPage = () => {
+  const { theme } = useTheme();
   const { sm } = useParams();
   const navigate = useNavigate();
-
-  // Fake cart for the purpose of the demo
-  const Cart = () => {
-    return (
-      <div className="cart">
-        <div className="cart-item">
-          <div className="cart-info">
-            <span className="cart-title">Cart Title</span>
-            <span className="cart-quantity">#: 1</span>
-            <span className="price">$XX.00/day</span>
-          </div>
-          <div className="cart-details">
-            <strong>Details:</strong>
-            <p>Description of the cart that you are about to pay for.</p>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const addStreams = (stream: Stream) => {
     navigate(`/${sm}/${stream.creator}/${stream.streamId}`);
@@ -58,37 +41,53 @@ const StreamPage = () => {
   const [isProcessed, setIsProcessed] = useState<boolean>(false);
 
   return (
-    <>
+    <div className={`app ${theme}`}>
       <div className="header">
         <Header />
         <ConnectButton />
       </div>
+      <div className="container">
+        <h1>
+          Create a Stream <br /> on{" "}
+          <strong className="stream-data-subtitle">{sm}</strong>
+        </h1>
 
-      <h1>
-        Create a Stream <br /> on {sm}
-      </h1>
-
-      {/* Create a stream */}
-      <div className="create-stream-component">
-        <CreateStream
-          streamManagerAddress={sm as `0x${string}`}
-          amountPerSecond={BigInt(100)}
-          registerStream={addStreams}
-          renderReasonCode={renderReasonCode}
-          handleTransactionStatus={handleTransactionStatus}
-          tokenList={tokenList}
-          cart={<Cart />}
-        />
-        {/* CreateStream callback */}
-        <div className="tx-status-display">
-          {isProcessing && <p>Processing Transaction... </p>}
-          {isProcessed && (
-            <p>Transaction Successful! -redirect to another page-</p>
-          )}
-          {processTxError && <p>Tx Error: {processTxError.message}</p>}
+        {/* Fake cart for the purpose of the demo */}
+        <div className="cart">
+          <div className="cart-item">
+            <div className="cart-info">
+              <span className="cart-title">Cart Title</span>
+              <span className="cart-quantity">#: 1</span>
+              <span className="price">$XX.00/day</span>
+            </div>
+            <div className="cart-details">
+              <strong>Details:</strong>
+              <p>Description of the cart that you are about to pay for.</p>
+            </div>
+          </div>
+        </div>
+        {/* Create a stream */}
+        <div className="create-stream-component">
+          <CreateStream
+            streamManagerAddress={sm as `0x${string}`}
+            tokenList={tokenList}
+            amountPerSecond={BigInt(10000000000000)}
+            productName={"simulation"}
+            registerStream={addStreams}
+            renderReasonCode={renderReasonCode}
+            handleTransactionStatus={handleTransactionStatus}
+          />
+          {/* CreateStream callback */}
+          <div className="tx-status-display">
+            {isProcessing && <p>Processing Transaction... </p>}
+            {isProcessed && (
+              <p>Transaction Successful! -redirect to another page-</p>
+            )}
+            {processTxError && <p>Tx Error: {processTxError.message}</p>}
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

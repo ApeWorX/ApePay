@@ -1,0 +1,196 @@
+:root {
+  --polynesian-blue: #004687;
+  --federal-blue: #0a0047;
+  --black: #000000;
+  --rose-bonbon: #ff4499;
+  --aquamarine: #00ffd2;
+}
+
+a:hover {
+  color: var(--polynesian-blue);
+}
+
+body.tokyoNight {
+  background-color: var(--federal-blue);
+  font-family: "Tomorrow", sans-serif;
+}
+
+.app.tokyoNight {
+  color: var(--rose-bonbon);
+  background-color: var(--federal-blue);
+}
+
+.app.tokyoNight .theme-toggle-button {
+  font-family: "Tomorrow", sans-serif;
+  background-color: var(--aquamarine);
+  color: var(--federal-blue);
+  border: none;
+}
+.app.tokyoNight .theme-toggle-button:hover {
+  background-color: var(--federal-blue);
+  color: var(--rose-bonbon);
+  font-family: "Tomorrow", sans-serif;
+  border: none;
+}
+
+.app.tokyoNight .theme-stream-button {
+  background-color: var(--aquamarine);
+  color: var(--federal-blue);
+  font-family: "Tomorrow", sans-serif;
+  animation: tokyoPulsate 1.5s infinite ease-in-out;
+}
+.app.tokyoNight .theme-stream-button:hover {
+  background-color: var(--polynesian-blue);
+  color: var(--rose-bonbon);
+  font-family: "Tomorrow", sans-serif;
+  border: none;
+}
+
+.app.tokyoNight a:hover {
+  color: var(--polynesian-blue);
+}
+
+.app.tokyoNight .theme-header-button {
+  font-family: "Tomorrow", sans-serif;
+  background-color: var(--rose-bonbon);
+  color: var(--federal-blue);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.app.tokyoNight .theme-header-button:hover {
+  background-color: var(--aquamarine);
+  color: var(--federal-blue);
+  border: none;
+}
+
+.app.tokyoNight .list-creator-streams {
+  border: 1px solid var(--rose-bonbon);
+}
+
+.app.tokyoNight .stream-status-bar-label {
+  color: var(--federal-blue);
+}
+
+.app.tokyoNight .stream-status-box,
+.app.tokyoNight .stream-data-box,
+.app.tokyoNight .cancel-stream-box,
+.app.tokyoNight .update-stream-box {
+  border: 1px solid var(--aquamarine);
+  padding: 10px;
+}
+
+.app.tokyoNight .stream-data-subtitle {
+  color: var(--aquamarine);
+}
+
+.app.tokyoNight .ub-pst_relative {
+  background-color: var(--aquamarine);
+}
+
+.app.tokyoNight .stream-status-bar-label {
+  color: var(--polynesian-blue);
+}
+
+.app.tokyoNight .stream-status-pie text {
+  fill: var(--aquamarine);
+}
+
+.app.tokyoNight .stream-status-component {
+  min-width: 120px;
+}
+
+.app.tokyoNight .cancel-stream-button,
+.app.tokyoNight .update-stream-button {
+  font-family: "Tomorrow", sans-serif;
+  background-color: var(--aquamarine);
+  color: var(--federal-blue);
+  border: none;
+}
+
+.app.tokyoNight .theme-header-button:hover,
+.app.tokyoNight .cancel-stream-button:hover,
+.app.tokyoNight .update-stream-button:hover {
+  background-color: var(--rose-bonbon);
+  border: none;
+}
+
+.app.tokyoNight .cancel-stream-button:disabled,
+.app.tokyoNight .update-stream-button:disabled,
+.app.tokyoNight .button-create-stream:disabled,
+.app.tokyoNight .button-validate-transaction:disabled {
+  opacity: 0.4;
+}
+
+.app.tokyoNight .rc-slider-dot {
+  background-color: var(--rose-bonbon);
+  border: 2px solid var(--aquamarine);
+}
+
+.app.tokyoNight .rc-slider-step {
+  background: var(--rose-bonbon) !important;
+}
+
+.app.tokyoNight .rc-slider-disabled {
+  background: var(--black) !important;
+}
+
+.app.tokyoNight .rc-slider-mark-text {
+  color: var(--aquamarine);
+}
+
+.app.tokyoNight .rc-slider-handle {
+  background-color: var(--aquamarine);
+}
+
+.app.tokyoNight .custom-popover:hover,
+.app.tokyoNight .custom-popover:active,
+.app.tokyoNight .custom-popover:focus {
+  background-color: var(--rose-bonbon) !important;
+}
+
+.app.tokyoNight .cart,
+.app.tokyoNight .create-stream-component {
+  border-color: var(--aquamarine);
+}
+
+.app.tokyoNight .button-redirect-uniswap,
+.app.tokyoNight .button-validate-transaction,
+.app.tokyoNight .button-create-stream,
+.app.tokyoNight .button-validate-select-token,
+.app.tokyoNight .button-redirect-hop {
+  font-family: "Tomorrow", sans-serif;
+  background-color: var(--aquamarine) !important;
+  color: var(--federal-blue);
+  border: none;
+}
+
+.app.tokyoNight .button-redirect-uniswap:hover,
+.app.tokyoNight .button-validate-transaction:hover,
+.app.tokyoNight .button-create-stream:hover,
+.app.tokyoNight .button-validate-select-token:hover,
+.app.tokyoNight .button-redirect-hop:hover {
+  background-color: var(--rose-bonbon) !important;
+  border: none;
+}
+
+@keyframes tokyoPulsate {
+  0% {
+    box-shadow:
+      0 0 5px var(--aquamarine),
+      0 0 10px var(--aquamarine),
+      0 0 15px var(--aquamarine);
+  }
+  50% {
+    box-shadow:
+      0 0 15px var(--aquamarine),
+      0 0 20px var(--aquamarine),
+      0 0 25px var(--aquamarine);
+  }
+  100% {
+    box-shadow:
+      0 0 5px var(--aquamarine),
+      0 0 10px var(--aquamarine),
+      0 0 15px var(--aquamarine);
+  }
+}
