@@ -233,6 +233,10 @@ const CreateStream = (props: CreateStreamProps) => {
   // Get your current chainID
   const targetChainId = chain ? chain.id : undefined;
 
+  // If current chainID doesn't match with any of the props tokens,
+  // display a warning to the user
+  const [wrongChain, setWrongChain] = useState<boolean>(false);
+
   useEffect(() => {
     // Reset the selectedToken when the targetChainId changes
     setSelectedToken(null);
@@ -245,6 +249,11 @@ const CreateStream = (props: CreateStreamProps) => {
     // If there's only one token, set it as the selected token
     if (filteredTokens.length === 1) {
       setSelectedToken(filteredTokens[0]);
+    }
+
+    // if the user is on the wrong chain, warn him
+    if (filteredTokens.length === 0) {
+      setWrongChain(true);
     }
   }, [props.tokenList, targetChainId]);
 
@@ -294,7 +303,9 @@ const CreateStream = (props: CreateStreamProps) => {
 
   // Select the payment token among tokens with the same chainID
   const Step1 = () => {
-    return (
+    return wrongChain ? (
+      <div className="wrong-chain-label">Wrong network selected</div>
+    ) : (
       <>
         <div className="payment-flow">
           <div className="select-token-label">
