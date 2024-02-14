@@ -74,6 +74,12 @@ In order to work on the Demo app, you need to compile the JS SDK (like above) as
 $ npm run build --workspace=ui/lib
 ```
 
+If you already had a build, you may need to run this command to be able to build the workspaces:
+
+```sh
+$ npm run clean
+```
+
 Then you are ready to contribute!
 
 To run the demo app in development mode, do the following:
