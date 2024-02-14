@@ -254,8 +254,10 @@ const CreateStream = (props: CreateStreamProps) => {
     // if the user is on the wrong chain, warn him
     if (filteredTokens.length === 0) {
       setWrongChain(true);
+    } else {
+      setWrongChain(false);
     }
-  }, [props.tokenList, targetChainId]);
+  }, [props.tokenList, targetChainId, chain]);
 
   const [isAllowanceSufficient, setIsAllowanceSufficient] =
     useState<boolean>(false);
