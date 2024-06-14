@@ -1,8 +1,21 @@
 /* GLOBAL */
-
+html,
 body {
-  background-color: #f0e8d9;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
 }
+
+.theme-header-button {
+  margin: 5px;
+  margin-right: 5px;
+}
+
+.theme-stream-button {
+  margin: 10px;
+}
+
 h1,
 h2 {
   text-align: center;
@@ -29,7 +42,6 @@ a:visited {
 
 a:hover {
   transition: all 0.3s ease;
-  color: #6200ea;
 }
 
 .header {
@@ -42,14 +54,9 @@ a:hover {
   justify-content: flex-end;
 }
 
-.cancel-stream-button,
-.create-stream-sm-button,
-.update-stream-button,
 .button-validate-select-token,
 .button-validate-transaction,
 .button-create-stream {
-  background-color: #6200ea !important;
-  color: white;
   border: none;
   padding: 10px 20px;
   margin: 5px;
@@ -59,30 +66,10 @@ a:hover {
     background-color 0.3s,
     box-shadow 0.3s;
   cursor: pointer;
-}
-
-.header-button button {
-  background-color: grey;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  margin: 5px;
-  border-radius: 4px;
-  font-weight: bold;
-  transition:
-    background-color 0.3s,
-    box-shadow 0.3s;
-  cursor: pointer;
-}
-
-.button:active {
-  background-color: #6200ea;
 }
 
 button:hover {
   transition: all 0.3s ease;
-  background-color: #421f74;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 li {
@@ -106,7 +93,7 @@ li {
 /* STREAM MANAGER PAGE */
 
 .stream-manager-title {
-  margin-top: 10px;
+  margin: 10px;
   font-size: 20px;
   text-align: center;
 }
@@ -136,7 +123,6 @@ li {
   text-align: center;
   width: 100%;
   list-style-type: none;
-  border: 2px solid black;
   margin-top: 15px;
   border-radius: 5px;
 }
@@ -158,10 +144,10 @@ li {
 .cancel-stream-box,
 .update-stream-box {
   margin-top: 10px;
-  border: 1px solid black;
   padding: 10px;
   width: 50%;
   text-align: center;
+  overflow: hidden;
 }
 
 .loading-stream-text {
@@ -178,9 +164,6 @@ li {
 .rc-slider {
   width: 50% !important;
 }
-.rc-slider-step {
-  background: lightgray !important;
-}
 
 /* CREATE STREAM: STEP 1 */
 
@@ -189,7 +172,6 @@ li {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid black;
   text-align: center;
   width: 50%;
   padding: 20px;
@@ -199,7 +181,6 @@ li {
 }
 
 .cart {
-  border: 1px solid black;
   text-align: center;
   margin: 1em;
   padding: 1em;
@@ -254,10 +235,10 @@ li {
 
 .stream-status-bar-progress {
   height: 100%;
-  background-color: #111;
 }
 
 .stream-status-pie {
+  margin-top: 10px;
   width: 50%;
 }
 
@@ -271,12 +252,8 @@ li {
   text-align: center;
 }
 
-.dropdown-select {
-  margin-bottom: 10px;
-  border: 1px solid #6200ea;
-  padding: 10px 30px 10px 10px;
-  border-radius: 4px;
-  cursor: pointer;
+.stream-status-component {
+  margin-top: 10px;
 }
 
 /* CANCEL STREAM */
@@ -301,4 +278,12 @@ li {
 .cancel-stream-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.container {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }

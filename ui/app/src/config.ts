@@ -1,7 +1,7 @@
 // Override this config in your downstream implementations as needed
 
 const config = {
-  fromBlock: 4615000,
+  fromBlock: 4900000,
   streamManagerAddress: "0x3543Faeeddb7bAbCbBB216B3627f9c5E0C39CE41",
   tokens: [
     {

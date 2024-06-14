@@ -6,8 +6,11 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import { StreamStatus } from "@apeworx/apepay-react";
 import Header from "./Header";
+import { useTheme } from "./ThemeContext";
 
 const CreatorPage = () => {
+  const { theme } = useTheme();
+
   const { sm, creator } = useParams();
   const [createdStreams, setCreatedStreams] = useState<Stream[]>([]);
   const [streamManager, setStreamManager] = useState<StreamManager | null>(
@@ -66,55 +69,75 @@ const CreatorPage = () => {
     });
   };
 
+  // UI; to pass as props to the component
+  const themeColors = {
+    sakura: { background: "#ffafcc", color: "#bde0fe" },
+    tokyoNight: { background: "#ff4499", color: "#00ffd2" },
+    nord: { background: "#2E3440", color: "#4C566A" },
+  };
+
+  type ThemeName = "sakura" | "tokyoNight" | "nord";
+  const background = themeColors[theme as ThemeName].background;
+  const color = themeColors[theme as ThemeName].color;
+
   return (
     <>
-      <div className="header">
-        <Header />
-        <ConnectButton />
-      </div>
+      <div className={`app ${theme}`}>
+        <div className="header">
+          <Header />
+          <ConnectButton />
+        </div>
 
-      <h2>
-        {fromBlock != null ? (
-          <>
-            {`Created Streams from block ${String(fromBlock)}`}
-            <br />
-            {`by ${creator}`}
-          </>
-        ) : (
-          "Created Streams"
-        )}
-      </h2>
-      {/* Stream list */}
-      <div className="list-streams">
-        {sm === null ? (
-          <p>Fetching SM...</p>
-        ) : createdStreams.length === 0 ? (
-          <p>
-            {fromBlock != null
-              ? `Loading streams from block ${String(fromBlock)}...`
-              : "Loading all of the created streams"}
-          </p>
-        ) : (
-          <ul>
-            {createdStreams.map((stream, index) => (
-              <li className="list-creator-streams" key={index}>
-                <Link
-                  to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
-                >
-                  <span>ID: {stream.streamId}</span>
-                  <div className="stream-status-component">
-                    <StreamStatus
-                      stream={stream}
-                      chartType={"bar"}
-                      background="#6200ea"
-                      color="black"
-                    />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="stream-manager-title">
+          {fromBlock != null ? (
+            <>
+              {"Created Streams from block "}
+              <strong className="stream-data-subtitle">
+                {String(fromBlock)}
+              </strong>
+              <br />
+              {"by "}
+              <strong className="stream-data-subtitle">{creator}</strong>
+            </>
+          ) : (
+            <>
+              {"Created Streams by "}
+              <strong className="stream-data-subtitle">{creator}</strong>
+            </>
+          )}
+        </div>
+        {/* Stream list */}
+        <div className="list-streams">
+          {sm === null ? (
+            <p>Fetching SM...</p>
+          ) : createdStreams.length === 0 ? (
+            <p>
+              {fromBlock != null
+                ? `Loading streams from block ${String(fromBlock)}...`
+                : "Loading all of the created streams"}
+            </p>
+          ) : (
+            <ul>
+              {createdStreams.map((stream, index) => (
+                <li className="list-creator-streams" key={index}>
+                  <Link
+                    to={`/${stream.streamManager.address}/${stream.creator}/${stream.streamId}`}
+                  >
+                    <span>ID: {stream.streamId}</span>
+                    <div className="stream-status-component">
+                      <StreamStatus
+                        stream={stream}
+                        chartType={"bar"}
+                        background={background}
+                        color={color}
+                      />
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </>
   );

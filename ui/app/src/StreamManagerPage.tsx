@@ -6,8 +6,11 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import config from "./config";
 import Header from "./Header";
+import { Button } from "evergreen-ui";
+import { useTheme } from "./ThemeContext";
 
 const StreamManagerPage = () => {
+  const { theme } = useTheme();
   const { sm } = useParams();
   const [createdStreams, setCreatedStreams] = useState<Stream[]>([]);
   const [streamManager, setStreamManager] = useState<StreamManager | null>(
@@ -72,7 +75,7 @@ const StreamManagerPage = () => {
   );
 
   return (
-    <>
+    <div className={`app ${theme}`}>
       <div className="header">
         <Header />
         <ConnectButton />
@@ -83,22 +86,30 @@ const StreamManagerPage = () => {
           {fromBlock != null ? (
             <>
               {"Created Streams from block "}
-              <strong>{String(fromBlock)}</strong>
+              <strong className="stream-data-subtitle">
+                {String(fromBlock)}
+              </strong>
               <br />
               {"on "}
-              <strong>{sm}</strong>
+              <strong className="stream-data-subtitle">{sm}</strong>
             </>
           ) : (
             <>
               {"Created Streams on "}
-              <strong>{sm}</strong>
+              <strong className="stream-data-subtitle">{sm}</strong>
             </>
           )}
         </div>
 
         <div className="create-stream-sm-text">
           <Link to={`/${sm}/create`}>
-            <button className="create-stream-sm-button">Create a Stream</button>
+            <Button
+              className="theme-stream-button"
+              intent="success"
+              height={40}
+            >
+              Create a Stream
+            </Button>
           </Link>
         </div>
 
@@ -120,7 +131,14 @@ const StreamManagerPage = () => {
                 return (
                   <div key={creator}>
                     <h3 className="list-creator">
-                      By <Link to={`/${sm}/${creator}`}>{creator}</Link>:
+                      By{" "}
+                      <Link
+                        className="stream-data-subtitle"
+                        to={`/${sm}/${creator}`}
+                      >
+                        {creator}
+                      </Link>
+                      :
                     </h3>
 
                     <ul className="list-streams">
@@ -145,7 +163,7 @@ const StreamManagerPage = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
