@@ -1,23 +1,25 @@
-import json
 import importlib
+import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import partial
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Union, cast, ClassVar
+from pathlib import Path
+from typing import Any, ClassVar, Dict, Iterable, Iterator, List, Optional, Union, cast
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
 from ape.exceptions import (
     CompilerError,
     ContractLogicError,
+    ContractNotFoundError,
     DecodingError,
     ProjectError,
-    ContractNotFoundError,
 )
-from ape.types import AddressType, ContractLog, HexBytes
+from ape.types import AddressType, ContractLog
 from ape.utils import BaseInterfaceModel, cached_property
 from ethpm_types import ContractType, PackageManifest
-from pydantic import ValidationError, validator
+from hexbytes import HexBytes
+from pydantic import ValidationError, ValidationInfo, field_validator, model_validator
 
 from .exceptions import (
     FundsNotClaimable,
@@ -28,6 +30,8 @@ from .exceptions import (
     ValidatorFailed,
 )
 from .utils import time_unit_to_timedelta
+
+SDict = Dict[str, Any]
 
 MAX_DURATION_SECONDS = int(timedelta.max.total_seconds()) - 1
 
@@ -48,7 +52,7 @@ class Validator(BaseInterfaceModel):
         # Try __eq__ from the other side.
         return NotImplemented
 
-    def validate(self, creator, token, amount_per_second, reason) -> bool:
+    def validate(self, creator, token, amount_per_second, reason) -> bool:  # type: ignore
         try:
             self.contract.validate.call(creator, token, amount_per_second, reason)
             return True
@@ -63,14 +67,17 @@ _ValidatorItem = Union[Validator, ContractInstance, str, AddressType]
 class StreamManager(BaseInterfaceModel):
     address: AddressType
     contract_type: Optional[ContractType] = None
-    _local_contracts: ClassVar[Dict[str, ContractType]]
+    _local_contracts: ClassVar[Dict[str, ContractType]] = dict()
 
-    @validator("address", pre=True)
+    @field_validator("address", mode="before")
+    @classmethod
     def normalize_address(cls, value: Any) -> AddressType:
         return cls.conversion_manager.convert(value, AddressType)
 
-    @validator("contract_type", pre=True, always=True)
-    def fetch_contract_type(cls, value: Any, values: Dict[str, Any]) -> ContractType:
+    @classmethod
+    def fetch_contract_type(
+        cls, value: Optional[Any] = None, address: Optional[AddressType] = None
+    ) -> ContractType:
         # 0. If pre-loaded, default to that type
         if value:
             return value
@@ -86,19 +93,28 @@ class StreamManager(BaseInterfaceModel):
 
         # 2. If contract cache has it, use that
         try:
-            if values.get("address") and (
-                contract_type := cls.chain_manager.contracts.get(values["address"])
-            ):
+            if address and (contract_type := cls.chain_manager.contracts.get(address)):
                 return contract_type
 
         except Exception:
             pass
 
         # 3. Most expensive way is through package resources
-        cls._local_contracts = PackageManifest.parse_file(
-            importlib.resources.files("apepay") / "manifest.json"
-        ).contract_types
+        manifest_file = Path(__file__).parent / "manifest.json"
+        manifest_text = manifest_file.read_text()
+        manifest = PackageManifest.parse_raw(manifest_text)
+
+        if not manifest or not manifest.contract_types:
+            raise ValueError("Invalid manifest")
+
+        cls._local_contracts = manifest.contract_types
         return cls._local_contracts["StreamManager"]
+
+    # NOTE: self type notation because pydantic does some weird type massaging with this decorator
+    @model_validator(mode="after")
+    def validate_contract_type(self: "StreamManager") -> "StreamManager":
+        self.contract_type = StreamManager.fetch_contract_type(self.contract_type, self.address)
+        return self
 
     @property
     def contract(self) -> ContractInstance:
@@ -157,7 +173,7 @@ class StreamManager(BaseInterfaceModel):
 
     def add_validators(
         self,
-        *new_validators: Iterable[_ValidatorItem],
+        *new_validators: _ValidatorItem,
         **txn_kwargs,
     ) -> ReceiptAPI:
         return self.set_validators(
@@ -167,7 +183,7 @@ class StreamManager(BaseInterfaceModel):
 
     def remove_validators(
         self,
-        *validators: Iterable[_ValidatorItem],
+        *validators: _ValidatorItem,
         **txn_kwargs,
     ) -> ReceiptAPI:
         return self.set_validators(
@@ -307,14 +323,16 @@ class Stream(BaseInterfaceModel):
     creation_receipt: Optional[ReceiptAPI] = None
     transaction_hash: Optional[HexBytes] = None
 
-    @validator("transaction_hash", pre=True)
+    @field_validator("transaction_hash", mode="before")
+    @classmethod
     def normalize_transaction_hash(cls, value: Any) -> Optional[HexBytes]:
         if value:
             return HexBytes(cls.conversion_manager.convert(value, bytes))
 
         return value
 
-    @validator("creator", pre=True)
+    @field_validator("creator", mode="before")
+    @classmethod
     def validate_addresses(cls, value):
         return (
             value if isinstance(value, str) else cls.conversion_manager.convert(value, AddressType)

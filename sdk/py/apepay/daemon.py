@@ -4,9 +4,9 @@ from datetime import timedelta
 from enum import Enum
 
 import click
-from ape.types import AddressType
 from apepay import Stream, StreamManager
-from silverback import SilverbackApp
+from eth_utils import to_checksum_address
+from silverback import SilverbackApp, SilverbackStartupState
 
 from .settings import Settings
 
@@ -35,8 +35,9 @@ class Status(Enum):
 
 
 SM = StreamManager(
-    address=os.environ.get("APEPAY_CONTRACT_ADDRESS")
-    or click.prompt("What address to use?", type=AddressType)
+    address=to_checksum_address(
+        os.environ.get("APEPAY_CONTRACT_ADDRESS") or click.prompt("What address to use?", type=str)
+    )
 )
 
 app = SilverbackApp()
@@ -63,12 +64,12 @@ async def create_task_by_status(stream: Stream):
 
 
 @app.on_startup()
-async def app_started(state):
+async def app_started(startup_state: SilverbackStartupState):
     return await asyncio.gather(
         # Start watching all active streams and claim any completed but unclaimed streams
         *(
             create_task_by_status(stream)
-            for stream in SM.all_streams()
+            for stream in SM.all_streams(startup_state.last_block_seen)
             if stream.is_active or stream.amount_unlocked > 0
         )
     )
