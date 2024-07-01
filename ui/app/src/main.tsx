@@ -1,6 +1,6 @@
 import "./polyfills";
 import "@rainbow-me/rainbowkit/styles.css";
-import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { getDefaultWallets } from "@rainbow-me/rainbowkit";
 import { configureChains, createConfig, WagmiConfig } from "wagmi";
 import { polygon, optimism, arbitrum, sepolia } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
@@ -11,8 +11,9 @@ import StreamManagerPage from "./StreamManagerPage";
 import CreatePage from "./CreatePage";
 import CreatorPage from "./CreatorPage";
 import StreamPage from "./StreamPage";
-
+import { ThemeProvider } from "./ThemeContext";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ThemedRainbowKitProvider from "./ThemedRainbowKit";
 
 const { chains, publicClient } = configureChains(
   // NOTE: Testnet deployment on Sepolia
@@ -51,18 +52,20 @@ const wagmiConfig = createConfig({
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
-        <Router>
-          <Routes>
-            <Route path="/" element={<App />} />
-            <Route path=":sm" element={<StreamManagerPage />} />
-            <Route path=":sm/create" element={<CreatePage />} />
-            <Route path=":sm/:creator" element={<CreatorPage />} />
-            <Route path=":sm/:creator/:streamId" element={<StreamPage />} />
-          </Routes>
-        </Router>
-      </RainbowKitProvider>
-    </WagmiConfig>
+    <ThemeProvider>
+      <WagmiConfig config={wagmiConfig}>
+        <ThemedRainbowKitProvider chains={chains}>
+          <Router>
+            <Routes>
+              <Route path="/" element={<App />} />
+              <Route path=":sm" element={<StreamManagerPage />} />
+              <Route path=":sm/create" element={<CreatePage />} />
+              <Route path=":sm/:creator" element={<CreatorPage />} />
+              <Route path=":sm/:creator/:streamId" element={<StreamPage />} />
+            </Routes>
+          </Router>
+        </ThemedRainbowKitProvider>
+      </WagmiConfig>
+    </ThemeProvider>
   </React.StrictMode>,
 );

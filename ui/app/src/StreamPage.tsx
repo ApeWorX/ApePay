@@ -6,9 +6,9 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import "./styles.css";
 import StreamManager, { Stream } from "@apeworx/apepay";
 import {
-  CancelStream,
   UpdateStream,
   StreamStatus,
+  CancelStream,
 } from "@apeworx/apepay-react";
 import {
   usePublicClient,
@@ -18,9 +18,12 @@ import {
 } from "wagmi";
 import { useParams } from "react-router-dom";
 import Header from "./Header";
+import { useTheme } from "./ThemeContext";
+import { Popover, Menu, Button, Pane } from "evergreen-ui";
 
 const StreamPage = () => {
   const { sm, creator, streamId } = useParams();
+  const { theme } = useTheme();
 
   const [chartType, setChartType] = useState<"bar" | "pie">("bar");
 
@@ -80,13 +83,13 @@ const StreamPage = () => {
   }, [SM, address, walletClient]);
 
   const [streamInfo, setStreamInfo] = useState({
-    amountPerSecond: null as bigint | null,
-    fundedAmount: null as bigint | null,
-    lastPull: null as bigint | null,
-    maxStreamLife: null as bigint | null,
-    reason: null as Uint8Array | null,
-    startTime: null as bigint | null,
     token: null as string | null,
+    amountPerSecond: null as bigint | null,
+    maxStreamLife: null as bigint | null,
+    fundedAmount: null as bigint | null,
+    startTime: null as bigint | null,
+    lastPull: null as bigint | null,
+    reason: null as Uint8Array | null,
   });
 
   // Get info about your stream
@@ -96,13 +99,13 @@ const StreamPage = () => {
         .streamInfo()
         .then((info) => {
           setStreamInfo({
-            amountPerSecond: info.amount_per_second,
-            fundedAmount: info.funded_amount,
-            lastPull: info.last_pull,
-            maxStreamLife: info.max_stream_life,
-            reason: info.reason,
-            startTime: info.start_time,
             token: info.token,
+            amountPerSecond: info.amount_per_second,
+            maxStreamLife: info.max_stream_life,
+            fundedAmount: info.funded_amount,
+            startTime: info.start_time,
+            lastPull: info.last_pull,
+            reason: info.reason,
           });
         })
         .catch((error) => {
@@ -111,15 +114,27 @@ const StreamPage = () => {
     }
   }, [stream]);
 
+  // UI; to pass as props to the component
+  const themeColors = {
+    sakura: { background: "#ffafcc", color: "#bde0fe" },
+    tokyoNight: { background: "#ff4499", color: "#00ffd2" },
+    nord: { background: "#D8DEE9", color: "#4C566A" },
+  };
+
+  type ThemeName = "sakura" | "tokyoNight" | "nord";
+  const background = themeColors[theme as ThemeName].background;
+  const color = themeColors[theme as ThemeName].color;
+
   return (
-    <>
+    <div className={`app ${theme}`}>
       <div className="header">
         <Header />
         <ConnectButton />
       </div>
 
       <h2>
-        Stream {streamId} by <br /> {creator}
+        Stream <span className="stream-data-subtitle"> {streamId} </span>by
+        <br /> <span className="stream-data-subtitle"> {creator} </span>
       </h2>
       {stream ? (
         <>
@@ -127,31 +142,37 @@ const StreamPage = () => {
             {/* Stream Data */}
             <div className="stream-data-box">
               <p>
-                <strong>Stream Manager: </strong>
+                <strong className="stream-data-subtitle">
+                  Stream Manager:{" "}
+                </strong>
                 {sm}
               </p>
               <p>
-                <strong>Token: </strong>
+                <strong className="stream-data-subtitle">Token: </strong>
                 {streamInfo.token ? String(streamInfo.token) : "fetching..."}
               </p>
               <p>
-                <strong>Creator: </strong>
+                <strong className="stream-data-subtitle">Creator: </strong>
                 {creator}
               </p>
               <p>
-                <strong>Amount per second: </strong>
+                <strong className="stream-data-subtitle">
+                  Amount per second:{" "}
+                </strong>
                 {streamInfo.amountPerSecond
                   ? String(streamInfo.amountPerSecond)
                   : "fetching..."}
               </p>
               <p>
-                <strong>Funded amount: </strong>
+                <strong className="stream-data-subtitle">
+                  Funded amount:{" "}
+                </strong>
                 {streamInfo.fundedAmount
                   ? String(streamInfo.fundedAmount)
                   : "fetching..."}
               </p>
               <p>
-                <strong>Start time: </strong>
+                <strong className="stream-data-subtitle">Start time: </strong>
                 {new Date(Number(stream.startTime) * 1000).toLocaleString()}
               </p>
             </div>
@@ -160,22 +181,32 @@ const StreamPage = () => {
             <div className="stream-status-box">
               <h3> Stream Status</h3>
               <div>
-                <select
-                  className="dropdown-select"
-                  value={chartType}
-                  onChange={(e) =>
-                    setChartType(e.target.value as "bar" | "pie")
+                <Popover
+                  content={
+                    <Pane className="custom-popover">
+                      <Menu>
+                        <Menu.Group>
+                          <Menu.Item onSelect={() => setChartType("bar")}>
+                            Bar Chart
+                          </Menu.Item>
+                          <Menu.Item onSelect={() => setChartType("pie")}>
+                            Pie Chart
+                          </Menu.Item>
+                        </Menu.Group>
+                      </Menu>
+                    </Pane>
                   }
                 >
-                  <option value="bar">Bar Chart</option>
-                  <option value="pie">Pie Chart</option>
-                </select>
+                  <Button className="custom-popover">
+                    {chartType || "Select chart type..."}
+                  </Button>
+                </Popover>
                 <div className="stream-status-component">
                   <StreamStatus
                     stream={stream}
                     chartType={chartType}
-                    background="#6200ea"
-                    color="black"
+                    background={background}
+                    color={color}
                   />
                 </div>
               </div>
@@ -226,7 +257,7 @@ const StreamPage = () => {
           </div>
         </>
       )}
-    </>
+    </div>
   );
 };
 

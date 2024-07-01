@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Stream } from "@apeworx/apepay";
 import { formatTime } from "./utils";
 import { useCurrentTime } from "./utils";
+import { Button } from "evergreen-ui";
 
 interface CancelStreamProps {
   stream: Stream;
@@ -80,13 +81,13 @@ const CancelStream: React.FC<CancelStreamProps> = (props) => {
           </div>
         )
       )}
-      <button
+      <Button
         className="cancel-stream-button"
         onClick={handleCancel}
         disabled={!isButtonEnabled}
       >
         Cancel {props.productName || "Stream"}
-      </button>
+      </Button>
       <div className="cancel-stream-error"> {error && error}</div>
     </div>
   );
