@@ -10,7 +10,7 @@
   "scripts": {
     "format": "prettier -w ui && prettier -w sdk",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "clean": "rm -rf js-dist",
+    "clean": "find . -name 'dist' -type d -exec rm -rf {} +",
     "build": "bash build-script.sh"
   },
   "engines": {
