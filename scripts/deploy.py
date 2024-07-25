@@ -19,7 +19,6 @@ def cli():
 
 @cli.command(cls=ConnectedProviderCommand, short_help="Deploy the StreamFactory contract")
 @account_option()
-@network_option()
 @ape_cli_context()
 @click.option("--blueprint", default=None)
 @click.option("--create2", default=None, help="A string tag for the create2 deployment salt")

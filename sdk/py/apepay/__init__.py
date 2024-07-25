@@ -4,7 +4,7 @@ from collections.abc import Iterable, Iterator
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import partial
-from typing import Any, ClassVar, Optional, Union, cast
+from typing import Any, ClassVar, Union, cast
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
@@ -63,7 +63,7 @@ _ValidatorItem = Union[Validator, ContractInstance, str, AddressType]
 
 class StreamManager(BaseInterfaceModel):
     address: AddressType
-    contract_type: Optional[ContractType] = None
+    contract_type: ContractType | None = None
     _local_contracts: ClassVar[dict[str, ContractType]] = {}
 
     @field_validator("address", mode="before")
@@ -180,17 +180,13 @@ class StreamManager(BaseInterfaceModel):
             **txn_kwargs,
         )
 
-    def add_token(
-        self, token: Union[ContractInstance, str, AddressType], **txn_kwargs
-    ) -> ReceiptAPI:
+    def add_token(self, token: ContractInstance | str | AddressType, **txn_kwargs) -> ReceiptAPI:
         return self.contract.add_token(token, **txn_kwargs)
 
-    def remove_token(
-        self, token: Union[ContractInstance, str, AddressType], **txn_kwargs
-    ) -> ReceiptAPI:
+    def remove_token(self, token: ContractInstance | str | AddressType, **txn_kwargs) -> ReceiptAPI:
         return self.contract.remove_token(token, **txn_kwargs)
 
-    def is_accepted(self, token: Union[ContractInstance, str, AddressType]):
+    def is_accepted(self, token: ContractInstance | str | AddressType):
         return self.contract.token_is_accepted(token)
 
     @cached_property
@@ -200,9 +196,9 @@ class StreamManager(BaseInterfaceModel):
     def create(
         self,
         token: ContractInstance,
-        amount_per_second: Union[str, int],
-        reason: Union[HexBytes, bytes, str, dict, None] = None,
-        start_time: Union[datetime, int, None] = None,
+        amount_per_second: str | int,
+        reason: HexBytes | bytes | str | dict | None = None,
+        start_time: datetime | int | None = None,
         **txn_kwargs,
     ) -> "Stream":
         if not self.contract.token_is_accepted(token):
@@ -280,7 +276,7 @@ class StreamManager(BaseInterfaceModel):
         for stream_id in range(self.contract.num_streams(creator)):
             yield Stream(manager=self, creator=creator, stream_id=stream_id)
 
-    def all_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
+    def all_streams(self, start_block: int | None = None) -> Iterator["Stream"]:
         for stream_created_event in self.contract.StreamCreated.range(
             start_block if start_block is not None else self.contract.receipt.block_number,
             self.chain_manager.blocks.head.number,
@@ -291,12 +287,12 @@ class StreamManager(BaseInterfaceModel):
                 is_creation_event=True,
             )
 
-    def active_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
+    def active_streams(self, start_block: int | None = None) -> Iterator["Stream"]:
         for stream in self.all_streams(start_block=start_block):
             if stream.is_active:
                 yield stream
 
-    def unclaimed_streams(self, start_block: Optional[int] = None) -> Iterator["Stream"]:
+    def unclaimed_streams(self, start_block: int | None = None) -> Iterator["Stream"]:
         for stream in self.all_streams(start_block=start_block):
             if not stream.is_active and stream.amount_unlocked > 0:
                 yield stream
@@ -306,11 +302,11 @@ class Stream(BaseInterfaceModel):
     manager: StreamManager
     creator: AddressType
     stream_id: int
-    creation_receipt: Optional[ReceiptAPI] = None
-    transaction_hash: Optional[HexBytes] = None
+    creation_receipt: ReceiptAPI | None = None
+    transaction_hash: HexBytes | None = None
 
     @field_validator("transaction_hash", mode="before")
-    def normalize_transaction_hash(cls, value: Any) -> Optional[HexBytes]:
+    def normalize_transaction_hash(cls, value: Any) -> HexBytes | None:
         if value:
             return HexBytes(cls.conversion_manager.convert(value, bytes))
 
@@ -404,7 +400,7 @@ class Stream(BaseInterfaceModel):
         return datetime.fromtimestamp(self.info.start_time)
 
     @cached_property
-    def reason(self) -> Union[HexBytes, str, dict]:
+    def reason(self) -> HexBytes | str | dict:
         try:
             reason_str = self.info.reason.decode("utf-8")
 

@@ -1,7 +1,7 @@
 import asyncio
 import threading
+from collections.abc import AsyncIterator, Iterator
 from datetime import timedelta
-from typing import AsyncIterator, Iterator
 
 
 def async_wrap_iter(it: Iterator) -> AsyncIterator:
