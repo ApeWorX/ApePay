@@ -1,6 +1,8 @@
 name: ApePay
 
 plugins:
+  - name: arbitrum
+  - name: optimism
   - name: foundry
   - name: vyper
 

@@ -1,23 +1,24 @@
-import json
 import importlib
+import json
+from collections.abc import Iterable, Iterator
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import partial
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Union, cast, ClassVar
+from typing import Any, ClassVar, Optional, Union, cast
 
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
 from ape.exceptions import (
     CompilerError,
     ContractLogicError,
+    ContractNotFoundError,
     DecodingError,
     ProjectError,
-    ContractNotFoundError,
 )
 from ape.types import AddressType, ContractLog, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from ethpm_types import ContractType, PackageManifest
-from pydantic import ValidationError, validator
+from pydantic import ValidationError, field_validator
 
 from .exceptions import (
     FundsNotClaimable,
@@ -63,22 +64,22 @@ _ValidatorItem = Union[Validator, ContractInstance, str, AddressType]
 class StreamManager(BaseInterfaceModel):
     address: AddressType
     contract_type: Optional[ContractType] = None
-    _local_contracts: ClassVar[Dict[str, ContractType]]
+    _local_contracts: ClassVar[dict[str, ContractType]] = {}
 
-    @validator("address", pre=True)
+    @field_validator("address", mode="before")
     def normalize_address(cls, value: Any) -> AddressType:
         return cls.conversion_manager.convert(value, AddressType)
 
-    @validator("contract_type", pre=True, always=True)
-    def fetch_contract_type(cls, value: Any, values: Dict[str, Any]) -> ContractType:
+    @field_validator("contract_type", mode="before")
+    def fetch_contract_type(cls, value: Any, values: dict[str, Any]) -> ContractType:
         # 0. If pre-loaded, default to that type
         if value:
             return value
 
         # 1. If building locally, use that
         try:
-            if contract_type := cls.project_manager.contracts.get("StreamManager"):
-                cls._local_contracts = cls.project_manager.contracts
+            if contract_type := cls.local_project.contracts.get("StreamManager"):
+                cls._local_contracts = cls.local_project.contracts
                 return contract_type
 
         except (CompilerError, ProjectError, ValidationError):
@@ -95,8 +96,9 @@ class StreamManager(BaseInterfaceModel):
             pass
 
         # 3. Most expensive way is through package resources
-        cls._local_contracts = PackageManifest.parse_file(
-            importlib.resources.files("apepay") / "manifest.json"
+        manifest_json_file = importlib.resources.files("apepay") / "manifest.json"
+        cls._local_contracts = PackageManifest.model_validate_json(
+            manifest_json_file.read_text(encoding="utf8")
         ).contract_types
         return cls._local_contracts["StreamManager"]
 
@@ -114,7 +116,7 @@ class StreamManager(BaseInterfaceModel):
         return self.contract.owner()
 
     @property
-    def validators(self) -> List[Validator]:
+    def validators(self) -> list[Validator]:
         validators = []
 
         for idx in range(20):
@@ -126,8 +128,8 @@ class StreamManager(BaseInterfaceModel):
                 break
 
             validator_contract = (
-                self.project_manager.Validator.at(validator_address)
-                if "Validator" in self._local_contracts
+                self.local_project.Validator.at(validator_address)
+                if "Validator" in StreamManager._local_contracts
                 else self.chain_manager.contracts.instance_at(validator_address)
             )
             validators.append(Validator(contract=validator_contract))
@@ -144,7 +146,7 @@ class StreamManager(BaseInterfaceModel):
 
     def set_validators(
         self,
-        validators: List[_ValidatorItem],
+        validators: list[_ValidatorItem],
         **txn_kwargs,
     ) -> ReceiptAPI:
         if len(validators) >= 20:
@@ -216,7 +218,7 @@ class StreamManager(BaseInterfaceModel):
         if amount_per_second == 0:
             raise ValueError("`amount_per_second` must be greater than 0.")
 
-        args: List[Any] = [token, amount_per_second]
+        args: list[Any] = [token, amount_per_second]
 
         if reason is not None:
             if isinstance(reason, dict):
@@ -307,14 +309,14 @@ class Stream(BaseInterfaceModel):
     creation_receipt: Optional[ReceiptAPI] = None
     transaction_hash: Optional[HexBytes] = None
 
-    @validator("transaction_hash", pre=True)
+    @field_validator("transaction_hash", mode="before")
     def normalize_transaction_hash(cls, value: Any) -> Optional[HexBytes]:
         if value:
             return HexBytes(cls.conversion_manager.convert(value, bytes))
 
         return value
 
-    @validator("creator", pre=True)
+    @field_validator("creator", mode="before")
     def validate_addresses(cls, value):
         return (
             value if isinstance(value, str) else cls.conversion_manager.convert(value, AddressType)
@@ -365,8 +367,8 @@ class Stream(BaseInterfaceModel):
 
     @cached_property
     def token(self) -> ContractInstance:
-        if "TestToken" in self.project_manager.contracts:
-            return self.project_manager.TestToken.at(self.info.token)
+        if "TestToken" in self.local_project.contracts:
+            return self.local_project.TestToken.at(self.info.token)
 
         try:
             return self.chain_manager.contracts.instance_at(self.info.token)

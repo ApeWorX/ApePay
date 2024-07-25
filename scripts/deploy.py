@@ -1,7 +1,6 @@
 import click
-from ape import networks, project, Contract
-from ape.cli import NetworkBoundCommand, account_option, ape_cli_context, network_option
-from ape.types import HexBytes
+from ape import Contract, project
+from ape.cli import ConnectedProviderCommand, account_option, ape_cli_context
 from ape.exceptions import ApeException
 from ape_ethereum.ecosystem import keccak
 
@@ -18,14 +17,14 @@ def cli():
     """
 
 
-@cli.command(cls=NetworkBoundCommand, short_help="Deploy the StreamFactory contract")
+@cli.command(cls=ConnectedProviderCommand, short_help="Deploy the StreamFactory contract")
 @account_option()
 @network_option()
 @ape_cli_context()
 @click.option("--blueprint", default=None)
 @click.option("--create2", default=None, help="A string tag for the create2 deployment salt")
 @click.option("--publish", is_flag=True)
-def factory(cli_ctx, account, network, blueprint, create2, publish):
+def factory(cli_ctx, account, ecosystem, network, blueprint, create2, publish):
     if create2:
         # NOTE: This is the deployment address listed on the create2 deployer's github:
         # https://github.com/pcaversaccio/create2deployer/tree/main#deployments-create2deployer
@@ -34,7 +33,7 @@ def factory(cli_ctx, account, network, blueprint, create2, publish):
         salt = keccak(text=create2)
 
         if not blueprint:
-            blueprint_initcode = cli_ctx.provider.network.ecosystem.encode_contract_blueprint(
+            blueprint_initcode = ecosystem.encode_contract_blueprint(
                 project.StreamManager.contract_type
             ).data
             blueprint = create2_deployer.computeAddress(salt, keccak(blueprint_initcode))
@@ -67,8 +66,8 @@ def factory(cli_ctx, account, network, blueprint, create2, publish):
             factory = project.StreamFactory.at(factory_address)
 
             if publish:
-                cli_ctx.project_manager.track_deployment(factory)
-                cli_ctx.provider.network.publish_contract(factory.address)
+                cli_ctx.local_project.track_deployment(factory)
+                network.publish_contract(factory.address)
 
     else:
         if not blueprint:
@@ -80,10 +79,9 @@ def factory(cli_ctx, account, network, blueprint, create2, publish):
         account.deploy(project.StreamFactory, blueprint, publish=publish)
 
 
-@cli.command(cls=NetworkBoundCommand, short_help="Deploy the StreamManager contract")
+@cli.command(cls=ConnectedProviderCommand, short_help="Deploy the StreamManager contract")
 @ape_cli_context()
 @account_option()
-@network_option()
 @click.option("--factory", default=None)
 @click.option("--owner", default=None)
 @click.option("--min-stream-life", type=int, default=60 * 60)
@@ -122,8 +120,8 @@ def manager(
         cli_ctx.logger.success(f"StreamManager deployed to '{manager.address}'.")
 
         if publish:
-            cli_ctx.project_manager.track_deployment(manager)
-            cli_ctx.provider.network.publish_contract(manager.address)
+            cli_ctx.local_project.track_deployment(manager)
+            network.publish_contract(manager.address)
 
     else:
         account.deploy(
@@ -136,9 +134,8 @@ def manager(
         )
 
 
-@cli.command(cls=NetworkBoundCommand, short_help="Deploy a Mock token")
+@cli.command(cls=ConnectedProviderCommand, short_help="Deploy a Mock token")
 @ape_cli_context()
 @account_option()
-@network_option()
-def token(cli_ctx, account, network):
+def token(cli_ctx, account):
     account.deploy(project.TestToken)
