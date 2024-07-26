@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ApeWorX/github-action@v2
+      - uses: ApeWorX/github-action@v3
       - run: ape compile --size
       # Upload ape build files for testing
       - uses: actions/upload-artifact@v3
@@ -48,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: foundry-rs/foundry-toolchain@v1
-      - uses: ApeWorX/github-action@v2
+      - uses: ApeWorX/github-action@v3
       # Ape build artifacts used for testing
       - uses: actions/download-artifact@v3
         with:
