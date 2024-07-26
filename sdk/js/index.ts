@@ -73,7 +73,7 @@ export class Stream {
 
     const streamInfo: StreamInfo = (await publicClient.readContract({
       address: streamManager.address,
-      abi: StreamManagerABI,
+      abi: StreamManagerABI as Abi,
       functionName: "streams",
       args: [creator, streamId],
     })) as StreamInfo;
@@ -95,7 +95,7 @@ export class Stream {
     return BigInt(
       (await this.publicClient.readContract({
         address: this.streamManager.address,
-        abi: StreamManagerABI,
+        abi: StreamManagerABI as Abi,
         functionName: "time_left",
         args: [this.creator, this.streamId],
       })) as bigint,
@@ -105,7 +105,7 @@ export class Stream {
   async streamInfo(): Promise<StreamInfo> {
     return (await this.publicClient.readContract({
       address: this.streamManager.address,
-      abi: StreamManagerABI,
+      abi: StreamManagerABI as Abi,
       functionName: "streams",
       args: [this.creator, this.streamId],
     })) as StreamInfo;
@@ -126,7 +126,7 @@ export class Stream {
     return this.walletClient.writeContract({
       chain: null,
       address: this.streamManager.address,
-      abi: StreamManagerABI,
+      abi: StreamManagerABI as Abi,
       functionName: "add_funds",
       args: [this.creator, this.streamId, amount],
       account: this.walletClient.account.address,
@@ -160,7 +160,7 @@ export class Stream {
     return this.walletClient.writeContract({
       chain: null,
       address: this.streamManager.address,
-      abi: StreamManagerABI,
+      abi: StreamManagerABI as Abi,
       functionName: "cancel_stream",
       args: args,
       account: this.walletClient.account.address,
@@ -197,7 +197,7 @@ export default class StreamManager {
   ): Promise<StreamManager> {
     const MIN_STREAM_LIFE: bigint = (await publicClient.readContract({
       address: address,
-      abi: StreamManagerABI,
+      abi: StreamManagerABI as Abi,
       functionName: "MIN_STREAM_LIFE",
     })) as bigint;
 
@@ -212,7 +212,7 @@ export default class StreamManager {
   async owner(): Promise<Address> {
     return (await this.publicClient.readContract({
       address: this.address,
-      abi: StreamManagerABI,
+      abi: StreamManagerABI as Abi,
       functionName: "owner",
     })) as Address;
   }
@@ -220,7 +220,7 @@ export default class StreamManager {
   async isAccepted(token: Address): Promise<boolean> {
     return (await this.publicClient.readContract({
       address: this.address,
-      abi: StreamManagerABI,
+      abi: StreamManagerABI as Abi,
       functionName: "token_is_accepted",
       args: [token],
     })) as boolean;
@@ -255,7 +255,7 @@ export default class StreamManager {
     const streamId = Number(
       (await this.publicClient.readContract({
         address: this.address,
-        abi: StreamManagerABI,
+        abi: StreamManagerABI as Abi,
         functionName: "num_streams",
         args: [account],
       })) as bigint,
@@ -264,7 +264,7 @@ export default class StreamManager {
     const hash = await this.walletClient?.writeContract({
       chain: null,
       address: this.address,
-      abi: StreamManagerABI,
+      abi: StreamManagerABI as Abi,
       functionName: "create_stream",
       args,
       account,
@@ -304,7 +304,7 @@ export default class StreamManager {
   ): void {
     this.publicClient.watchContractEvent({
       address: this.address,
-      abi: StreamManagerABI,
+      abi: StreamManagerABI as Abi,
       eventName: "StreamCreated",
       args: creator ? { creator } : {},
       onLogs: (logs: StreamCreated[]) => {
@@ -322,7 +322,7 @@ export default class StreamManager {
     this.publicClient
       .getContractEvents({
         address: this.address,
-        abi: StreamManagerABI,
+        abi: StreamManagerABI as ABi,
         eventName: "StreamCreated",
         fromBlock: fromBlock || BigInt(0),
         toBlock: toBlock || "latest",
