@@ -322,7 +322,7 @@ export default class StreamManager {
     this.publicClient
       .getContractEvents({
         address: this.address,
-        abi: StreamManagerABI as ABi,
+        abi: StreamManagerABI as Abi,
         eventName: "StreamCreated",
         fromBlock: fromBlock || BigInt(0),
         toBlock: toBlock || "latest",
