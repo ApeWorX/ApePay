@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ApeWorX/github-action@v3
-      - run: ape compile --size
+      - run: ape compile --force --size
       # Upload ape build files for testing
       - uses: actions/upload-artifact@v3
 
