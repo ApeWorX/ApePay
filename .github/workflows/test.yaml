@@ -38,7 +38,7 @@ jobs:
 
         with:
           name: ape-build-folder
-          path: .build/*.json
+          path: .build/**/*.json
 
   py-test:
     needs: build
