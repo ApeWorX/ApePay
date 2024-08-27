@@ -1,8 +1,14 @@
 name: ApePay
 
 plugins:
+  - name: arbitrum
+  - name: optimism
   - name: foundry
   - name: vyper
+
+compile:
+  output_extra:
+    - ABI  # Output individial ABIs for the frontend.
 
 ethereum:
   local:

@@ -5,12 +5,11 @@ A simple example showing how to use ApePay in a script.
 from datetime import timedelta
 
 import click
-from ape.cli import NetworkBoundCommand, ape_cli_context, network_option
+from ape.cli import ConnectedProviderCommand, ape_cli_context
 from apepay import StreamManager
 
 
-@click.command(cls=NetworkBoundCommand)
-@network_option()
+@click.command(cls=ConnectedProviderCommand)
 @ape_cli_context()
 @click.option(
     "--apepay",
@@ -19,10 +18,8 @@ from apepay import StreamManager
     callback=lambda c, p, v: StreamManager(address=v),
 )
 @click.option("--token", default="0xbc083d97825da7f7182f37fcec51818e196af1ff")
-@click.option("--ecosystem-name", default="devnet")
-def cli(cli_ctx, network, sm, token, ecosystem_name):
-    network = cli_ctx.provider.network.name
-    if network != "sepolia-fork":
+def cli(cli_ctx, network, sm, token):
+    if network.name != "sepolia-fork":
         cli_ctx.abort("Currently, this script only works on sepolia-fork.")
 
     payer = cli_ctx.account_manager.test_accounts[0]

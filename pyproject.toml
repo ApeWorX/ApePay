@@ -11,16 +11,16 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4"
-eth-ape = "^0.6.21"
-pydantic = "^1.10.13"
-silverback = ">=0.1.0,<0.3"
+python = ">=3.10,<4"
+eth-ape = "^0.8.13"
+pydantic = "^2.6.4"
+silverback = "^0.5.5"
 
 [tool.poetry.group.test.dependencies]
-ape-foundry = "^0.6.16"
+ape-foundry = "^0.8.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
+black = "^24.4.2"
 
 [build-system]
 requires = ["poetry-core"]
