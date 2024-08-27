@@ -56,7 +56,8 @@ jobs:
           path: .build/
       # TODO: Until `ApeWorX/github-action` supports poetry install
       - run: pip install .
-      - run: ape test -s
+      # `-v warning` because of a bug in Ape
+      - run: ape -v warning test -s
 
   js-test:
     needs: build
