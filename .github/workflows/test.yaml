@@ -18,8 +18,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
+        # TODO: Figure out why this isn't working.
+        # with:
+        #   ref: ${{ github.head_ref }}
 
       - name: Prettify code
         uses: creyD/prettier_action@v4.3
@@ -57,7 +58,6 @@ jobs:
         with:
           name: ape-build-folder
           path: .build/
-      # TODO: Until `ApeWorX/github-action` supports poetry install
       - run: pip install .
       # `-v warning` because of a bug in Ape
       - run: ape test -s
