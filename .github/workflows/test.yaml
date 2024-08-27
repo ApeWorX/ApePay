@@ -50,6 +50,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: foundry-rs/foundry-toolchain@v1
       - uses: ApeWorX/github-action@v3
+        with:
+          ape-version-pin: git+https://github.com/antazoey/ape.git@fix/debug-str-err
       # Ape build artifacts used for testing
       - uses: actions/download-artifact@v3
         with:
@@ -57,8 +59,7 @@ jobs:
           path: .build/
       # TODO: Until `ApeWorX/github-action` supports poetry install
       - run: pip install .
-      # `-v warning` because of a bug in Ape
-      - run: ape -v warning test -s
+      - run: ape test -s
 
   js-test:
     needs: build
