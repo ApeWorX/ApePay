@@ -12,7 +12,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4"
-eth-ape = "^0.8.10"
+eth-ape = "^0.8.13"
 pydantic = "^2.6.4"
 silverback = "^0.5.5"
 
