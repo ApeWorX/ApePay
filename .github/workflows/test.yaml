@@ -36,7 +36,7 @@ jobs:
       - run: ape compile --force --size
       # Upload ape build files for testing
       - uses: actions/upload-artifact@v3
-
+        continue-on-error: true  # Not required for success
         with:
           name: ape-build-folder
           path: .build/**/*.json
