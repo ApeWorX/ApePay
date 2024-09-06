@@ -93,3 +93,38 @@ def test_create_stream(chain, payer, token, create_stream, MIN_STREAM_LIFE, extr
 
     expected = datetime.fromtimestamp(start_time + extra_args.get("start_time", 0))
     assert stream.start_time - expected <= timedelta(seconds=1), "Unexpected start time"
+
+
+@pytest.fixture
+def stream(create_stream, token, payer, MIN_STREAM_LIFE):
+    # NOTE: Use 2 hour stream life
+    amount_per_second = token.balanceOf(payer) // (2 * MIN_STREAM_LIFE)
+    return create_stream(token, amount_per_second=amount_per_second)
+
+
+def test_cancel_stream(chain, token, payer, starting_balance, owner, MIN_STREAM_LIFE, stream):
+    with chain.isolate():
+        # Owner can cancel at any time
+        stream.cancel(b"Because I felt like it", payer, sender=owner)
+        assert token.balanceOf(stream.contract) == stream.amount_unlocked
+        assert token.balanceOf(payer) == starting_balance - stream.amount_unlocked
+        assert not stream.is_active
+
+    with ape.reverts():
+        # Payer has to wait `MIN_STREAM_LIFE`
+        stream.cancel(sender=payer)
+
+    chain.pending_timestamp += MIN_STREAM_LIFE
+
+    with chain.isolate():
+        # Owner can still cancel at any time
+        stream.cancel(b"Because I felt like it", payer, sender=owner)
+        assert token.balanceOf(stream.contract) == stream.amount_unlocked
+        assert token.balanceOf(payer) + stream.amount_unlocked == starting_balance
+        assert not stream.is_active
+
+    # Payer can cancel after `MIN_STREAM_LIFE`
+    stream.cancel(sender=payer)
+    assert token.balanceOf(stream.contract) == stream.amount_unlocked
+    assert token.balanceOf(payer) + stream.amount_unlocked == starting_balance
+    assert not stream.is_active
