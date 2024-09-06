@@ -24,7 +24,6 @@ from .exceptions import (
     FundsNotClaimable,
     MissingCreationReceipt,
     StreamLifeInsufficient,
-    StreamNotCancellable,
     TokenNotAccepted,
     ValidatorFailed,
 )
@@ -460,9 +459,6 @@ class Stream(BaseInterfaceModel):
 
     @property
     def cancel(self) -> ContractTransactionHandler:
-        if not self.is_cancelable:
-            raise StreamNotCancellable(self.time_left)
-
         return cast(
             ContractTransactionHandler,
             partial(self.contract.cancel_stream, self.stream_id),
