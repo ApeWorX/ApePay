@@ -38,7 +38,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ape-build-folder
-          path: .build/**/*.json
+          path: .build/
+          overwrite: true  # Always write it
+          if-no-files-found: error  # Do not proceed unless build is cached
 
   py-test:
     needs: build
