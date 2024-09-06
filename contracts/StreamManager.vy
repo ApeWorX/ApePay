@@ -224,6 +224,7 @@ def cancel_stream(
 
     funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
     amount_locked: uint256 = funded_amount - self._amount_unlocked(creator, stream_id)
+    assert amount_locked > 0  # NOTE: reverts if stream doesn't exist, or already cancelled
     self.streams[creator][stream_id].funded_amount = funded_amount - amount_locked
 
     token: ERC20 = self.streams[creator][stream_id].token
