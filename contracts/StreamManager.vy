@@ -219,16 +219,20 @@ def cancel_stream(
     reason: Bytes[MAX_REASON_SIZE] = b"",
     creator: address = msg.sender,
 ) -> uint256:
-    assert msg.sender == creator or msg.sender == self.owner
-    assert self.streams[creator][stream_id].start_time + MIN_STREAM_LIFE <= block.timestamp
+    if msg.sender == creator:
+        # Creator needs to wait `MIN_STREAM_LIFE` to cancel a stream
+        assert self.streams[creator][stream_id].start_time + MIN_STREAM_LIFE <= block.timestamp
+    else:
+        # Owner can cancel at any time
+        assert msg.sender == self.owner
 
     funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
-    amount_locked: uint256 = funded_amount  - self._amount_unlocked(creator, stream_id)
+    amount_locked: uint256 = funded_amount - self._amount_unlocked(creator, stream_id)
+    assert amount_locked > 0  # NOTE: reverts if stream doesn't exist, or already cancelled
+    self.streams[creator][stream_id].funded_amount = funded_amount - amount_locked
 
     token: ERC20 = self.streams[creator][stream_id].token
     assert token.transfer(creator, amount_locked, default_return_value=True)
-
-    self.streams[creator][stream_id].funded_amount = funded_amount - amount_locked
 
     log StreamCancelled(creator, stream_id, amount_locked, reason)
 
@@ -238,17 +242,13 @@ def cancel_stream(
 @external
 def claim(creator: address, stream_id: uint256) -> uint256:
     funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
-    claimed_amount: uint256 = min(
-        self._amount_unlocked(creator, stream_id),
-        funded_amount,
-    )
-
-    token: ERC20 = self.streams[creator][stream_id].token
-    assert token.transfer(self.owner, claimed_amount, default_return_value=True)
-
-    self.streams[creator][stream_id].funded_amount = funded_amount - claimed_amount
+    claim_amount: uint256 = self._amount_unlocked(creator, stream_id)
+    self.streams[creator][stream_id].funded_amount = funded_amount - claim_amount
     self.streams[creator][stream_id].last_pull = block.timestamp
 
-    log Claimed(creator, stream_id, funded_amount == claimed_amount, claimed_amount)
+    token: ERC20 = self.streams[creator][stream_id].token
+    assert token.transfer(self.owner, claim_amount, default_return_value=True)
 
-    return claimed_amount
+    log Claimed(creator, stream_id, funded_amount == claim_amount, claim_amount)
+
+    return claim_amount

@@ -24,7 +24,6 @@ from .exceptions import (
     FundsNotClaimable,
     MissingCreationReceipt,
     StreamLifeInsufficient,
-    StreamNotCancellable,
     TokenNotAccepted,
     ValidatorFailed,
 )
@@ -422,7 +421,7 @@ class Stream(BaseInterfaceModel):
         return self.contract.amount_unlocked(self.creator, self.stream_id)
 
     @property
-    def amount_left(self) -> int:
+    def amount_locked(self) -> int:
         return self.info.funded_amount - self.amount_unlocked
 
     @property
@@ -460,9 +459,6 @@ class Stream(BaseInterfaceModel):
 
     @property
     def cancel(self) -> ContractTransactionHandler:
-        if not self.is_cancelable:
-            raise StreamNotCancellable(self.time_left)
-
         return cast(
             ContractTransactionHandler,
             partial(self.contract.cancel_stream, self.stream_id),
