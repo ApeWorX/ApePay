@@ -41,6 +41,7 @@ jobs:
           path: .build/
           overwrite: true  # Always write it
           if-no-files-found: error  # Do not proceed unless build is cached
+          include-hidden-files: true  # Because it's a "hidden" folder
 
   py-test:
     needs: build
