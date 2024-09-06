@@ -421,7 +421,7 @@ class Stream(BaseInterfaceModel):
         return self.contract.amount_unlocked(self.creator, self.stream_id)
 
     @property
-    def amount_left(self) -> int:
+    def amount_locked(self) -> int:
         return self.info.funded_amount - self.amount_unlocked
 
     @property
