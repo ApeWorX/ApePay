@@ -35,11 +35,13 @@ jobs:
       - uses: ApeWorX/github-action@v3
       - run: ape compile --force --size
       # Upload ape build files for testing
-      - uses: actions/upload-artifact@v3
-
+      - uses: actions/upload-artifact@v4
         with:
           name: ape-build-folder
-          path: .build/**/*.json
+          path: .build/
+          overwrite: true  # Always write it
+          if-no-files-found: error  # Do not proceed unless build is cached
+          include-hidden-files: true  # Because it's a "hidden" folder
 
   py-test:
     needs: build
@@ -50,15 +52,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: foundry-rs/foundry-toolchain@v1
       - uses: ApeWorX/github-action@v3
-      # Ape build artifacts used for testing
-      - uses: actions/download-artifact@v3
+      # Ape-built artifacts used for testing
+      - uses: actions/download-artifact@v4
         with:
           name: ape-build-folder
           path: .build/
       # TODO: Until `ApeWorX/github-action` supports poetry install
       - run: pip install .
-      # `-v warning` because of a bug in Ape
-      - run: ape -v warning test -s
+      - run: ape test -s
 
   js-test:
     needs: build
@@ -68,8 +69,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
-      # Ape build artifacts used for testing
-      - uses: actions/download-artifact@v3
+      # Ape-built artifacts used for testing
+      - uses: actions/download-artifact@v4
         with:
           name: ape-build-folder
           path: .build/
