@@ -25,6 +25,20 @@ def tokens(create_token, payer, request):
 
 
 @pytest.fixture(scope="session")
+def token(tokens):
+    if len(tokens) == 0:
+        pytest.skip("No valid tokens")
+
+    return tokens[0]
+
+
+@pytest.fixture(scope="session")
+def starting_balance(token, payer):
+    # NOTE: All tokens start with the same balance
+    return token.balanceOf(payer)
+
+
+@pytest.fixture(scope="session")
 def create_validator(owner, project):
     def create_validator():
         return owner.deploy(project.TestValidator)
