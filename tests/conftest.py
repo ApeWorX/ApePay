@@ -1,9 +1,6 @@
 import pytest
 from apepay import StreamManager
 
-ONE_HOUR = 60 * 60
-
-
 @pytest.fixture(scope="session")
 def owner(accounts):
     return accounts[0]
@@ -41,8 +38,13 @@ def validators(create_validator, request):
 
 
 @pytest.fixture(scope="session")
-def stream_manager_contract(owner, project, validators, tokens):
-    return owner.deploy(project.StreamManager, owner, ONE_HOUR, validators, tokens)
+def MIN_STREAM_LIFE():
+    return 60 * 60  # 1 hour in seconds
+
+
+@pytest.fixture(scope="session")
+def stream_manager_contract(owner, project, MIN_STREAM_LIFE, validators, tokens):
+    return owner.deploy(project.StreamManager, owner, MIN_STREAM_LIFE, validators, tokens)
 
 
 @pytest.fixture(scope="session")
