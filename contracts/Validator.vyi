@@ -1,0 +1,13 @@
+from ethereum.ercs import IERC20
+
+MAX_REASON_SIZE: constant(uint16) = 1024
+
+
+@external
+def validate(
+    creator: address,
+    token: IERC20,
+    amount_per_second: uint256,
+    reason: Bytes[MAX_REASON_SIZE],
+) -> uint256:
+    ...
