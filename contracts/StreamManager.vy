@@ -138,7 +138,9 @@ def create_stream(
     assert max_stream_life >= prefunded_stream_life  # dev: prefunded stream life large
     assert funded_amount >= prefunded_stream_life * amount_per_second  # dev: not enough funds
 
-    assert extcall token.transferFrom(msg.sender, self, funded_amount, default_return_value=True)  # dev: transfer fail
+    assert extcall token.transferFrom(  # dev: transfer fail
+        msg.sender, self, funded_amount, default_return_value=True
+    )
 
     stream_id: uint256 = self.num_streams[msg.sender]
     self.streams[msg.sender][stream_id] = Stream({
