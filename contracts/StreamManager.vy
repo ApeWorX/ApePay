@@ -63,6 +63,15 @@ event StreamFunded:
     amount_added: uint256
 
 
+event StreamsMigrated:
+    token: indexed(IERC20)
+    creator: indexed(address)
+    stream_ids: DynArray[uint256, 20]
+    next_stream_id: uint256
+    amount_per_second: uint256
+    reason: Bytes[MAX_REASON_SIZE]
+
+
 event StreamCancelled:
     creator: indexed(address)
     stream_id: indexed(uint256)
@@ -214,6 +223,41 @@ def stream_is_cancelable(creator: address, stream_id: uint256) -> bool:
 
 
 @external
+def migrate_streams(stream_ids: DynArray[uint256, 20]) -> uint256:
+    token: IERC20 = self.streams[msg.sender][stream_ids[0]].token
+    amount_per_second: uint256 = 0  # accumlated
+    amount_unlocked: uint256 = 0
+    max_stream_life: uint256 = 0
+
+    for stream_id: uint256 in stream_ids:
+        assert self._stream_is_cancelable(msg.sender, stream_id)
+        assert token == self.streams[msg.sender][stream_id].token
+        amount_per_second += self.streams[msg.sender][stream_id].amount_per_second
+        funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
+        amount_locked: uint256 = funded_amount - self._amount_unlocked(creator, stream_id)
+        assert amount_locked > 0  # NOTE: reverts if stream doesn't exist, or already cancelled
+        self.streams[creator][stream_id].funded_amount = funded_amount - amount_locked
+        amount_unlocked += funded_amount - amount_locked
+        max_stream_life = min(max_stream_life, self.streams[msg.sender][stream_id].max_stream_life)
+
+    next_stream_id: uint256 = self.num_streams[msg.sender]
+    self.streams[msg.sender][next_stream_id] = Stream({
+        token: token,
+        amount_per_second: amount_per_second,
+        max_stream_life: max_stream_life,
+        funded_amount: amount_unlocked,
+        start_time: block.timestamp,
+        last_pull: block.timestamp,
+        reason: reason,
+    })
+    self.num_streams[msg.sender] = next_stream_id + 1
+
+    log StreamsMigrated(token, msg.sender, stream_ids, next_stream_id, amount_per_second, reason)
+
+    return next_stream_id
+
+
+@external
 def cancel_stream(
     stream_id: uint256,
     reason: Bytes[MAX_REASON_SIZE] = b"",
@@ -227,7 +271,7 @@ def cancel_stream(
         assert msg.sender == self.owner
 
     funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
-    amount_locked: uint256 = funded_amount - self._amount_unlocked(creator, stream_id)
+    amount_unlocked: uint256 = funded_amount - self._amount_unlocked(creator, stream_id)
     assert amount_locked > 0  # NOTE: reverts if stream doesn't exist, or already cancelled
     self.streams[creator][stream_id].funded_amount = funded_amount - amount_locked
 
