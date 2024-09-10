@@ -118,7 +118,7 @@ def create_stream(
     start_time: uint256 = block.timestamp,
 ) -> uint256:
     assert self.token_is_accepted[token]  # dev: token not accepted
-    assert start_time <= block.timestamp  # dev: start time < block
+    assert start_time <= block.timestamp  # dev: start time in future
 
     funded_amount: uint256 = staticcall token.allowance(msg.sender, self)
     if funded_amount == max_value(uint256):
@@ -132,10 +132,10 @@ def create_stream(
             extcall validator.validate(msg.sender, token, amount_per_second, reason),
         )
 
-    assert max_stream_life >= funded_amount // amount_per_second  # dev: max stream life small
+    assert max_stream_life >= funded_amount // amount_per_second  # dev: max stream life too small
 
     prefunded_stream_life: uint256 = max(MIN_STREAM_LIFE, block.timestamp - start_time)
-    assert max_stream_life >= prefunded_stream_life  # dev: prefunded stream life large
+    assert max_stream_life >= prefunded_stream_life  # dev: prefunded stream life too large
     assert funded_amount >= prefunded_stream_life * amount_per_second  # dev: not enough funds
 
     assert extcall token.transferFrom(  # dev: transfer fail
@@ -208,9 +208,15 @@ def add_funds(creator: address, stream_id: uint256, amount: uint256) -> uint256:
 
 
 @view
+def _stream_is_cancelable(creator: address, stream_id: uint256) -> bool:
+    # Creator needs to wait `MIN_STREAM_LIFE` to cancel a stream
+    return self.streams[creator][stream_id].start_time + MIN_STREAM_LIFE <= block.timestamp
+
+
+@view
 @external
 def stream_is_cancelable(creator: address, stream_id: uint256) -> bool:
-    return self.streams[creator][stream_id].start_time + MIN_STREAM_LIFE <= block.timestamp
+    return self._stream_is_cancelable(creator, stream_id)
 
 
 @external
@@ -220,8 +226,7 @@ def cancel_stream(
     creator: address = msg.sender,
 ) -> uint256:
     if msg.sender == creator:
-        # Creator needs to wait `MIN_STREAM_LIFE` to cancel a stream
-        assert self.streams[creator][stream_id].start_time + MIN_STREAM_LIFE <= block.timestamp
+        assert self._stream_is_cancelable(creator, stream_id)
     else:
         # Owner can cancel at any time
         assert msg.sender == self.owner
