@@ -14,10 +14,6 @@ ethereum:
   local:
     default_provider: foundry
 
-vyper:
-  # NOTE: Using `paris` to avoid PUSH0 for now
-  evm_version: paris
-
 deployments:
   ethereum:
     sepolia: &chaosnet

@@ -1,4 +1,4 @@
-# @version 0.3.9
+# pragma version 0.4.0
 
 """
 @title StreamManager
@@ -18,7 +18,7 @@
     defined goods or services.
 """
 
-from vyper.interfaces import ERC20
+from ethereum.ercs import IERC20
 
 from . import Validator
 
@@ -32,7 +32,7 @@ MIN_STREAM_LIFE: public(immutable(uint256))
 
 
 struct Stream:
-    token: ERC20
+    token: IERC20
     amount_per_second: uint256
     max_stream_life: uint256
     funded_amount: uint256
@@ -45,11 +45,11 @@ streams: public(HashMap[address, HashMap[uint256, Stream]])
 
 
 owner: public(address)
-token_is_accepted: public(HashMap[ERC20, bool])
+token_is_accepted: public(HashMap[IERC20, bool])
 
 
 event StreamCreated:
-    token: indexed(ERC20)
+    token: indexed(IERC20)
     creator: indexed(address)
     stream_id: indexed(uint256)
     amount_per_second: uint256
@@ -77,18 +77,18 @@ event Claimed:
     claimed_amount: uint256
 
 
-@external
+@deploy
 def __init__(
     owner: address,
     min_stream_life: uint256,  # timedelta in seconds
     validators: DynArray[Validator, MAX_VALIDATORS],
-    accepted_tokens: DynArray[ERC20, 20],
+    accepted_tokens: DynArray[IERC20, 20],
 ):
     self.owner = owner
     MIN_STREAM_LIFE = min_stream_life
     self.validators = validators
 
-    for token in accepted_tokens:
+    for token: IERC20 in accepted_tokens:
         self.token_is_accepted[token] = True
 
 
@@ -99,20 +99,20 @@ def set_validators(validators: DynArray[Validator, MAX_VALIDATORS]):
 
 
 @external
-def add_token(token: ERC20):
+def add_token(token: IERC20):
     assert msg.sender == self.owner
     self.token_is_accepted[token] = True
 
 
 @external
-def remove_token(token: ERC20):
+def remove_token(token: IERC20):
     assert msg.sender == self.owner
     self.token_is_accepted[token] = False
 
 
 @external
 def create_stream(
-    token: ERC20,
+    token: IERC20,
     amount_per_second: uint256,
     reason: Bytes[MAX_REASON_SIZE] = b"",
     start_time: uint256 = block.timestamp,
@@ -120,25 +120,27 @@ def create_stream(
     assert self.token_is_accepted[token]  # dev: token not accepted
     assert start_time <= block.timestamp  # dev: start time < block
 
-    funded_amount: uint256 = token.allowance(msg.sender, self)
+    funded_amount: uint256 = staticcall token.allowance(msg.sender, self)
     if funded_amount == max_value(uint256):
-        funded_amount = token.balanceOf(msg.sender)
+        funded_amount = staticcall token.balanceOf(msg.sender)
 
     max_stream_life: uint256 = max_value(uint256)
-    for validator in self.validators:
+    for validator: Validator in self.validators:
         # NOTE: Validator either raises or returns a max stream life to use
         max_stream_life = min(
             max_stream_life,
-            validator.validate(msg.sender, token.address, amount_per_second, reason),
+            extcall validator.validate(msg.sender, token, amount_per_second, reason),
         )
 
-    assert max_stream_life >= funded_amount / amount_per_second  # dev: max stream life small
+    assert max_stream_life >= funded_amount // amount_per_second  # dev: max stream life small
 
     prefunded_stream_life: uint256 = max(MIN_STREAM_LIFE, block.timestamp - start_time)
     assert max_stream_life >= prefunded_stream_life  # dev: prefunded stream life large
     assert funded_amount >= prefunded_stream_life * amount_per_second  # dev: not enough funds
 
-    assert token.transferFrom(msg.sender, self, funded_amount, default_return_value=True)  # dev: transfer fail
+    assert extcall token.transferFrom(  # dev: transfer fail
+        msg.sender, self, funded_amount, default_return_value=True
+    )
 
     stream_id: uint256 = self.num_streams[msg.sender]
     self.streams[msg.sender][stream_id] = Stream({
@@ -158,7 +160,6 @@ def create_stream(
 
 
 @view
-@internal
 def _amount_unlocked(creator: address, stream_id: uint256) -> uint256:
     return min(
         (
@@ -176,12 +177,11 @@ def amount_unlocked(creator: address, stream_id: uint256) -> uint256:
 
 
 @view
-@internal
 def _time_left(creator: address, stream_id: uint256) -> uint256:
     unlocked: uint256 = self._amount_unlocked(creator, stream_id)
     return (
         (self.streams[creator][stream_id].funded_amount - unlocked)
-        / self.streams[creator][stream_id].amount_per_second
+        // self.streams[creator][stream_id].amount_per_second
     )
 
 
@@ -193,8 +193,8 @@ def time_left(creator: address, stream_id: uint256) -> uint256:
 
 @external
 def add_funds(creator: address, stream_id: uint256, amount: uint256) -> uint256:
-    token: ERC20 = self.streams[creator][stream_id].token
-    assert token.transferFrom(msg.sender, self, amount, default_return_value=True)
+    token: IERC20 = self.streams[creator][stream_id].token
+    assert extcall token.transferFrom(msg.sender, self, amount, default_return_value=True)
     self.streams[creator][stream_id].funded_amount += amount
 
     time_left: uint256 = self._time_left(creator, stream_id)
@@ -231,8 +231,8 @@ def cancel_stream(
     assert amount_locked > 0  # NOTE: reverts if stream doesn't exist, or already cancelled
     self.streams[creator][stream_id].funded_amount = funded_amount - amount_locked
 
-    token: ERC20 = self.streams[creator][stream_id].token
-    assert token.transfer(creator, amount_locked, default_return_value=True)
+    token: IERC20 = self.streams[creator][stream_id].token
+    assert extcall token.transfer(creator, amount_locked, default_return_value=True)
 
     log StreamCancelled(creator, stream_id, amount_locked, reason)
 
@@ -246,8 +246,8 @@ def claim(creator: address, stream_id: uint256) -> uint256:
     self.streams[creator][stream_id].funded_amount = funded_amount - claim_amount
     self.streams[creator][stream_id].last_pull = block.timestamp
 
-    token: ERC20 = self.streams[creator][stream_id].token
-    assert token.transfer(self.owner, claim_amount, default_return_value=True)
+    token: IERC20 = self.streams[creator][stream_id].token
+    assert extcall token.transfer(self.owner, claim_amount, default_return_value=True)
 
     log Claimed(creator, stream_id, funded_amount == claim_amount, claim_amount)
 

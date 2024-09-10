@@ -1,4 +1,4 @@
-# @version 0.3.9
+# pragma version 0.4.0
 
 """
 @title StreamFactory
@@ -16,7 +16,7 @@ BLUEPRINT: public(immutable(address))
 deployments: public(HashMap[address, address])
 
 
-@external
+@deploy
 def __init__(blueprint: address):
     BLUEPRINT = blueprint
 

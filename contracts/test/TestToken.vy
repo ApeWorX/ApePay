@@ -1,3 +1,4 @@
+# pragma version ^0.4
 # TODO: Replace w/ Snekmate
 totalSupply: public(uint256)
 balanceOf: public(HashMap[address, uint256])
@@ -7,10 +8,10 @@ name: public(constant(String[10])) = "Test Token"
 symbol: public(constant(String[4])) = "TEST"
 decimals: public(constant(uint8)) = 18
 
-@external
+@deploy
 def __init__():
-    self.totalSupply = 100 * 10 ** decimals
-    self.balanceOf[msg.sender] = 100 * 10 ** decimals
+    self.totalSupply = 100 * 10 ** convert(decimals, uint256)
+    self.balanceOf[msg.sender] = 100 * 10 ** convert(decimals, uint256)
 
 
 @external
