@@ -1,0 +1,14 @@
+[
+  {
+    "type": "function",
+    "name": "validate",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      { "name": "creator", "type": "address" },
+      { "name": "token", "type": "address" },
+      { "name": "amount_per_second", "type": "uint256" },
+      { "name": "reason", "type": "bytes" }
+    ],
+    "outputs": [{ "name": "max_stream_life", "type": "uint256" }]
+  }
+]
