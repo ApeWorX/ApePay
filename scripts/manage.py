@@ -46,11 +46,13 @@ def claim(account, start_block, batch_size, use_multicall, address):
             try:
                 stream = next(unclaimed_streams)
             except StopIteration:
+                click.secho("SUCCESS: All Streams Claimed!", fg="green")
                 return
 
             stream.claim(sender=account)
 
-        raise click.UsageError("More claims needed")
+        click.echo(f"INFO: {len(list(unclaimed_streams))} more claims needed...")
+        return
 
     more_streams = True
 
