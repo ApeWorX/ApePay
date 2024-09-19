@@ -16,6 +16,8 @@ requires-python = ">=3.11,<4"
 dependencies = [
     "eth-ape>=0.8,<1",
     "pydantic>=2.7,<3",
+    # NOTE: Pinning issue w/ Ape
+    "eth-typing<5",
 ]
 
 [project.optional-dependencies]
