@@ -40,7 +40,9 @@ def test_add_rm_tokens(stream_manager, owner, tokens, create_token):
 
 @pytest.fixture(scope="session")
 def create_stream(stream_manager, payer, MIN_STREAM_LIFE):
-    def create_stream(token=None, amount_per_second=None, sender=None, allowance=(2**256-1), **extra_args):
+    def create_stream(
+        token=None, amount_per_second=None, sender=None, allowance=(2**256 - 1), **extra_args
+    ):
         if amount_per_second is None:
             # NOTE: Maximum amount we can afford to send (using 1 hr pre-allocation)
             amount_per_second = token.balanceOf(sender or payer) // MIN_STREAM_LIFE
@@ -77,7 +79,7 @@ def test_create_stream(chain, payer, token, create_stream, MIN_STREAM_LIFE, extr
     with pytest.raises(apepay_exc.StreamLifeInsufficient):
         create_stream(token, allowance=0, **extra_args)
 
-    amount_per_second = (token.balanceOf(payer) // MIN_STREAM_LIFE)
+    amount_per_second = token.balanceOf(payer) // MIN_STREAM_LIFE
 
     with pytest.raises(apepay_exc.StreamLifeInsufficient):
         # NOTE: Performs approval
