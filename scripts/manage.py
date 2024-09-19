@@ -1,7 +1,8 @@
 import click
+from ape.cli import ConnectedProviderCommand, account_option, network_option
 from ape.types import AddressType
 from ape_ethereum import multicall
-from ape.cli import ConnectedProviderCommand, network_option, account_option
+
 from apepay import StreamManager
 
 

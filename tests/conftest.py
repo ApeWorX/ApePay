@@ -1,5 +1,7 @@
 import pytest
+
 from apepay import StreamManager
+
 
 @pytest.fixture(scope="session")
 def owner(accounts):

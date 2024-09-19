@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
-import ape
 
+import ape
 import pytest
+
 from apepay import exceptions as apepay_exc
 
 
