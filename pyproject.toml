@@ -44,7 +44,6 @@ apepay = [ "manifest.json", "py.typed" ]
 
 [tool.setuptools_scm]
 # NOTE: Config entry needed for this plugin to function
-version_file = "sdk/py/apepay/version.py"
 
 [tool.black]
 line-length = 100
