@@ -27,15 +27,25 @@ from .exceptions import (
     TokenNotAccepted,
     ValidatorFailed,
 )
+from .package import MANIFEST
 from .utils import time_unit_to_timedelta
 
 MAX_DURATION_SECONDS = int(timedelta.max.total_seconds()) - 1
 
 
 class Validator(BaseInterfaceModel):
-    contract: ContractInstance
+    address: AddressType
+
+    @field_validator("address", mode="before")
+    def normalize_address(cls, value: Any) -> AddressType:
+        return cls.conversion_manager.convert(value, AddressType)
+
+    @property
+    def contract(self) -> ContractInstance:
+        return MANIFEST.Validator.at(self.address)
 
     def __hash__(self) -> int:
+        # NOTE: So `set` works
         return self.contract.address.__hash__()
 
     def __eq__(self, other: Any) -> bool:
@@ -62,50 +72,14 @@ _ValidatorItem = Union[Validator, ContractInstance, str, AddressType]
 
 class StreamManager(BaseInterfaceModel):
     address: AddressType
-    contract_type: ContractType | None = None
-    _local_contracts: ClassVar[dict[str, ContractType]] = {}
 
     @field_validator("address", mode="before")
     def normalize_address(cls, value: Any) -> AddressType:
         return cls.conversion_manager.convert(value, AddressType)
 
-    @field_validator("contract_type", mode="before")
-    def fetch_contract_type(cls, value: Any, values: dict[str, Any]) -> ContractType:
-        # 0. If pre-loaded, default to that type
-        if value:
-            return value
-
-        # 1. If building locally, use that
-        try:
-            if contract_type := cls.local_project.contracts.get("StreamManager"):
-                cls._local_contracts = cls.local_project.contracts
-                return contract_type
-
-        except (CompilerError, ProjectError, ValidationError):
-            pass
-
-        # 2. If contract cache has it, use that
-        try:
-            if values.get("address") and (
-                contract_type := cls.chain_manager.contracts.get(values["address"])
-            ):
-                return contract_type
-
-        except Exception:
-            pass
-
-        # 3. Most expensive way is through package resources
-        manifest_json_file = importlib.resources.files("apepay") / "manifest.json"
-        cls._local_contracts = PackageManifest.model_validate_json(
-            manifest_json_file.read_text(encoding="utf8")
-        ).contract_types
-        return cls._local_contracts["StreamManager"]
-
     @property
     def contract(self) -> ContractInstance:
-        return self.chain_manager.contracts.instance_at(
-            self.address, contract_type=self.contract_type
-        )
+        return MANIFEST.StreamManager.at(self.address)
 
     def __repr__(self) -> str:
         return f"<apepay_sdk.StreamManager address={self.address}>"
@@ -126,12 +100,7 @@ class StreamManager(BaseInterfaceModel):
                 # NOTE: Vyper returns no data if not a valid index
                 break
 
-            validator_contract = (
-                self.local_project.Validator.at(validator_address)
-                if "Validator" in StreamManager._local_contracts
-                else self.chain_manager.contracts.instance_at(validator_address)
-            )
-            validators.append(Validator(contract=validator_contract))
+            validators.append(Validator(address=validator_address))
 
         return validators
 

@@ -1,34 +1,53 @@
-[tool.poetry]
+[build-system]
+requires = [ "setuptools>=64", "setuptools_scm>=8" ]
+build-backend = "setuptools.build_meta"
+
+[project]
 name = "apepay"
-version = "0.2.2"
+dynamic = [ "version" ]
 description = "Python SDK for ApePay"
-authors = ["ApeWorX LTD <admin@apeworx.io>"]
-license = "Apache 2.0"
+authors = [
+  {name = "ApeWorX LTD", email = "admin@apeworx.io"},
+]
+license = { text = "Apache 2.0" }
 readme = "README.md"
-include = ["sdk/py/apepay/manifest.json"]
-packages = [
-    { include = "apepay", from = "sdk/py" },
+requires-python = ">=3.11,<4"
+
+dependencies = [
+    "eth-ape>=0.8,<1",
+    "pydantic>=2.7,<3",
+    # NOTE: Pinning issue w/ Ape
+    "eth-typing<5",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<4"
-eth-ape = "^0.8.13"
-pydantic = "^2.6.4"
-silverback = "^0.5.5"
+[project.optional-dependencies]
+bot = [
+    "silverback>=0.5,<1",
+]
+lint = [
+    "black",
+    "isort",
+    "mypy",
+]
+test = [
+    "ape-foundry",
+]
+dev = [
+    "apepay[bot,lint,test]"
+]
 
-[tool.poetry.group.test.dependencies]
-ape-foundry = "^0.8.0"
+[tool.setuptools.packages.find]
+where = [ "sdk/py" ]
 
-[tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
+[tool.setuptools.package-data]
+apepay = [ "manifest.json", "py.typed" ]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.setuptools_scm]
+# NOTE: Config entry needed for this plugin to function
 
 [tool.black]
 line-length = 100
-target-version = ['py310']
+target-version = [ "py311" ]
 include = '\.pyi?$'
 exclude = 'node_modules|migrations|build/|buck-out/|dist/|_build/|\.git/|\.hg/|\.mypy_cache/|\.tox/|\.venv/'
 
@@ -38,4 +57,4 @@ force_grid_wrap = 0
 include_trailing_comma = true
 multi_line_output = 3
 use_parentheses = true
-src_paths = ["scripts", "tests", "apepay"]
+src_paths = ["scripts", "tests", "sdk/py/apepay"]

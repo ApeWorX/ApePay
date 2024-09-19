@@ -5,8 +5,9 @@ from enum import Enum
 
 import click
 from ape.types import AddressType
-from apepay import Stream, StreamManager
 from silverback import SilverbackApp
+
+from apepay import Stream, StreamManager
 
 from .settings import Settings
 
