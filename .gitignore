@@ -1,7 +1,9 @@
 # Ape stuff
 .build/
 .cache/
-sdk/py/apepay/manifest.json
+
+# setuptools-scm
+sdk/py/apepay/version.py
 
 # Python
 .env
