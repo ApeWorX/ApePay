@@ -16,24 +16,35 @@ BLUEPRINT: public(immutable(address))
 deployments: public(HashMap[address, address])
 
 
+event ManagerCreated:
+    owner: indexed(address)
+    manager: address
+    accepted_tokens: DynArray[address, 20]
+    validators: DynArray[address, 10]
+
+
 @deploy
 def __init__(blueprint: address):
     BLUEPRINT = blueprint
 
 
 @external
-def create(validators: DynArray[address, 10], accepted_tokens: DynArray[address, 20]) -> address:
-    #assert self.deployments[msg.sender] == empty(address)  # dev: only one deployment allowed
-
-    deployment: address = create_from_blueprint(
+def create(
+    accepted_tokens: DynArray[address, 20] = [],
+    validators: DynArray[address, 10] = [],
+    min_stream_time: uint256 = ONE_HOUR,
+) -> address:
+    deployment: address = create_from_blueprint(  # dev: only one deployment allowed
         BLUEPRINT,
         msg.sender,  # Only caller can create
-        ONE_HOUR,  # Safety parameter (not configurable)
+        min_stream_time,  # Safety parameter for new streams
         validators,
         accepted_tokens,  # whatever caller wants to accept
         salt=convert(msg.sender, bytes32),  # Ensures unique deployment per caller
         code_offset=3,
     )
     self.deployments[msg.sender] = deployment
+
+    log ManagerCreated(msg.sender, deployment, accepted_tokens, validators)
 
     return deployment

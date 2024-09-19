@@ -1,6 +1,11 @@
+"""
+@title StreamManager Validation Interface Specification
+@notice
+    Implement this interface with any additional checks that should be performed on stream
+    creation, funding or migration events in order to block certain behaviors or modify the stream
+    time to a specific limit, as in the case of a pre-release or sunsetting product.
+"""
 from ethereum.ercs import IERC20
-
-MAX_REASON_SIZE: constant(uint16) = 1024
 
 
 @external
@@ -8,6 +13,27 @@ def validate(
     creator: address,
     token: IERC20,
     amount_per_second: uint256,
-    reason: Bytes[MAX_REASON_SIZE],
+    products: DynArray[bytes32, 20],
 ) -> uint256:
+    """
+    @notice
+        Validate that the proposed Stream action initiated by `creator` and funded by `token` at
+        `amount_per_second` with the associated `reason` is properly formed, allowed, and meets
+        any other application-specific behaviors to be considered correct to accept and make the
+        modifications to that Stream.
+    @dev
+        Method can make modifications and external calls based on stream properties.
+        This method should raise if and only if the input matches the domain it is checking, and
+        violates any rules from inside that domain, otherwise will cause a Denial-of-Service issue.
+        Validator should not reject input that doesn't match it's domain of checks it is performing
+        or it will reject potentially valid streams.
+    @param creator The owner of the Stream that has the action being performed against.
+    @param token The ERC20 token that is being used to fund the stream
+    @param amount_per_second The amount of `token` being streamed (per second) to the owner of the
+        calling contracts. Can be used to ensure product pricing is within acceptable bounds.
+    @param reason The product code or reason for the triggering of the action. Note that the
+        encoding of this value is entirely application-specific, and multiple supported encodings
+        could be potentially be supported by the upstream StreamManager (through other Validators).
+    @return uint256 "max_time_allowed" for purposes of time limiting (e.g. pre-releases).
+    """
     ...
