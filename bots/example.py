@@ -34,6 +34,9 @@ async def grant_product(stream):
 async def update_product_funding(stream):
     # NOTE: properties of stream have changed, you may not need to handle this
     #       but typically you would want to update `stream.time_left` in record
+    db.remove(
+        next(s for s in db if s.stream_id == stream.stream_id and s.creator == stream.creator)
+    )
     db.append(stream)
     return stream.time_left
 
