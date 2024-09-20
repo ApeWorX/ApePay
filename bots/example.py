@@ -11,7 +11,6 @@ app = SilverbackApp()
 # NOTE: This bot assumes you use a new bot per deployment
 sm = StreamManager(os.environ["APEPAY_CONTRACT_ADDRESS"])
 
-global db
 # NOTE: You would probably want to index this by network and deployment,
 #       if you were operating on multiple networks or deployments
 db = []
@@ -20,12 +19,8 @@ db = []
 
 @app.on_startup()
 async def load_db(_):
-    global db
-
     for stream in sm.active_streams():
         db.append(stream)
-
-    db = sorted(db)
 
 
 @sm.on_stream_created(app)
