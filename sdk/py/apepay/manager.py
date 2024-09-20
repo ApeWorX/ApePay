@@ -35,6 +35,10 @@ _ValidatorItem = Union[Validator, ContractInstance, AddressType]
 class StreamManager(BaseInterfaceModel):
     address: AddressType
 
+    def __init__(self, address, /, *args, **kwargs):
+        kwargs["address"] = address
+        super().__init__(*args, **kwargs)
+
     @field_validator("address", mode="before")
     def normalize_address(cls, value: Any) -> AddressType:
         return cls.conversion_manager.convert(value, AddressType)
