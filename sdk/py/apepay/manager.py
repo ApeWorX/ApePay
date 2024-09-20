@@ -271,8 +271,11 @@ class StreamManager(BaseInterfaceModel):
             yield Stream(manager=self, creator=creator, stream_id=stream_id)
 
     def all_streams(self, start_block: int | None = None) -> Iterator["Stream"]:
+        if start_block is None and self.contract.creation_metadata:
+            start_block = self.contract.creation_metadata.block
+
         for stream_created_event in self.contract.StreamCreated.range(
-            start_block if start_block is not None else self.contract.receipt.block_number,
+            start_block or 0,
             self.chain_manager.blocks.head.number,
         ):
             yield Stream.from_event(
