@@ -2,7 +2,7 @@
 
 These apps are intended to be examples of how to work with your own deployment of the ApePay
 protocol interacting your own infrastructure for a SaaS product, using Silverback for real-time
-events. You can host these examples on the Silverback Cloud (https://silverback.apeworx.io) or
+events. You can host these examples on the Silverback Platform (https://silverback.apeworx.io) or
 self-host.
 
 ## Stream Handling
