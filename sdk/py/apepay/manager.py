@@ -2,10 +2,15 @@ import json
 from collections.abc import Iterator
 from datetime import datetime, timedelta
 from functools import partial, wraps
-from typing import Any, Callable, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Union, cast
 
 from ape.api import ReceiptAPI
-from ape.contracts.base import ContractCallHandler, ContractInstance, ContractTransactionHandler
+from ape.contracts.base import (
+    ContractCallHandler,
+    ContractEvent,
+    ContractInstance,
+    ContractTransactionHandler,
+)
 from ape.exceptions import ContractLogicError, DecodingError
 from ape.types import AddressType, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
@@ -17,6 +22,10 @@ from .package import MANIFEST
 from .streams import Stream
 from .utils import time_unit_to_timedelta
 from .validators import Validator
+
+if TYPE_CHECKING:
+    # NOTE: We really only use this for type checking, optional install
+    from silverback import SilverbackApp
 
 MAX_DURATION_SECONDS = int(timedelta.max.total_seconds()) - 1
 
@@ -191,6 +200,71 @@ class StreamManager(BaseInterfaceModel):
             event=event,
             is_creation_event=True,
         )
+
+    def _parse_stream_decorator(self, app: "SilverbackApp", container: ContractEvent):
+
+        def decorator(f):
+
+            @app.on_(container)
+            @wraps(f)
+            def inner(log):
+                return f(Stream(manager=self, creator=log.creator, stream_id=log.stream_id))
+
+            return inner
+
+        return decorator
+
+    def on_stream_created(self, app: "SilverbackApp"):
+        """
+        Usage example::
+
+            app = SilverbackApp()
+            sm = StreamManager(address=...)
+
+            sm.on_stream_created(app)
+            def do_something(stream):
+                ...  # Use `stream` to update your infrastructure
+        """
+        return self._parse_stream_decorator(app, self.contract.StreamCreated)
+
+    def on_stream_funded(self, app: "SilverbackApp"):
+        """
+        Usage example::
+
+            app = SilverbackApp()
+            sm = StreamManager(address=...)
+
+            sm.on_stream_funded(app)
+            def do_something(stream):
+                ...  # Use `stream` to update your infrastructure
+        """
+        return self._parse_stream_decorator(app, self.contract.StreamFunded)
+
+    def on_stream_claimed(self, app: "SilverbackApp"):
+        """
+        Usage example::
+
+            app = SilverbackApp()
+            sm = StreamManager(address=...)
+
+            sm.on_stream_claimed(app)
+            def do_something(stream):
+                ...  # Use `stream` to update your infrastructure
+        """
+        return self._parse_stream_decorator(app, self.contract.Claimed)
+
+    def on_stream_cancelled(self, app: "SilverbackApp"):
+        """
+        Usage example::
+
+            app = SilverbackApp()
+            sm = StreamManager(address=...)
+
+            sm.on_stream_cancelled(app)
+            def do_something(stream):
+                ...  # Use `stream` to update your infrastructure
+        """
+        return self._parse_stream_decorator(app, self.contract.StreamCancelled)
 
     def streams_by_creator(self, creator: AddressType) -> Iterator["Stream"]:
         for stream_id in range(self.contract.num_streams(creator)):
