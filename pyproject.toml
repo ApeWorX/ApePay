@@ -25,6 +25,7 @@ bot = [
     "silverback>=0.5,<1",
 ]
 lint = [
+    "flake8",
     "black",
     "isort",
     "mypy",
