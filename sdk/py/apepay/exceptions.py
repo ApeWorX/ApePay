@@ -9,6 +9,13 @@ class ApePayException(Exception):
     pass
 
 
+class NoFactoryAvailable(ApePayException, RuntimeError):
+    def __init__(self):
+        super().__init__(
+            "No deployment of 'StreamFactory' on this chain, please use an explicit address."
+        )
+
+
 class MissingCreationReceipt(ApePayException, NotImplementedError):
     def __init__(self):
         super().__init__("Missing creation transaction for stream. Functionality unavailabie.")
