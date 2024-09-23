@@ -25,9 +25,12 @@ bot = [
     "silverback>=0.5,<1",
 ]
 lint = [
+    "flake8",
     "black",
     "isort",
     "mypy",
+    # NOTE: Be able to lint our silverback add-ons
+    "apepay[bot]"
 ]
 test = [
     "ape-foundry",
