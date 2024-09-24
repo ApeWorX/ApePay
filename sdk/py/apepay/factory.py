@@ -2,9 +2,10 @@ from typing import Any
 
 from ape.contracts import ContractInstance
 from ape.types import AddressType, BaseInterfaceModel
+from ape.utils import ZERO_ADDRESS
 from pydantic import field_validator
 
-from .exceptions import NoFactoryAvailable
+from .exceptions import ManagerDoesNotExist, NoFactoryAvailable
 from .manager import StreamManager
 from .package import MANIFEST
 
@@ -36,8 +37,9 @@ class StreamFactory(BaseInterfaceModel):
         return MANIFEST.StreamFactory.at(self.address)
 
     def get_deployment(self, deployer: Any) -> StreamManager:
-        # TODO: Add product selection to the factory using `product=` kwarg (defaults to empty)
-        return StreamManager(self.contract.deployments(deployer))
+        if (sm_address := self.contract.deployments(deployer)) == ZERO_ADDRESS:
+            raise ManagerDoesNotExist()
+        return StreamManager(sm_address)
 
 
 class Releases:

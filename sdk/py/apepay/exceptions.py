@@ -16,6 +16,13 @@ class NoFactoryAvailable(ApePayException, RuntimeError):
         )
 
 
+class ManagerDoesNotExist(ApePayException, ValueError):
+    def __init__(self):
+        super().__init__(
+            "Contract does not exist on this chain, please check the address you are using."
+        )
+
+
 class MissingCreationReceipt(ApePayException, NotImplementedError):
     def __init__(self):
         super().__init__("Missing creation transaction for stream. Functionality unavailabie.")
