@@ -37,14 +37,12 @@ async def grant_product(stream):
 async def update_product_funding(stream):
     # NOTE: properties of stream have changed, you may not need to handle this, but typically you
     #       would want to update `stream.time_left` in db for use in user Stream life notifications
-    db[stream.creator].pop(stream.stream_id)
-    db[stream.creator].insert(stream.stream_id, stream)
+    db[stream.creator][stream.stream_id] = stream
     return stream.time_left
 
 
 @sm.on_stream_cancelled(app)
 async def revoke_product(stream):
     print(f"unprovisioning product for {stream.creator}")
-    db[stream.creator].pop(stream.stream_id)
-    db[stream.creator].insert(stream.stream_id, None)
+    db[stream.creator][stream.stream_id] = None
     return stream.time_left
