@@ -73,7 +73,7 @@ capabilities: public(HashMap[address, Ability])
 
 
 event StreamCreated:
-    stream_id: indexed(uint256)
+    id: indexed(uint256)
     owner: indexed(address)
     token: indexed(IERC20)
     amount_per_second: uint256
@@ -82,29 +82,29 @@ event StreamCreated:
 
 
 event StreamOwnershipUpdated:
-    stream_id: indexed(uint256)
+    id: indexed(uint256)
     old: indexed(address)
     new: indexed(address)
 
 
 event StreamFunded:
-    stream_id: indexed(uint256)
+    id: indexed(uint256)
     funder: indexed(address)
-    amount_added: uint256
+    added: uint256
 
 
 event StreamClaimed:
-    stream_id: indexed(uint256)
+    id: indexed(uint256)
     claimer: indexed(address)
-    stream_exhausted: indexed(bool)
-    claimed_amount: uint256
+    exhausted: indexed(bool)
+    claimed: uint256
 
 
 event StreamCancelled:
-    stream_id: indexed(uint256)
-    cancellor: indexed(address)
+    id: indexed(uint256)
+    canceller: indexed(address)
     reason: indexed(bytes32)
-    amount_refunded: uint256
+    refunded: uint256
 
 
 @deploy
@@ -171,8 +171,8 @@ def create_stream(
     token: IERC20,
     amount_per_second: uint256,
     products: DynArray[bytes32, MAX_PRODUCTS] = [],
-    start_time: uint256 = block.timestamp,
     max_funding: uint256 = max_value(uint256),
+    start_time: uint256 = block.timestamp,
 ) -> uint256:
     assert self.token_is_accepted[token]  # dev: token not accepted
     assert start_time <= block.timestamp  # dev: start time in future
@@ -197,7 +197,9 @@ def create_stream(
     # Ensure stream life parameters are acceptable
     assert max_stream_life >= funded_amount // amount_per_second  # dev: max stream life too small
 
-    prefunded_stream_life: uint256 = max(MIN_STREAM_LIFE, block.timestamp - start_time)
+    prefunded_stream_life: uint256 = max(
+        MIN_STREAM_LIFE, block.timestamp - start_time  # dev: start_time in future
+    )
     assert max_stream_life >= prefunded_stream_life  # dev: prefunded stream life too large
     assert funded_amount >= prefunded_stream_life * amount_per_second  # dev: not enough funds
 
@@ -284,15 +286,15 @@ def fund_stream(stream_id: uint256, amount: uint256) -> uint256:
 
 
 @view
-def _stream_is_cancelable(creator: address, stream_id: uint256) -> bool:
-    # Creator needs to wait `MIN_STREAM_LIFE` to cancel a stream
-    return self.streams[creator][stream_id].start_time + MIN_STREAM_LIFE <= block.timestamp
+def _stream_is_cancelable(stream_id: uint256) -> bool:
+    # Stream owner needs to wait `MIN_STREAM_LIFE` to cancel a stream
+    return block.timestamp - self.streams[stream_id].start_time >= MIN_STREAM_LIFE
 
 
 @view
 @external
-def stream_is_cancelable(creator: address, stream_id: uint256) -> bool:
-    return self._stream_is_cancelable(creator, stream_id)
+def stream_is_cancelable(stream_id: uint256) -> bool:
+    return self._stream_is_cancelable(stream_id)
 
 
 @external
@@ -306,52 +308,9 @@ def claim_stream(stream_id: uint256) -> uint256:
     token: IERC20 = self.streams[stream_id].token
     assert extcall token.transfer(self.controller, claim_amount, default_return_value=True)
 
-
-@external
-def cancel_stream(
-    stream_id: uint256,
-    reason: Bytes[MAX_REASON_SIZE] = b"",
-    creator: address = msg.sender,
-) -> uint256:
-    if msg.sender == creator:
-        assert self._stream_is_cancelable(creator, stream_id)
-
-    else:
-        # Owner can cancel at any time
-        assert msg.sender == self.owner
-
-    funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
-    amount_locked: uint256 = funded_amount - self._amount_unlocked(creator, stream_id)
-    assert amount_locked > 0  # NOTE: reverts if stream doesn't exist, or already cancelled
-    self.streams[creator][stream_id].funded_amount = funded_amount - amount_locked
-
-    token: IERC20 = self.streams[creator][stream_id].token
-    assert extcall token.transfer(creator, amount_locked, default_return_value=True)
-
-    log StreamCancelled(creator, stream_id, amount_locked, reason)
-
-    return funded_amount - amount_locked
-
-
-@external
-def claim(creator: address, stream_id: uint256) -> uint256:
-    funded_amount: uint256 = self.streams[creator][stream_id].funded_amount
-    claim_amount: uint256 = self._amount_unlocked(creator, stream_id)
-    self.streams[creator][stream_id].funded_amount = funded_amount - claim_amount
-    self.streams[creator][stream_id].last_pull = block.timestamp
-
-    token: IERC20 = self.streams[creator][stream_id].token
-    assert extcall token.transfer(self.owner, claim_amount, default_return_value=True)
-
     log StreamClaimed(stream_id, msg.sender, funded_amount == claim_amount, claim_amount)
 
     return claim_amount
-
-
-@view
-@external
-def stream_is_cancelable(stream_id: uint256) -> bool:
-    return block.timestamp - self.streams[stream_id].start_time >= MIN_STREAM_LIFE
 
 
 @external

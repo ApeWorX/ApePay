@@ -15,32 +15,25 @@ def cli():
 
 @cli.command(cls=ConnectedProviderCommand)
 @network_option()
-@click.option("--start-block", type=int)
-@click.argument("address", type=AddressType)
-def unclaimed(network, start_block, address):
+@click.argument("manager", type=StreamManager)
+def unclaimed(manager):
     """List all unclaimed streams"""
 
-    sm = StreamManager(address=address)
-    for stream in sm.unclaimed_streams(start_block=start_block):
-        click.echo(
-            f"{stream.creator}/{stream.stream_id}: "
-            f"{stream.amount_unlocked / 10 ** stream.token.decimals()} "
-            f"{stream.token.symbol()}"
-        )
+    for stream in manager.unclaimed_streams():
+        stream_balance = stream.amount_unlocked / 10 ** stream.token.decimals()
+        click.echo(f"{stream.id}: {stream_balance} {stream.token.symbol()}")
 
 
 @cli.command(cls=ConnectedProviderCommand)
 @network_option()
 @account_option()
-@click.option("--start-block", type=int)
 @click.option("--batch-size", type=int, default=256)
 @click.option("--multicall/--no-multicall", "use_multicall", default=True)
-@click.argument("address", type=AddressType)
-def claim(account, start_block, batch_size, use_multicall, address):
+@click.argument("manager", type=StreamManager)
+def claim(account, batch_size, use_multicall, manager):
     """Claim unclaimed streams using multicall (anyone can claim)"""
 
-    sm = StreamManager(address=address)
-    unclaimed_streams = sm.unclaimed_streams(start_block=start_block)
+    unclaimed_streams = manager.unclaimed_streams()
 
     if not use_multicall:
         for _ in range(batch_size):
@@ -55,6 +48,7 @@ def claim(account, start_block, batch_size, use_multicall, address):
         click.echo(f"INFO: {len(list(unclaimed_streams))} more claims needed...")
         return
 
+    # else: use multicall
     more_streams = True
 
     while more_streams:
@@ -67,7 +61,7 @@ def claim(account, start_block, batch_size, use_multicall, address):
                 more_streams = False
                 break
 
-            tx.add(sm.contract.claim, stream.creator, stream.stream_id)
+            tx.add(manager.contract.claim_stream, stream.id)
 
         try:
             tx(sender=account)

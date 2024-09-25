@@ -51,8 +51,12 @@ class StreamManager(BaseInterfaceModel):
         return f"<apepay_sdk.StreamManager address={self.address}>"
 
     @property
-    def owner(self) -> AddressType:
-        return self.contract.owner()
+    def controller(self) -> AddressType:
+        return self.contract.controller()
+
+    @property
+    def set_controller(self) -> ContractTransactionHandler:
+        return self.contract.set_controller
 
     @property
     def validators(self) -> list[Validator]:
@@ -108,17 +112,14 @@ class StreamManager(BaseInterfaceModel):
             **txn_kwargs,
         )
 
-    @property
-    def add_token(self) -> ContractTransactionHandler:
-        return self.contract.add_token
+    def add_token(self, token: AddressType, **txn_kwargs) -> ReceiptAPI:
+        return self.contract.set_token_accepted(token, True, **txn_kwargs)
 
-    @property
-    def remove_token(self) -> ContractTransactionHandler:
-        return self.contract.remove_token
+    def remove_token(self, token: AddressType, **txn_kwargs) -> ReceiptAPI:
+        return self.contract.set_token_accepted(token, False, **txn_kwargs)
 
-    @property
-    def is_accepted(self) -> ContractCallHandler:
-        return self.contract.token_is_accepted
+    def is_accepted(self, token: AddressType) -> bool:
+        return self.contract.token_is_accepted(token)
 
     @cached_property
     def MIN_STREAM_LIFE(self) -> timedelta:
@@ -129,11 +130,12 @@ class StreamManager(BaseInterfaceModel):
         self,
         token: ContractInstance,
         amount_per_second: str | int,
-        reason: HexBytes | bytes | str | dict | None = None,
+        products: list[HexBytes] | None = None,
         start_time: datetime | int | None = None,
+        max_funding: str | int | None = None,
         **txn_kwargs,
     ) -> "Stream":
-        if not self.is_accepted(token):
+        if not self.is_accepted(token.address):
             raise TokenNotAccepted(str(token))
 
         if isinstance(amount_per_second, str) and "/" in amount_per_second:
@@ -148,18 +150,21 @@ class StreamManager(BaseInterfaceModel):
 
         args: list[Any] = [token, amount_per_second]
 
-        if reason is not None:
-            if isinstance(reason, dict):
-                reason = json.dumps(reason, separators=(",", ":"))
+        if products is not None:
+            args.append(products)
 
-            if isinstance(reason, str):
-                reason = reason.encode("utf-8")
+        if max_funding is not None:
+            if len(args) == 2:
+                args.append([])  # Add empty product list
 
-            args.append(reason)
+            args.append(self.conversion_manager.convert(max_funding, int))
 
         if start_time is not None:
             if len(args) == 2:
-                args.append(b"")  # Add empty reason string
+                args.append([])  # Add empty product list
+
+            if len(args) == 3:
+                args.append(2**256 - 1)
 
             if isinstance(start_time, datetime):
                 args.append(int(start_time.timestamp()))
@@ -185,25 +190,21 @@ class StreamManager(BaseInterfaceModel):
                 )
 
             validator_args = [sender, *args[:2]]
-            # Arg 3 (reason) is optional
+            # Arg 3 (products) is optional for create, but not for validator
             if len(args) == 3:
                 validator_args.append(args[2])
             else:
-                validator_args.append(b"")
-            # Skip arg 4 (start_time)
+                validator_args.append([])
+            # Skip arg 4 (max_funding) and 5 (start_time)
 
             for v in self.validators:
                 if not v(*validator_args):
                     raise ValidatorFailed(v)
 
         tx = self.contract.create_stream(*args, **txn_kwargs)
-
-        event = tx.events.filter(self.contract.StreamCreated)[-1]
-        return Stream.from_event(
-            manager=self,
-            event=event,
-            is_creation_event=True,
-        )
+        # NOTE: Does not require tracing (unlike `.return_value`)
+        log = tx.events.filter(self.contract.StreamCreated)[-1]
+        return Stream(manager=self, id=log.id)
 
     def _parse_stream_decorator(self, app: "SilverbackApp", container: ContractEvent):
 
@@ -212,7 +213,7 @@ class StreamManager(BaseInterfaceModel):
             @app.on_(container)
             @wraps(f)
             def inner(log):
-                return f(Stream(manager=self, creator=log.creator, stream_id=log.stream_id))
+                return f(Stream(manager=self, id=log.id))
 
             return inner
 
@@ -270,30 +271,16 @@ class StreamManager(BaseInterfaceModel):
         """
         return self._parse_stream_decorator(app, self.contract.StreamCancelled)
 
-    def streams_by_creator(self, creator: AddressType) -> Iterator["Stream"]:
-        for stream_id in range(self.contract.num_streams(creator)):
-            yield Stream(manager=self, creator=creator, stream_id=stream_id)
+    def all_streams(self) -> Iterator[Stream]:
+        for stream_id in range(self.contract.num_streams()):
+            yield Stream(manager=self, id=stream_id)
 
-    def all_streams(self, start_block: int | None = None) -> Iterator["Stream"]:
-        if start_block is None and self.contract.creation_metadata:
-            start_block = self.contract.creation_metadata.block
-
-        for stream_created_event in self.contract.StreamCreated.range(
-            start_block or 0,
-            self.chain_manager.blocks.head.number,
-        ):
-            yield Stream.from_event(
-                manager=self,
-                event=stream_created_event,
-                is_creation_event=True,
-            )
-
-    def active_streams(self, start_block: int | None = None) -> Iterator["Stream"]:
-        for stream in self.all_streams(start_block=start_block):
+    def active_streams(self) -> Iterator[Stream]:
+        for stream in self.all_streams():
             if stream.is_active:
                 yield stream
 
-    def unclaimed_streams(self, start_block: int | None = None) -> Iterator["Stream"]:
-        for stream in self.all_streams(start_block=start_block):
-            if not stream.is_active and stream.amount_unlocked > 0:
+    def unclaimed_streams(self) -> Iterator[Stream]:
+        for stream in self.all_streams():
+            if stream.amount_unlocked > 0:
                 yield stream

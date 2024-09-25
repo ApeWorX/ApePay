@@ -1,16 +1,13 @@
-import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
-from ape.api import ReceiptAPI
 from ape.contracts.base import ContractInstance, ContractTransactionHandler
-from ape.types import AddressType, ContractLog, HexBytes
+from ape.types import AddressType, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
-from pydantic import field_validator
 
-from .exceptions import FundsNotClaimable, MissingCreationReceipt
+from .exceptions import FundsNotClaimable
 
 if TYPE_CHECKING:
     from .manager import StreamManager
@@ -20,69 +17,22 @@ MAX_DURATION_SECONDS = int(timedelta.max.total_seconds()) - 1
 
 class Stream(BaseInterfaceModel):
     manager: "StreamManager"
-    creator: AddressType
-    stream_id: int
-    creation_receipt: ReceiptAPI | None = None
-    transaction_hash: HexBytes | None = None
-
-    @field_validator("transaction_hash", mode="before")
-    def normalize_transaction_hash(cls, value: Any) -> HexBytes | None:
-        if value:
-            return HexBytes(cls.conversion_manager.convert(value, bytes))
-
-        return value
-
-    @field_validator("creator", mode="before")
-    def validate_addresses(cls, value):
-        return (
-            value if isinstance(value, str) else cls.conversion_manager.convert(value, AddressType)
-        )
-
-    @classmethod
-    def from_event(
-        cls,
-        manager: "StreamManager",
-        event: ContractLog,
-        is_creation_event: bool = False,
-    ) -> "Stream":
-        return cls(
-            manager=manager,
-            creator=event.creator,
-            stream_id=event.stream_id,
-            transaction_hash=event.transaction_hash if is_creation_event else None,
-        )
-
-    def to_event(self) -> ContractLog:
-        return self.receipt.events.filter(self.manager.contract.StreamCreated)[0]
+    id: int
 
     @property
     def contract(self) -> ContractInstance:
         return self.manager.contract
 
-    @property
-    def receipt(self) -> ReceiptAPI:
-        if self.creation_receipt:
-            return self.creation_receipt
-
-        if self.transaction_hash:
-            receipt = self.chain_manager.get_receipt(self.transaction_hash.hex())
-            self.creation_receipt = receipt
-            return receipt
-
-        raise MissingCreationReceipt()
-
     def __repr__(self) -> str:
-        return (
-            f"<apepay_sdk.Stream address={self.contract.address} "
-            f"creator={self.creator} stream_id={self.stream_id}>"
-        )
+        return f"<apepay_sdk.Stream manager={self.contract.address} id={self.id}>"
 
     @property
     def info(self):
-        return self.contract.streams(self.creator, self.stream_id)
+        return self.contract.streams(self.id)
 
     @cached_property
     def token(self) -> ContractInstance:
+        # NOTE: This cannot be updated
         try:
             from ape_tokens.managers import ERC20  # type: ignore[import-not-found]
         except ImportError:
@@ -92,6 +42,7 @@ class Stream(BaseInterfaceModel):
 
     @cached_property
     def amount_per_second(self) -> int:
+        # NOTE: This cannot be updated
         return self.info.amount_per_second
 
     @property
@@ -112,18 +63,12 @@ class Stream(BaseInterfaceModel):
         return datetime.fromtimestamp(self.info.start_time)
 
     @cached_property
-    def reason(self) -> HexBytes | str | dict:
-        try:
-            reason_str = self.info.reason.decode("utf-8")
+    def products(self) -> list[HexBytes]:
+        return self.info.products
 
-        except Exception:
-            return self.info.reason
-
-        try:
-            return json.loads(reason_str)
-
-        except (Exception, json.JSONDecodeError):
-            return reason_str
+    @property
+    def owner(self) -> AddressType:
+        return self.info.owner
 
     @property
     def last_pull(self) -> datetime:
@@ -131,7 +76,7 @@ class Stream(BaseInterfaceModel):
 
     @property
     def amount_unlocked(self) -> int:
-        return self.contract.amount_unlocked(self.creator, self.stream_id)
+        return self.contract.amount_unlocked(self.id)
 
     @property
     def amount_locked(self) -> int:
@@ -139,7 +84,7 @@ class Stream(BaseInterfaceModel):
 
     @property
     def time_left(self) -> timedelta:
-        seconds = self.contract.time_left(self.creator, self.stream_id)
+        seconds = self.contract.time_left(self.id)
         return timedelta(seconds=min(MAX_DURATION_SECONDS, seconds))
 
     @property
@@ -163,18 +108,18 @@ class Stream(BaseInterfaceModel):
     def add_funds(self) -> ContractTransactionHandler:
         return cast(
             ContractTransactionHandler,
-            partial(self.contract.add_funds, self.creator, self.stream_id),
+            partial(self.contract.fund_stream, self.id),
         )
 
     @property
     def is_cancelable(self) -> bool:
-        return self.contract.stream_is_cancelable(self.creator, self.stream_id)
+        return self.contract.stream_is_cancelable(self.id)
 
     @property
     def cancel(self) -> ContractTransactionHandler:
         return cast(
             ContractTransactionHandler,
-            partial(self.contract.cancel_stream, self.stream_id),
+            partial(self.contract.cancel_stream, self.id),
         )
 
     @property
@@ -184,5 +129,5 @@ class Stream(BaseInterfaceModel):
 
         return cast(
             ContractTransactionHandler,
-            partial(self.contract.claim, self.creator, self.stream_id),
+            partial(self.contract.claim_stream, self.id),
         )

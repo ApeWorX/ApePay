@@ -2,39 +2,43 @@ from datetime import datetime, timedelta
 
 import ape
 import pytest
+from eth_pydantic_types import HexBytes
 
+from apepay import Validator
 from apepay import exceptions as apepay_exc
 
 
-def test_init(stream_manager, owner, validators, tokens):
+def test_init(stream_manager, controller, validators, tokens):
     assert stream_manager.MIN_STREAM_LIFE == timedelta(hours=1)
-    assert stream_manager.owner == owner
-    assert stream_manager.validators == validators
+    assert stream_manager.controller == controller
+    assert stream_manager.validators == sorted(
+        Validator(v, manager=stream_manager) for v in validators
+    )
 
     for token in tokens:
         assert stream_manager.is_accepted(token)
 
 
-def test_set_validators(stream_manager, owner, create_validator):
+def test_set_validators(stream_manager, controller, create_validator):
     new_validator = create_validator()
     assert new_validator not in stream_manager.validators
 
-    stream_manager.add_validators(new_validator, sender=owner)
+    stream_manager.add_validators(new_validator, sender=controller)
     assert new_validator in stream_manager.validators
 
-    stream_manager.remove_validators(new_validator, sender=owner)
+    stream_manager.remove_validators(new_validator, sender=controller)
     assert new_validator not in stream_manager.validators
 
 
-def test_add_rm_tokens(stream_manager, owner, tokens, create_token):
-    new_token = create_token(owner)
+def test_add_rm_tokens(stream_manager, controller, tokens, create_token):
+    new_token = create_token(controller)
     assert new_token not in tokens
     assert not stream_manager.is_accepted(new_token)
 
-    stream_manager.add_token(new_token, sender=owner)
+    stream_manager.add_token(new_token, sender=controller)
     assert stream_manager.is_accepted(new_token)
 
-    stream_manager.remove_token(new_token, sender=owner)
+    stream_manager.remove_token(new_token, sender=controller)
     assert not stream_manager.is_accepted(new_token)
 
 
@@ -64,14 +68,9 @@ def create_stream(stream_manager, payer, MIN_STREAM_LIFE):
     "extra_args",
     [
         dict(),
-        dict(reason="Just trying out a reason"),
-        dict(
-            reason={
-                "ecosystem_id": 13,
-                "custom_block_time": 10,
-                "bot_counts": {"1": 4, "10": 1, "42": 16},
-            }
-        ),
+        # NOTE: Adjust to 32 bytes
+        dict(products=[HexBytes(b"Just trying out a product" + b"\x00" * 7)]),
+        dict(products=[HexBytes(b"multiple" + b"\x00" * 24), HexBytes(b"products" + b"\x00" * 24)]),
         dict(start_time=-1000),
     ],
 )
@@ -89,10 +88,10 @@ def test_create_stream(chain, payer, token, create_stream, MIN_STREAM_LIFE, extr
     start_time = chain.blocks.head.timestamp
 
     assert stream.token == token
-    assert stream.stream_id == 0
-    assert stream.creator == payer
+    assert stream.id == 0
+    assert stream.owner == payer
     assert stream.amount_per_second == amount_per_second
-    assert stream.reason == extra_args.get("reason", "")
+    assert stream.products == extra_args.get("products", [])
 
     expected = datetime.fromtimestamp(start_time + extra_args.get("start_time", 0))
     assert stream.start_time - expected <= timedelta(seconds=1), "Unexpected start time"
@@ -105,10 +104,10 @@ def stream(create_stream, token, payer, MIN_STREAM_LIFE):
     return create_stream(token, amount_per_second=amount_per_second)
 
 
-def test_cancel_stream(chain, token, payer, starting_balance, owner, MIN_STREAM_LIFE, stream):
+def test_cancel_stream(chain, token, payer, starting_balance, controller, MIN_STREAM_LIFE, stream):
     with chain.isolate():
         # Owner can cancel at any time
-        stream.cancel(b"Because I felt like it", payer, sender=owner)
+        stream.cancel(b"Because I felt like it", sender=controller)
         assert token.balanceOf(stream.contract) == stream.amount_unlocked
         assert token.balanceOf(payer) == starting_balance - stream.amount_unlocked
         assert not stream.is_active
@@ -121,7 +120,7 @@ def test_cancel_stream(chain, token, payer, starting_balance, owner, MIN_STREAM_
 
     with chain.isolate():
         # Owner can still cancel at any time
-        stream.cancel(b"Because I felt like it", payer, sender=owner)
+        stream.cancel(b"Because I felt like it", sender=controller)
         assert token.balanceOf(stream.contract) == stream.amount_unlocked
         assert token.balanceOf(payer) + stream.amount_unlocked == starting_balance
         assert not stream.is_active

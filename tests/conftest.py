@@ -4,7 +4,7 @@ from apepay import StreamManager
 
 
 @pytest.fixture(scope="session")
-def owner(accounts):
+def controller(accounts):
     return accounts[0]
 
 
@@ -41,16 +41,19 @@ def starting_balance(token, payer):
 
 
 @pytest.fixture(scope="session")
-def create_validator(owner, project):
+def create_validator(controller, project):
     def create_validator():
-        return owner.deploy(project.TestValidator)
+        return controller.deploy(project.TestValidator)
 
     return create_validator
 
 
 @pytest.fixture(scope="session", params=["0 validators", "1 validator", "2 validators"])
 def validators(create_validator, request):
-    return [create_validator() for _ in range(int(request.param.split(" ")[0]) + 1)]
+    return sorted(
+        (create_validator() for _ in range(int(request.param.split(" ")[0]))),
+        key=lambda v: v.address,
+    )
 
 
 @pytest.fixture(scope="session")
@@ -59,8 +62,8 @@ def MIN_STREAM_LIFE():
 
 
 @pytest.fixture(scope="session")
-def stream_manager_contract(owner, project, MIN_STREAM_LIFE, validators, tokens):
-    return owner.deploy(project.StreamManager, owner, MIN_STREAM_LIFE, validators, tokens)
+def stream_manager_contract(controller, project, MIN_STREAM_LIFE, validators, tokens):
+    return controller.deploy(project.StreamManager, controller, MIN_STREAM_LIFE, tokens, validators)
 
 
 @pytest.fixture(scope="session")

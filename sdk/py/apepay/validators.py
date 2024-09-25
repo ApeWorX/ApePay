@@ -60,10 +60,13 @@ class Validator(BaseInterfaceModel):
 
     def __call__(self, *args, **kwargs) -> bool:
         try:
-            # NOTE: Imitate that the call is coming from the specified StreamManager.
-            #       Also note that a validator can be connected to >1 StreamManagers.
             self.contract._mutable_methods_["validate"].call(
-                *args, sender=self.manager.address, **kwargs
+                *args,
+                **kwargs,
+                # NOTE: Imitate that the call is coming from the specified StreamManager,
+                #       because a validator can be connected to >1 StreamManagers.
+                sender=self.manager.address,
+                gas_price="0 gwei",  # NOTE: Avoid gas balance issues
             )
             return True
 
