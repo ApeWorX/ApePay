@@ -23,16 +23,6 @@ class ManagerDoesNotExist(ApePayException, ValueError):
         )
 
 
-class MissingCreationReceipt(ApePayException, NotImplementedError):
-    def __init__(self):
-        super().__init__("Missing creation transaction for stream. Functionality unavailabie.")
-
-
-class FundsNotClaimable(ApePayException):
-    def __init__(self):
-        super().__init__("Stream has no funds left to claim.")
-
-
 class TokenNotAccepted(ApePayException, ValueError):
     def __init__(self, token_details: str):
         super().__init__(f"Token '{token_details}' not accepted.")
