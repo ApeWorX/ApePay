@@ -28,6 +28,11 @@ class TokenNotAccepted(ApePayException, ValueError):
         super().__init__(f"Token '{token_details}' not accepted.")
 
 
+class FundsNotClaimable(ApePayException):
+    def __init__(self):
+        super().__init__("Stream has no funds left to claim.")
+
+
 class StreamLifeInsufficient(ApePayException, ValueError):
     def __init__(self, stream_life: timedelta, min_stream_life: timedelta):
         super().__init__(
