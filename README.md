@@ -34,27 +34,33 @@ Second, make sure to install the plugins:
 $ ape plugins install . --upgrade
 ```
 
-Next, prior to installing the SDK package, you have to compile the project:
+Next, prior to installing the SDK package, you need to compile the project:
 
 ```sh
 $ ape compile
 ```
 
-```note
+```{note}
 The SDK package relies on a soft link in [`./sdk/py/apepay/manifest.json`](./sdk/py/apepay/manifest.json)
 ```
 
 Lastly, install the SDK package via:
 
 ```sh
-$ poetry install
+$ pip install .
+```
+
+or for interactive installation do:
+
+```sh
+$ pip install -e .
 ```
 
 Then you are ready to contribute!
 
 ### Setup (JS)
 
-In order to contribute to the JS SDK and React component library, or to build the demo app, you need to first follow the [Python Setup instructions](#setup-python) to compile the smart contract package.
+In order to contribute to the JS packages, you need to first follow the [Python Setup instructions](#setup-python) to compile the smart contract package.
 
 Next, you need install the node packages for development:
 
@@ -108,7 +114,7 @@ To deploy a StreamManager (for testing purposes), run:
 
 ```sh
 $ ape run deploy manager [TOKEN_ADDRESS [...]]
-# Or if `ape tokens` is installed with a valid tokenlist
+# Or if `ape tokens` is installed (with a valid tokenlist)
 $ ape run deploy manager [TOKEN_SYMBOL [...]]
 ```
 
@@ -124,25 +130,29 @@ To deploy a Token (for testing use only), run:
 $ ape run deploy token
 ```
 
-```note
+```{warning}
 This test token has an unauthenticated mint, please do not use in production!
 ```
 
 To run the demo ApePay cluster daemon, first run a node like `anvil`:
 
 ```sh
-$ anvil --derivation-path "m/44'/60'/0'/" --block-time 1 --prune-history
+$ anvil --block-time 1 --prune-history
 ```
 
-**NOTE**: the `--derivation-path` flag makes ape's test accounts match anvil's
-
-Then run the daemon:
+Then run the example Silverback app:
 
 ```sh
-$ silverback run scripts.daemon:app --network ::foundry --account TEST::0
+$ silverback run bots.example:app
 ```
 
 After that, it's suggested to start `ape console` and create a stream to watch the daemon react.
+
+We also provide a simulation you can run instead using:
+
+```sh
+$ ape run demo
+```
 
 ### Publishing
 
@@ -154,22 +164,18 @@ TBD
 
 #### Python SDK
 
-To publish the Python package, there are 5 steps.
+To publish the Python package, there are 4 steps.
 
 ```sh
 # 1. Install everything
-$ poetry install`
+$ pip install .[dev]
 # 2. Compile the package manifest
-$ ape compile
-# 3. Copy the package manifest to the Python SDK folder
-$ cp .build/__local__.json sdk/py/apepay/manifest.json
-# 4. Build the Python SDK with Poetry
-$ poetry build
-# 5. Publish the package
-$ poetry publish
+$ ape compile -f
+# 3. Build the Python SDK with twine
+$ twine build
+# 4. Publish the package
+$ twine publish
 ```
-
-**NOTE**: make sure to revision the package before publishing, or it will fail.
 
 #### JavaScript SDK and React component library
 
