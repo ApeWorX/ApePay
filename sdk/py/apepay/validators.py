@@ -25,6 +25,9 @@ class Validator(BaseInterfaceModel):
         kwargs["address"] = address
         super().__init__(*args, **kwargs)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.address})"
+
     @field_validator("address", mode="before")
     def normalize_address(cls, value: Any) -> AddressType:
         if isinstance(value, Validator):
