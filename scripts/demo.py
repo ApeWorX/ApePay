@@ -7,6 +7,7 @@ from datetime import timedelta
 
 import click
 from ape.cli import ConnectedProviderCommand, ape_cli_context
+from eth_pydantic_types import HashBytes32
 
 from apepay import StreamManager
 
@@ -33,9 +34,10 @@ def cli(
     # Initialize experiment
     deployer = cli_ctx.account_manager.test_accounts[-1]
     token = cli_ctx.local_project.TestToken.deploy(sender=deployer)
+    validator = cli_ctx.local_project.TestValidator.deploy(sender=deployer)
     sm = StreamManager(
         cli_ctx.local_project.StreamManager.deploy(
-            deployer, min_stream_life, [token], [], sender=deployer
+            deployer, min_stream_life, [token], [validator], sender=deployer
         )
     )
 
@@ -54,9 +56,9 @@ def cli(
         token.DEBUG_mint(account, 10_000 * 10**decimals, sender=account)
 
     # 26 tokens per day
-    starting_life = timedelta(minutes=5).total_seconds()
-    starting_tokens = 26 * 10**decimals
-    funding_amount = 2 * 10**decimals
+    starting_tokens = 3 * 10**decimals  # ~42 seconds
+    products = [HashBytes32(b"\x00" * 24 + b"\x01" + b"\x00" * 7)]  # ~256 tokens/hour
+    funding_amount = 1 * 10**decimals  # ~14 seconds
     streams = {a.address: [] for a in accounts}
 
     while cli_ctx.chain_manager.blocks.head.number < num_blocks:
@@ -91,11 +93,6 @@ def cli(
         elif len(streams[payer.address]) < max_streams and random.random() < create_stream:
             click.echo(f"'{payer}' is creating a new stream...")
             token.approve(sm.address, starting_tokens, sender=payer)
-            stream = sm.create(
-                token,
-                int(starting_tokens / starting_life),
-                max_funding=starting_tokens,
-                sender=payer,
-            )
+            stream = sm.create(token, starting_tokens, products, sender=payer)
             streams[payer.address].append(stream)
             click.echo(f"Stream '{stream.id}' was created successfully.")
