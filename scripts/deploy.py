@@ -127,8 +127,8 @@ def manager(
             project.StreamManager,
             owner or account,
             min_stream_life,
-            list(validators),
             token_addresses,
+            list(validators),
             publish=publish,
         )
 
