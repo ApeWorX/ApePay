@@ -1,8 +1,10 @@
 from collections.abc import Iterator
 from datetime import timedelta
+from difflib import Differ
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Any, Callable, Union, cast
 
+import click
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractEvent, ContractInstance, ContractTransactionHandler
 from ape.exceptions import ContractLogicError, DecodingError
@@ -89,14 +91,16 @@ class StreamManager(BaseInterfaceModel):
     def set_validators(self) -> ContractTransactionHandler:
 
         @wraps(self.contract.set_validators)
-        def order_validators(*validators: _ValidatorItem, **txn_kwargs) -> ReceiptAPI:
+        def set_validators(*validators: _ValidatorItem, **txn_kwargs) -> ReceiptAPI:
             # NOTE: Always keep sets sorted, ensure no duplicates
-            return self.contract.set_validators(
-                sorted(v.address for v in set(map(self._parse_validator, validators))),
-                **txn_kwargs,
-            )
+            new_validators = sorted(v.address for v in set(map(self._parse_validator, validators)))
+            # NOTE: Okay to use Click here, intended primarily to support interactive features
+            click.echo("Validators update:")
+            for line in Differ().compare(tuple(v.address for v in self.validators), new_validators):
+                click.echo(line)
+            return self.contract.set_validators(new_validators, **txn_kwargs)
 
-        return cast(ContractTransactionHandler, order_validators)
+        return cast(ContractTransactionHandler, set_validators)
 
     def add_validators(self, *new_validators: _ValidatorItem, **txn_kwargs) -> ReceiptAPI:
         return self.set_validators(
