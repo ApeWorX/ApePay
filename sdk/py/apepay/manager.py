@@ -1,26 +1,24 @@
-import json
 from collections.abc import Iterator
-from datetime import datetime, timedelta
+from datetime import timedelta
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Any, Callable, Union, cast
 
 from ape.api import ReceiptAPI
-from ape.contracts.base import (
-    ContractCallHandler,
-    ContractEvent,
-    ContractInstance,
-    ContractTransactionHandler,
-)
+from ape.contracts.base import ContractEvent, ContractInstance, ContractTransactionHandler
 from ape.exceptions import ContractLogicError, DecodingError
 from ape.types import AddressType, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from ape_ethereum import multicall
 from pydantic import field_validator
 
-from .exceptions import StreamLifeInsufficient, TokenNotAccepted, ValidatorFailed
+from .exceptions import (
+    NotEnoughAllowance,
+    NoValidProducts,
+    StreamLifeInsufficient,
+    TokenNotAccepted,
+)
 from .package import MANIFEST
 from .streams import Stream
-from .utils import time_unit_to_timedelta
 from .validators import Validator
 
 if TYPE_CHECKING:
@@ -126,82 +124,74 @@ class StreamManager(BaseInterfaceModel):
         # NOTE: Immutable in contract
         return timedelta(seconds=self.contract.MIN_STREAM_LIFE())
 
+    def compute_funding_rate(
+        self,
+        funder: AddressType,
+        token: Any,
+        amount: int,
+        products: list[HexBytes],
+    ) -> int:
+        total = 0
+
+        for validator in self.validators:
+            try:
+                total += validator(funder, token, amount, products)
+            except ContractLogicError:
+                pass
+
+        return total
+
     def create(
         self,
         token: ContractInstance,
-        amount_per_second: str | int,
-        products: list[HexBytes] | None = None,
-        start_time: datetime | int | None = None,
-        max_funding: str | int | None = None,
+        amount: str | int,
+        products: list[HexBytes],
+        min_stream_life: timedelta | int | None = None,
         **txn_kwargs,
     ) -> "Stream":
-        if not self.is_accepted(token.address):
+        if not self.is_accepted(token.address):  # for mypy
             raise TokenNotAccepted(str(token))
 
-        if isinstance(amount_per_second, str) and "/" in amount_per_second:
-            value, time = amount_per_second.split("/")
-            amount_per_second = int(
-                self.conversion_manager.convert(value.strip(), int)
-                / time_unit_to_timedelta(time).total_seconds()
-            )
+        if not isinstance(amount, int):
+            amount = self.conversion_manager.convert(amount, int)
+        assert isinstance(amount, int)  # for mypy
 
-        if amount_per_second == 0:
-            raise ValueError("`amount_per_second` must be greater than 0.")
+        args: list[Any] = [token, amount, products]
 
-        args: list[Any] = [token, amount_per_second]
+        if min_stream_life is not None:
+            if isinstance(min_stream_life, int):
+                min_stream_life = timedelta(seconds=min_stream_life)
 
-        if products is not None:
-            args.append(products)
-
-        if max_funding is not None:
-            if len(args) == 2:
-                args.append([])  # Add empty product list
-
-            args.append(self.conversion_manager.convert(max_funding, int))
-
-        if start_time is not None:
-            if len(args) == 2:
-                args.append([])  # Add empty product list
-
-            if len(args) == 3:
-                args.append(2**256 - 1)
-
-            if isinstance(start_time, datetime):
-                args.append(int(start_time.timestamp()))
-
-            elif isinstance(start_time, int) and start_time < 0:
-                args.append(self.chain_manager.pending_timestamp + start_time)
-
-            else:
-                args.append(start_time)
-
-        if sender := hasattr(token, "allowance") and txn_kwargs.get("sender"):
-            allowance = token.allowance(sender, self.contract)
-
-            if allowance == 2**256 - 1:  # NOTE: Sentinel value meaning "all balance"
-                allowance = token.balanceOf(sender)
-
-            stream_life = allowance // amount_per_second
-
-            if stream_life < self.MIN_STREAM_LIFE.total_seconds():
+            if min_stream_life < self.MIN_STREAM_LIFE:
                 raise StreamLifeInsufficient(
-                    stream_life=timedelta(seconds=stream_life),
+                    stream_life=min_stream_life,
                     min_stream_life=self.MIN_STREAM_LIFE,
                 )
 
-            validator_args = [sender, *args[:2]]
-            # Arg 3 (products) is optional for create, but not for validator
-            if len(args) == 3:
-                validator_args.append(args[2])
-            else:
-                validator_args.append([])
-            # Skip arg 4 (max_funding) and 5 (start_time)
+            args.append(min_stream_life)
 
-            for v in self.validators:
-                if not v(*validator_args):
-                    raise ValidatorFailed(v)
+        else:
+            min_stream_life = self.MIN_STREAM_LIFE
+        assert isinstance(min_stream_life, timedelta)  # for mypy
+
+        if sender := txn_kwargs.get("sender"):
+            # NOTE: `sender` must always be present, but fallback on ape's exception
+            if min(token.balanceOf(sender), token.allowance(sender, self.address)) < amount:
+                raise NotEnoughAllowance(self.address)
+
+            amount_per_second = self.compute_funding_rate(sender, token, amount, products)
+
+            if not (amount_per_second) > 0:
+                raise NoValidProducts()
+
+            elif (stream_life := timedelta(seconds=amount // amount_per_second)) < min_stream_life:
+                raise StreamLifeInsufficient(
+                    stream_life=stream_life,
+                    min_stream_life=min_stream_life,
+                )
 
         tx = self.contract.create_stream(*args, **txn_kwargs)
+
         # NOTE: Does not require tracing (unlike `.return_value`)
         log = tx.events.filter(self.contract.StreamCreated)[-1]
         return Stream(manager=self, id=log.id)

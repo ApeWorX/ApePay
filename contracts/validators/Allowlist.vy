@@ -45,8 +45,8 @@ def deny(denied: DynArray[address, 100]):
 def validate(
     creator: address,
     token: IERC20,
-    amount_per_second: uint256,
+    amount: uint256,
     products: DynArray[bytes32, MAX_PRODUCTS],
 ) -> uint256:
     assert self.is_allowed[creator]
-    return max_value(uint256)
+    return 0  # This validator does not compute any product costs

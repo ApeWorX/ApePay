@@ -33,7 +33,6 @@ struct Stream:
     owner: address
     token: IERC20
     amount_per_second: uint256
-    max_stream_life: uint256
     funded_amount: uint256
     start_time: uint256
     last_claim: uint256
@@ -169,43 +168,27 @@ def set_token_accepted(token: IERC20, is_accepted: bool):
 @external
 def create_stream(
     token: IERC20,
-    amount_per_second: uint256,
-    products: DynArray[bytes32, MAX_PRODUCTS] = [],
-    max_funding: uint256 = max_value(uint256),
-    start_time: uint256 = block.timestamp,
+    amount: uint256,
+    products: DynArray[bytes32, MAX_PRODUCTS],
+    min_stream_life: uint256 = MIN_STREAM_LIFE,
 ) -> uint256:
+    assert min_stream_life >= MIN_STREAM_LIFE  # dev: stream life not long enough
     assert self.token_is_accepted[token]  # dev: token not accepted
-    assert start_time <= block.timestamp  # dev: start time in future
-
-    # NOTE: Only check token balance if opt-in via default setting, otherwise
-    #       if set incorrectly then we will fail later on doing `token.transfer`
-    funded_amount: uint256 = max_funding
-    if funded_amount == max_value(uint256):  # NOTE: Use all token amount
-        funded_amount = staticcall token.balanceOf(msg.sender)
-
-    # Check all validators for any unacceptable or incorrect stream parameters
-    max_stream_life: uint256 = max_value(uint256)
-    for validator: Validator in self.validators:
-        # NOTE: Validator either raises or returns a max stream life to use
-        max_stream_life = min(
-            max_stream_life,
-            extcall validator.validate(  # dev: validator failed
-                msg.sender, token, amount_per_second, products
-            ),
-        )
-
-    # Ensure stream life parameters are acceptable
-    assert max_stream_life >= funded_amount // amount_per_second  # dev: max stream life too small
-
-    prefunded_stream_life: uint256 = max(
-        MIN_STREAM_LIFE, block.timestamp - start_time  # dev: start_time in future
-    )
-    assert max_stream_life >= prefunded_stream_life  # dev: prefunded stream life too large
-    assert funded_amount >= prefunded_stream_life * amount_per_second  # dev: not enough funds
 
     assert extcall token.transferFrom(  # dev: transfer fail
-        msg.sender, self, funded_amount, default_return_value=True
+        msg.sender, self, amount, default_return_value=True
     )
+
+    # Check all validators for any unacceptable or incorrect stream parameters
+    amount_per_second: uint256 = 0
+    for validator: Validator in self.validators:
+        # NOTE: Validator either raises or returns a funding rate to add to the total
+        amount_per_second += extcall validator.validate(msg.sender, token, amount, products)
+
+    # Ensure stream life parameters are acceptable to caller
+    # NOTE: div/0 if `amount_per_second` is 0, signaling no supported products found
+    stream_life: uint256 = amount // amount_per_second  # dev: no valid products detected
+    assert min_stream_life <= stream_life  # dev: stream too expensive
 
     # Create stream data structure and start streaming
     stream_id: uint256 = self.num_streams
@@ -213,15 +196,14 @@ def create_stream(
         owner: msg.sender,
         token: token,
         amount_per_second: amount_per_second,
-        max_stream_life: max_stream_life,
-        funded_amount: funded_amount,
-        start_time: start_time,
-        last_claim: start_time,
+        funded_amount: amount,
+        start_time: block.timestamp,
+        last_claim: block.timestamp,
         products: products,
     })
     self.num_streams = stream_id + 1
 
-    log StreamCreated(stream_id, msg.sender, token, amount_per_second, start_time, products)
+    log StreamCreated(stream_id, msg.sender, token, amount_per_second, stream_life, products)
 
     return stream_id
 

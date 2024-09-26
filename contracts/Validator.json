@@ -6,7 +6,7 @@
     "inputs": [
       { "name": "creator", "type": "address" },
       { "name": "token", "type": "address" },
-      { "name": "amount_per_second", "type": "uint256" },
+      { "name": "amount", "type": "uint256" },
       { "name": "products", "type": "bytes32[]" }
     ],
     "outputs": [{ "name": "max_stream_life", "type": "uint256" }]

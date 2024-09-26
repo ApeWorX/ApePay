@@ -11,7 +11,12 @@ MAX_PRODUCTS: constant(uint8) = 20
 def validate(
     creator: address,
     token: IERC20,
-    amount_per_second: uint256,
+    amount: uint256,
     products: DynArray[bytes32, MAX_PRODUCTS],
 ) -> uint256:
-    return max_value(uint256)
+    sum: uint256 = 0
+
+    for product: bytes32 in products:
+        sum += convert(product, uint256)
+
+    return sum

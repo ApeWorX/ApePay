@@ -12,28 +12,32 @@ from ethereum.ercs import IERC20
 def validate(
     creator: address,
     token: IERC20,
-    amount_per_second: uint256,
+    amount: uint256,
     products: DynArray[bytes32, 20],
 ) -> uint256:
     """
     @notice
-        Validate that the proposed Stream action initiated by `creator` and funded by `token` at
-        `amount_per_second` with the associated `reason` is properly formed, allowed, and meets
-        any other application-specific behaviors to be considered correct to accept and make the
-        modifications to that Stream.
+        Validate that the proposed Stream action initiated by `creator` and funded by `amount` of
+        `token` for the associated `products` is properly formed, allowed, and meets any other
+        application-specific behaviors required to fund the stream. Should either return 0 or
+        the subtotal of the cost of the subset of `products` that the validator works with.
     @dev
         Method can make modifications and external calls based on stream properties.
         This method should raise if and only if the input matches the domain it is checking, and
         violates any rules from inside that domain, otherwise will cause a Denial-of-Service issue.
         Validator should not reject input that doesn't match it's domain of checks it is performing
         or it will reject potentially valid streams.
+        Validator should return only the subtotal for all products within it's domain.
     @param creator The owner of the Stream that has the action being performed against.
     @param token The ERC20 token that is being used to fund the stream
-    @param amount_per_second The amount of `token` being streamed (per second) to the owner of the
-        calling contracts. Can be used to ensure product pricing is within acceptable bounds.
-    @param reason The product code or reason for the triggering of the action. Note that the
-        encoding of this value is entirely application-specific, and multiple supported encodings
-        could be potentially be supported by the upstream StreamManager (through other Validators).
-    @return uint256 "max_time_allowed" for purposes of time limiting (e.g. pre-releases).
+    @param amount The amount of `token` that is funding the stream. Can be used to ensure product
+        time limits are within acceptable bounds by computing a rate from the subtotal price for
+        the subset of matching products this validator handles.
+    @param products The array of product codes or reasons for the triggering of the action. Note
+        that the encoding of this value is entirely application-specific, and multiple supported
+        encodings could be potentially be supported by other connected Validators.
+    @return uint256 streaming rate for the subset of products this validator handles. Used to
+        compute the total streaming rate for all products by summing all subtotals of all
+        connected validators to the Streammanager.
     """
     ...

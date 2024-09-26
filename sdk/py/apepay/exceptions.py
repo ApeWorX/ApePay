@@ -1,8 +1,6 @@
 from datetime import timedelta
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from . import Validator
+from ape.types import AddressType
 
 
 class ApePayException(Exception):
@@ -33,16 +31,20 @@ class FundsNotClaimable(ApePayException):
         super().__init__("Stream has no funds left to claim.")
 
 
+class NotEnoughAllowance(ApePayException, ValueError):
+    def __init__(self, manager: AddressType):
+        super().__init__(f"Not enough allownace, please approve {manager}")
+
+
 class StreamLifeInsufficient(ApePayException, ValueError):
     def __init__(self, stream_life: timedelta, min_stream_life: timedelta):
         super().__init__(
             f"Stream life is {stream_life}, which is not sufficient to create stream. "
-            f"Excepted at least {min_stream_life} of life for the stream to be created. "
-            f"Please wait or back-date stream by {min_stream_life - stream_life} amount "
-            "of time to succeed, or approve more token allowance for the stream to use."
+            f"Expected at least {min_stream_life} of life for the stream to be created. "
+            "Please increase stream funding amount in order to successfully proceed."
         )
 
 
-class ValidatorFailed(ApePayException, ValueError):
-    def __init__(self, validator: "Validator"):
-        super().__init__(f"Validator failed: {validator.contract}")
+class NoValidProducts(ApePayException, ValueError):
+    def __init__(self):
+        super().__init__("No valid products in stream creation")
