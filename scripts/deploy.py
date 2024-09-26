@@ -138,3 +138,10 @@ def manager(
 @account_option()
 def token(cli_ctx, account):
     account.deploy(project.TestToken)
+
+
+@cli.command(cls=ConnectedProviderCommand, short_help="Deploy a Mock validator")
+@ape_cli_context()
+@account_option()
+def validator(cli_ctx, account):
+    account.deploy(project.TestValidator)
