@@ -144,7 +144,7 @@ def accept_control():
 @external
 def set_capabilities(account: address, capabilities: Ability):
     if Ability.MODFIY_ACCESS not in self.capabilities[msg.sender]:
-        assert msg.sender == self.controller  # dev: no capabilities
+        assert msg.sender == self.controller  # dev: insufficient capability
 
     self.capabilities[account] = capabilities
 
@@ -152,7 +152,7 @@ def set_capabilities(account: address, capabilities: Ability):
 @external
 def set_validators(validators: DynArray[Validator, MAX_VALIDATORS]):
     if Ability.MODFIY_VALIDATORS not in self.capabilities[msg.sender]:
-        assert msg.sender == self.controller  # dev: no capabilities
+        assert msg.sender == self.controller  # dev: insufficient capability
 
     self.validators = validators
 
@@ -160,7 +160,7 @@ def set_validators(validators: DynArray[Validator, MAX_VALIDATORS]):
 @external
 def set_token_accepted(token: IERC20, is_accepted: bool):
     if Ability.MODFIY_TOKENS not in self.capabilities[msg.sender]:
-        assert msg.sender == self.controller  # dev: no capabilities
+        assert msg.sender == self.controller  # dev: insufficient capability
 
     self.token_is_accepted[token] = is_accepted
 
@@ -217,26 +217,29 @@ def set_stream_owner(stream_id: uint256, new_owner: address):
 
 
 @view
-def _amount_unlocked(stream_id: uint256) -> uint256:
+def _amount_claimable(stream_id: uint256) -> uint256:
     return min(
         (
             (block.timestamp - self.streams[stream_id].last_claim)
             * self.streams[stream_id].amount_per_second
         ),
+        # NOTE: After stream expires, should be this
         self.streams[stream_id].funded_amount,
     )
 
 
 @view
 @external
-def amount_unlocked(stream_id: uint256) -> uint256:
-    return self._amount_unlocked(stream_id)
+def amount_claimable(stream_id: uint256) -> uint256:
+    return self._amount_claimable(stream_id)
 
 
 @view
 def _time_left(stream_id: uint256) -> uint256:
     return (
-        (self.streams[stream_id].funded_amount - self._amount_unlocked(stream_id))
+        # NOTE: Max is `.funded_amount`
+        (self.streams[stream_id].funded_amount - self._amount_claimable(stream_id))
+        # NOTE: Cannot div/0 due to max
         // self.streams[stream_id].amount_per_second
     )
 
@@ -250,21 +253,16 @@ def time_left(stream_id: uint256) -> uint256:
 @external
 def fund_stream(stream_id: uint256, amount: uint256) -> uint256:
     # NOTE: Anyone can fund a stream
-    assert extcall self.streams[stream_id].token.transferFrom(
+    token: IERC20 = self.streams[stream_id].token
+    assert self.token_is_accepted[token]  # dev: token not accepted
+    assert extcall token.transferFrom(
         msg.sender, self, amount, default_return_value=True
     )
+
     self.streams[stream_id].funded_amount += amount
-
-    time_left: uint256 = self._time_left(stream_id)
-    # TODO: Process with validators again instead of comparing to max_stream_life
-    assert (
-        (time_left + block.timestamp - self.streams[stream_id].start_time)
-        <= self.streams[stream_id].max_stream_life
-    )
-
     log StreamFunded(stream_id, msg.sender, amount)
 
-    return time_left
+    return self._time_left(stream_id)
 
 
 @view
@@ -279,11 +277,11 @@ def stream_is_cancelable(stream_id: uint256) -> bool:
     return self._stream_is_cancelable(stream_id)
 
 
-@external
-def claim_stream(stream_id: uint256) -> uint256:
+@internal
+def _claim_stream(stream_id: uint256) -> uint256:
     # NOTE: Anyone can claim a stream (for the Controller)
     funded_amount: uint256 = self.streams[stream_id].funded_amount
-    claim_amount: uint256 = self._amount_unlocked(stream_id)
+    claim_amount: uint256 = self._amount_claimable(stream_id)
     self.streams[stream_id].funded_amount = funded_amount - claim_amount
     self.streams[stream_id].last_claim = block.timestamp
 
@@ -296,30 +294,34 @@ def claim_stream(stream_id: uint256) -> uint256:
 
 
 @external
+def claim_stream(stream_id: uint256) -> uint256:
+    return self._claim_stream(stream_id)
+
+
+@external
 def cancel_stream(stream_id: uint256, reason: bytes32 = empty(bytes32)) -> uint256:
     stream_owner: address = self.streams[stream_id].owner
     if msg.sender == stream_owner:
         # Creator needs to wait `MIN_STREAM_LIFE` to cancel a stream
-        assert (  # dev: stream not cancellable yet
-            block.timestamp - self.streams[stream_id].start_time >= MIN_STREAM_LIFE
-        )
+        assert self._stream_is_cancelable(stream_id)  # dev: stream not cancellable yet
 
     elif Ability.CANCEL_STREAMS not in self.capabilities[msg.sender]:
         # Controller (or those with capability to cancel) can cancel at any time
-        assert msg.sender == self.controller  # dev: no capabilities
+        assert msg.sender == self.controller  # dev: insufficient capability
 
-    funded_amount: uint256 = self.streams[stream_id].funded_amount
-    # NOTE: Max that `self._amount_unlocked(...)` can be is `funded_amount`
-    refund_amount: uint256 = funded_amount - self._amount_unlocked(stream_id)
-    # NOTE: reverts if stream doesn't exist, or already cancelled
+    # Claim means everything is up to date, and anything that is left is refundable
+    self._claim_stream(stream_id)
+
+    # NOTE: reverts if stream doesn't exist, or has already been cancelled, or is expired
+    refund_amount: uint256 = self.streams[stream_id].funded_amount
     assert refund_amount > 0  # dev: stream already cancelled or completed
-    # NOTE: Allows claim to process unlocked amount
-    self.streams[stream_id].funded_amount = funded_amount - refund_amount
 
-    # Refund Stream owner
-    assert extcall self.streams[stream_id].token.transfer(  # dev: SHOULD NOT HAPPEN
-        stream_owner, refund_amount, default_return_value=True
-    )
+    # NOTE: Stream is now completely exhausted, set to 0 funds available
+    self.streams[stream_id].funded_amount = 0
+
+    # Refund Stream owner (not whomever cancelled) and send the rest to the controller
+    token: IERC20 = self.streams[stream_id].token
+    assert extcall token.transfer(stream_owner, refund_amount, default_return_value=True)
 
     log StreamCancelled(stream_id, msg.sender, reason, refund_amount)
 

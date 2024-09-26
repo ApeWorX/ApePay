@@ -272,5 +272,5 @@ class StreamManager(BaseInterfaceModel):
 
     def unclaimed_streams(self) -> Iterator[Stream]:
         for stream in self.all_streams():
-            if stream.amount_unlocked > 0:
+            if stream.amount_claimable > 0:
                 yield stream

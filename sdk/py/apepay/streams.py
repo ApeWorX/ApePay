@@ -35,8 +35,9 @@ class Stream(BaseInterfaceModel):
         # NOTE: This cannot be updated
         try:
             from ape_tokens.managers import ERC20  # type: ignore[import-not-found]
+
         except ImportError:
-            ERC20 = None
+            ERC20 = None  # type: ignore[assignment]
 
         return self.chain_manager.contracts.instance_at(self.info.token, contract_type=ERC20)
 
@@ -48,22 +49,24 @@ class Stream(BaseInterfaceModel):
     @property
     def funding_rate(self) -> Decimal:
         """
-        Funding rate, in tokens per second, of Stream in correct decimal form.
+        Funding rate, in tokens per second, of Stream in human-readable decimal form.
         """
         return Decimal(self.amount_per_second) / Decimal(10 ** self.token.decimals())
 
-    def estimate_funding(self, period: timedelta) -> int:
+    def estimate_funding(self, period: timedelta) -> Decimal:
         """
-        Useful for estimating how many tokens you need to add to extend for a specific time period.
+        Useful for displaying how many tokens you need to add to extend for a specific time period.
         """
-        return int(period.total_seconds() * self.amount_per_second)
+        return int(period.total_seconds()) * self.funding_rate
 
     @cached_property
     def start_time(self) -> datetime:
+        # NOTE: This cannot be updated
         return datetime.fromtimestamp(self.info.start_time)
 
     @cached_property
     def products(self) -> list[HexBytes]:
+        # NOTE: This cannot be updated
         return self.info.products
 
     @property
@@ -75,29 +78,33 @@ class Stream(BaseInterfaceModel):
         return datetime.fromtimestamp(self.info.last_pull)
 
     @property
-    def amount_unlocked(self) -> int:
-        return self.contract.amount_unlocked(self.id)
+    def amount_claimable(self) -> int:
+        return self.contract.amount_claimable(self.id)
 
     @property
-    def amount_locked(self) -> int:
-        return self.info.funded_amount - self.amount_unlocked
+    def amount_refundable(self) -> int:
+        # NOTE: Max `.amount_claimable` can be is `.funded_amount`
+        return self.info.funded_amount - self.amount_claimable
 
     @property
     def time_left(self) -> timedelta:
         seconds = self.contract.time_left(self.id)
-        return timedelta(seconds=min(MAX_DURATION_SECONDS, seconds))
+        assert seconds < MAX_DURATION_SECONDS, "Invaraint wrong"
+        return timedelta(seconds=seconds)
 
     @property
     def total_time(self) -> timedelta:
-        info = self.info  # NOTE: Avoid calling contract twice
-        # NOTE: Measure time-duration of unclaimed amount remaining (locked and unlocked)
-        max_life = int(info.funded_amount / info.amount_per_second)
+        info = self.info  # NOTE: Avoid calling contract twice by caching
+
+        # NOTE: Measure time-duration of unclaimed amount remaining
+        remaining_life = int(info.funded_amount / info.amount_per_second)
+        assert remaining_life < MAX_DURATION_SECONDS, "Invariant wrong"
 
         return (
             # NOTE: `last_pull == start_time` if never pulled
             datetime.fromtimestamp(info.last_pull)
             - datetime.fromtimestamp(info.start_time)
-            + timedelta(seconds=min(MAX_DURATION_SECONDS, max_life))
+            + timedelta(seconds=remaining_life)
         )
 
     @property
@@ -124,7 +131,7 @@ class Stream(BaseInterfaceModel):
 
     @property
     def claim(self) -> ContractTransactionHandler:
-        if not self.amount_unlocked > 0:
+        if not self.amount_claimable > 0:
             raise FundsNotClaimable()
 
         return cast(
