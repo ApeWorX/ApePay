@@ -16,7 +16,7 @@ def __init__():
 
 @external
 def transfer(receiver: address, amount: uint256) -> bool:
-    self.balanceOf[msg.sender] -= amount
+    self.balanceOf[msg.sender] -= amount  # dev: not enough balance
     self.balanceOf[receiver] += amount
     # NOTE: No event
     return True
@@ -31,8 +31,8 @@ def approve(spender: address, amount: uint256) -> bool:
 
 @external
 def transferFrom(sender: address, receiver: address, amount: uint256) -> bool:
-    self.allowance[sender][msg.sender] -= amount
-    self.balanceOf[sender] -= amount
+    self.allowance[sender][msg.sender] -= amount  # dev: not enough allowance
+    self.balanceOf[sender] -= amount  # dev: not enough balance
     self.balanceOf[receiver] += amount
     # NOTE: No event
     return True
