@@ -108,6 +108,15 @@ class StreamManager(BaseInterfaceModel):
             **txn_kwargs,
         )
 
+    def replace_validator(self, old_validator, new_validator, **txn_kwargs) -> ReceiptAPI:
+        return self.set_validators(
+            *(
+                (set(self.validators) - set([self._parse_validator(old_validator)]))
+                | set([self._parse_validator(new_validator)])
+            ),
+            **txn_kwargs,
+        )
+
     def remove_validators(self, *old_validators: _ValidatorItem, **txn_kwargs) -> ReceiptAPI:
         return self.set_validators(
             *(set(self.validators) - set(map(self._parse_validator, old_validators))),
