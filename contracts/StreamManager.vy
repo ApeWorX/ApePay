@@ -125,7 +125,7 @@ def __init__(
 @external
 def transfer_control(new_controller: address):
     # NOTE: can revoke transfer at any time calling this method with `self.controller`
-    assert msg.sender == self.controller
+    assert msg.sender == self.controller  # dev: not controller
     self.new_controller = new_controller
     self.new_controller_proposed = block.timestamp
 
@@ -134,7 +134,7 @@ def transfer_control(new_controller: address):
 
 @external
 def accept_control():
-    assert msg.sender == self.new_controller
+    assert msg.sender == self.new_controller  # dev: not proposed controller
     assert block.timestamp - self.new_controller_proposed >= CONTROLLER_ACCEPTANCE_DELAY
 
     log NewControllerAccepted(self.controller, msg.sender)
