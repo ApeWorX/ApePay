@@ -38,6 +38,6 @@ def validate(
         encodings could be potentially be supported by other connected Validators.
     @return uint256 streaming rate for the subset of products this validator handles. Used to
         compute the total streaming rate for all products by summing all subtotals of all
-        connected validators to the Streammanager.
+        connected validators to the StreamManager.
     """
     ...
