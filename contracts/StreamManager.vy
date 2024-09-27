@@ -321,7 +321,7 @@ def amount_claimable(stream_id: uint256) -> uint256:
     @notice This is a utility function.
     @param stream_id The identifier of the Stream to check for the amount of `token` that can be
         claimed.
-    @returns amount The total amount of `token` that can be claimed at this moment in time.
+    @return amount The total amount of `token` that can be claimed at this moment in time.
     """
     return self._amount_claimable(stream_id)
 
@@ -343,7 +343,7 @@ def time_left(stream_id: uint256) -> uint256:
     @dev Obtain the amount of time that is left based on the streaming rate of Stream `stream_id`.
     @notice This is a utility function.
     @param stream_id The identifier of the Stream to check for the amount of time left.
-    @returns amount The total amount of time left in Stream `stream_id`.
+    @return amount The total amount of time left in Stream `stream_id`.
     """
     return self._time_left(stream_id)
 
@@ -357,7 +357,7 @@ def fund_stream(stream_id: uint256, amount: uint256) -> uint256:
         settling disputes, or simply gifting users the gift of more time!
     @param stream_id The identifier of the Stream to add `amount` of tokens for.
     @param amount The total amount of tokens to add for Stream `stream_id`.
-    @returns time_left The new amount of time left in Stream `stream_id`.
+    @return time_left The new amount of time left in Stream `stream_id`.
     """
     # NOTE: Anyone can fund a stream
     token: IERC20 = self.streams[stream_id].token
@@ -385,7 +385,7 @@ def stream_is_cancelable(stream_id: uint256) -> bool:
     @dev Check if Stream `stream_id` is able to be cancelled, after `MIN_STREAM_LIFE` has expired.
     @notice This is a utility function.
     @param stream_id The identifier of the Stream to check for the ability to cancel.
-    @returns is_cancelable Whether Stream `stream_id` is allowed to be cancelled.
+    @return is_cancelable Whether Stream `stream_id` is allowed to be cancelled.
     """
     return self._stream_is_cancelable(stream_id)
 
@@ -414,7 +414,7 @@ def claim_stream(stream_id: uint256) -> uint256:
         of use cases such as allowing automated revenue collection and optimization, or to give the
         gift of gas money to `controller`!
     @param stream_id The identifier of the Stream to claim vested tokens for.
-    @returns claim_amount The amount of tokens that have been transferred to `controller`.
+    @return claim_amount The amount of tokens that have been transferred to `controller`.
     """
     return self._claim_stream(stream_id)
 
@@ -434,7 +434,7 @@ def cancel_stream(stream_id: uint256, reason: bytes32 = empty(bytes32)) -> uint2
         the `owner` (or any other impacted party) for what reason the stream was closed, but can
         also be used for the `owner` to communicate to the `controller`. Defaults to an empty
         sequence of 32 bytes meaning "no reason".
-    @returns refund_amount The amount of `token` that was refunded to `owner` of Stream.
+    @return refund_amount The amount of `token` that was refunded to `owner` of Stream.
     """
     stream_owner: address = self.streams[stream_id].owner
     if msg.sender == stream_owner:
