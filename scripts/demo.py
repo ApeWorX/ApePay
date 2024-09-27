@@ -55,10 +55,9 @@ def cli(
     for account in accounts:
         token.DEBUG_mint(account, 10_000 * 10**decimals, sender=account)
 
-    # 26 tokens per day
-    starting_tokens = 3 * 10**decimals  # ~42 seconds
-    products = [HashBytes32(b"\x00" * 24 + b"\x01" + b"\x00" * 7)]  # ~256 tokens/hour
-    funding_amount = 1 * 10**decimals  # ~14 seconds
+    starting_tokens = 3 * 10**decimals  # ~41.63 seconds
+    products = [HashBytes32(b"\x00" * 24 + b"\x01" + b"\x00" * 7)]  # ~259.41 tokens/hour
+    funding_amount = 1 * 10**decimals  # ~13.88 seconds
     streams = {a.address: [] for a in accounts}
 
     while cli_ctx.chain_manager.blocks.head.number < num_blocks:
