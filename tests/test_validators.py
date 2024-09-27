@@ -18,3 +18,10 @@ def test_set_validators(stream_manager, controller, create_validator, num_valida
     stream_manager.set_validators(*new_validators, sender=controller)
     assert all(v in stream_manager.validators for v in new_validators)
     assert len(stream_manager.validators) == num_validators
+
+    obselete = new_validators[0]
+    replacement = create_validator()
+    stream_manager.replace_validator(obselete, replacement, sender=controller)
+    assert obselete not in stream_manager.validators
+    assert replacement in stream_manager.validators
+    assert len(stream_manager.validators) == len(new_validators)
