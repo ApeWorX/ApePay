@@ -174,7 +174,7 @@ class StreamManager(BaseInterfaceModel):
             amount = self.conversion_manager.convert(amount, int)
         assert isinstance(amount, int)  # for mypy
 
-        args: list[Any] = [token, amount, products]
+        stream_args: list[Any] = [token, amount, products]
 
         if min_stream_life is not None:
             if isinstance(min_stream_life, int):
@@ -186,7 +186,7 @@ class StreamManager(BaseInterfaceModel):
                     min_stream_life=self.MIN_STREAM_LIFE,
                 )
 
-            args.append(min_stream_life)
+            stream_args.append(min_stream_life)
 
         else:
             min_stream_life = self.MIN_STREAM_LIFE
@@ -208,7 +208,7 @@ class StreamManager(BaseInterfaceModel):
                     min_stream_life=min_stream_life,
                 )
 
-        tx = self.contract.create_stream(*args, **txn_kwargs)
+        tx = self.contract.create_stream(*stream_args, **txn_kwargs)
 
         # NOTE: Does not require tracing (unlike `.return_value`)
         log = tx.events.filter(self.contract.StreamCreated)[-1]
