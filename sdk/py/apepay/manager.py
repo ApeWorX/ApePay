@@ -155,7 +155,7 @@ class StreamManager(BaseInterfaceModel):
             try:
                 total += validator(funder, token, amount, products)
             except ContractLogicError:
-                pass
+                continue
 
         return total
 
