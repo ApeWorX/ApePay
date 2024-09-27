@@ -97,7 +97,7 @@ class Stream(BaseInterfaceModel):
         info = self.info  # NOTE: Avoid calling contract twice by caching
 
         # NOTE: Measure time-duration of unclaimed amount remaining
-        remaining_life = int(info.funded_amount / info.amount_per_second)
+        remaining_life = info.funded_amount // info.amount_per_second
         assert remaining_life < MAX_DURATION_SECONDS, "Invariant wrong"
 
         return (
