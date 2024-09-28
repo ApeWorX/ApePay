@@ -193,7 +193,7 @@ def set_validators(validators: DynArray[Validator, MAX_VALIDATORS]):
     """
     @dev Assign the set of validators that should be executed on Stream creation.
     @notice This can only be called by the controller or someone with the MODFIY_VALIDATORS
-        capability. It is suggested to ensure that the array contains all unique entries, lest
+        capability. Applications should ensure that the array contains all unique entries, lest
         unpredictable or actively harmful conditions may happen.
     @param validators The array of validators to assign for this contract.
     """
@@ -218,7 +218,7 @@ def set_token_accepted(token: IERC20, is_accepted: bool):
         *Please* make sure to be careful with the decimals of the token you add, since those with
         very small values can cause problems when doing math with streaming rates.
     @param token An ERC20-compatible token to accept or reject.
-    @param is_accepted A boolean value that controls whehter `token` is accepted or rejected.
+    @param is_accepted A boolean value that controls whether `token` is accepted or rejected.
     """
     if Ability.MODFIY_TOKENS not in self.capabilities[msg.sender]:
         assert msg.sender == self.controller  # dev: insufficient capability
@@ -287,7 +287,7 @@ def create_stream(
     @param amount The amount of `token` that should be pre-funded for this stream.
     @param products An array of the product codes this stream should pay for. The product codes are
         treated as application-specific parameters and have no special treatment by this contract.
-        Typically, validators are employted to do the specific processing necessary to compute the
+        Typically, validators are employed to do the specific processing necessary to compute the
         stream rate for the newly created stream.
     @param min_stream_life A safety parameter designed to ensure that the computed stream rate does
         not exceed the value of `amount / min_stream_life` tokens per second. Defaults to
@@ -444,7 +444,8 @@ def fund_stream(stream_id: uint256, amount: uint256, min_stream_life: uint256 = 
     )
     assert block.timestamp < self.streams[stream_id].expires_at
 
-    # Make sure stream claims are up-to-date (ensures that stream rate math is correct)
+    # NOTE: Stream claims must be up-to-date to ensure that math is correct in `_amount_claimable()`
+    #       This is because the stream rate may change in `_compute_stream_life()`
     self._claim_stream(stream_id)
     # NOTE: After claim, apply all remaing funds to updated stream life (alongside amount)
     funded_amount: uint256 = amount + self.streams[stream_id].funded_amount
