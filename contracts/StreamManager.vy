@@ -59,13 +59,13 @@ new_controller_proposed: public(uint256)
 CONTROLLER_ACCEPTANCE_DELAY: constant(uint256) = 7 * 24 * 60 * 60  # 1 week
 
 event NewControllerProposed:
-    old: indexed(address)
-    new: indexed(address)
+    old_controller: indexed(address)
+    new_controller: indexed(address)
 
 
 event NewControllerAccepted:
-    old: indexed(address)
-    new: indexed(address)
+    old_controller: indexed(address)
+    new_controller: indexed(address)
 
 
 # Delegated Abilities
