@@ -432,6 +432,7 @@ def fund_stream(stream_id: uint256, amount: uint256, min_stream_life: uint256 = 
     assert extcall token.transferFrom(
         msg.sender, self, amount, default_return_value=True
     )
+    assert block.timestamp < self.streams[stream_id].expires_at
 
     # Make sure stream claims are up-to-date (ensures that stream rate math is correct)
     self._claim_stream(stream_id)
