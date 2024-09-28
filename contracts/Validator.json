@@ -4,7 +4,7 @@
     "name": "validate",
     "stateMutability": "nonpayable",
     "inputs": [
-      { "name": "creator", "type": "address" },
+      { "name": "funder", "type": "address" },
       { "name": "token", "type": "address" },
       { "name": "amount", "type": "uint256" },
       { "name": "products", "type": "bytes32[]" }

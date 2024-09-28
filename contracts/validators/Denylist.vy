@@ -51,10 +51,10 @@ def deny(denied: DynArray[address, 100]):
 
 @external
 def validate(
-    creator: address,
+    funder: address,
     token: IERC20,
     amount: uint256,
     products: DynArray[bytes32, MAX_PRODUCTS],
 ) -> uint256:
-    assert not self.is_denied[creator]
+    assert not self.is_denied[funder]
     return 0  # This validator does not compute any product costs

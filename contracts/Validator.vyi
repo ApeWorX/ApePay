@@ -1,5 +1,22 @@
 """
 @title StreamManager Validation Interface Specification
+@dev
+    Validators for the ApePay StreamManager are an important part of how your system can be
+    customized for the requirements of your product, organization, and operation of payments.
+    There are several use cases for a Validator, and of course any use case where you need to
+    "hook" into the pre-payment validation point can be covered.
+
+    Here are some use cases for a Validator:
+
+        1. Check if a stream funder is authorized to do so, based on a pre-vetted list
+           (see [Allowlist.vy](./validators/Allowlist.vy))
+        2. Check if a stream funder is a known bad actor, against an internal or external
+           list (see [Denylist.vy](./validators/Denylist.vy))
+        3. Check if the amount of time being funded is too large (e.g. operating a beta)
+        4. Compute the `stream_life` for a given set of products (not all validators need to)
+        5. Update and track any internal state for other purposes (airdrops, NFT mints, etc.)
+        6. Emit more logs (for other Silverback services to hook onto)
+
 @notice
     Implement this interface with any additional checks that should be performed on stream
     creation, funding or migration events in order to block certain behaviors or modify the stream
@@ -10,7 +27,7 @@ from ethereum.ercs import IERC20
 
 @external
 def validate(
-    creator: address,
+    funder: address,
     token: IERC20,
     amount: uint256,
     products: DynArray[bytes32, 20],
