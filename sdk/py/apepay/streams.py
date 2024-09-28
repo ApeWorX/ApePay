@@ -70,6 +70,14 @@ class Stream(BaseInterfaceModel):
         return self.info.owner
 
     @property
+    def expires_at(self) -> datetime:
+        return datetime.fromtimestamp(self.info.expires_at)
+
+    @property
+    def last_update(self) -> datetime:
+        return datetime.fromtimestamp(self.info.last_update)
+
+    @property
     def last_claim(self) -> datetime:
         return datetime.fromtimestamp(self.info.last_claim)
 
