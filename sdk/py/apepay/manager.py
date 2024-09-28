@@ -206,7 +206,7 @@ class StreamManager(BaseInterfaceModel):
 
         # NOTE: Does not require tracing (unlike `.return_value`)
         log = tx.events.filter(self.contract.StreamCreated)[-1]
-        return Stream(manager=self, id=log.id)
+        return Stream(manager=self, id=log.stream_id)
 
     def _parse_stream_decorator(self, app: "SilverbackApp", container: ContractEvent):
 
@@ -215,7 +215,7 @@ class StreamManager(BaseInterfaceModel):
             @app.on_(container)
             @wraps(f)
             def inner(log):
-                return f(Stream(manager=self, id=log.id))
+                return f(Stream(manager=self, id=log.stream_id))
 
             return inner
 

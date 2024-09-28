@@ -79,7 +79,7 @@ capabilities: public(HashMap[address, Ability])
 
 
 event StreamCreated:
-    id: indexed(uint256)
+    stream_id: indexed(uint256)
     owner: indexed(address)
     token: indexed(IERC20)
     funded_amount: uint256
@@ -88,27 +88,27 @@ event StreamCreated:
 
 
 event StreamOwnershipUpdated:
-    id: indexed(uint256)
+    stream_id: indexed(uint256)
     old: indexed(address)
     new: indexed(address)
 
 
 event StreamFunded:
-    id: indexed(uint256)
+    stream_id: indexed(uint256)
     funder: indexed(address)
     funded_amount: uint256
     time_left: uint256
 
 
 event StreamClaimed:
-    id: indexed(uint256)
+    stream_id: indexed(uint256)
     claimer: indexed(address)
     is_expires: indexed(bool)
     claim_amount: uint256
 
 
 event StreamCancelled:
-    id: indexed(uint256)
+    stream_id: indexed(uint256)
     canceller: indexed(address)
     reason: indexed(bytes32)
     refund_amount: uint256
