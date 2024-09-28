@@ -89,8 +89,8 @@ event StreamCreated:
 
 event StreamOwnershipUpdated:
     stream_id: indexed(uint256)
-    old: indexed(address)
-    new: indexed(address)
+    old_owner: indexed(address)
+    new_owner: indexed(address)
 
 
 event StreamFunded:
