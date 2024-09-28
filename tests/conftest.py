@@ -35,12 +35,6 @@ def token(create_token, payer):
 
 
 @pytest.fixture(scope="session")
-def starting_balance(token, payer):
-    # NOTE: All tokens start with the same balance
-    return token.balanceOf(payer)
-
-
-@pytest.fixture(scope="session")
 def create_validator(project, controller):
     def create_validator():
         return controller.deploy(project.TestValidator)
