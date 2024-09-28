@@ -1,8 +1,10 @@
 from datetime import timedelta
+from decimal import Decimal
 
 import pytest
+from ape.api import AccountAPI
 from eth_pydantic_types import HashBytes32
-from eth_utils import to_bytes
+from eth_utils import to_bytes, to_int
 
 from apepay import StreamManager
 
@@ -83,21 +85,33 @@ def products(request):
 
 
 @pytest.fixture(scope="session", params=["1 hour", "2 hours", "12 hours"])
-def stream_duration(request):
+def stream_life(request):
     return int(request.param.split(" ")[0]) * ONE_HOUR
 
 
 @pytest.fixture(scope="session")
-def create_stream(chain, stream_manager, token, payer, products, stream_duration):
+def funding_rate(token, products):
+    return Decimal(sum(map(to_int, products))) / Decimal(10 ** token.decimals())
+
+
+@pytest.fixture(scope="session")
+def create_stream(chain, stream_manager, token, payer, products, stream_life, funding_rate):
     # TODO: Remove when https://github.com/ApeWorX/ape/pull/2277 merges
     with chain.isolate():
 
-        def create_stream(amount=None, sender=None, allowance=(2**256 - 1), **txn_args):
+        def create_stream(
+            amount: int | None = None,
+            sender: AccountAPI | None = None,
+            allowance: int = (2**256 - 1),
+            **txn_args,
+        ):
             if amount is None:
-                amount_per_second = stream_manager.compute_funding_rate(
-                    payer, token, allowance, products
+                amount = int(
+                    Decimal(stream_life.total_seconds())
+                    * funding_rate
+                    # NOTE: To undo the adjustment factor from above
+                    * Decimal(10 ** token.decimals())
                 )
-                amount = amount_per_second * int(stream_duration.total_seconds())
                 assert amount <= token.balanceOf(sender or payer)
 
             if token.allowance(sender or payer, stream_manager.address) != allowance:

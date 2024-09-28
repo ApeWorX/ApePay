@@ -39,9 +39,9 @@ MAX_PRODUCTS: constant(uint8) = 20
 struct Stream:
     owner: address
     token: IERC20
-    amount_per_second: uint256
     funded_amount: uint256
-    start_time: uint256
+    expires_at: uint256
+    last_update: uint256
     last_claim: uint256
     products: DynArray[bytes32, MAX_PRODUCTS]
 
@@ -82,8 +82,8 @@ event StreamCreated:
     id: indexed(uint256)
     owner: indexed(address)
     token: indexed(IERC20)
-    amount_per_second: uint256
-    start_time: uint256
+    funded_amount: uint256
+    time_left: uint256
     products: DynArray[bytes32, MAX_PRODUCTS]
 
 
@@ -96,21 +96,22 @@ event StreamOwnershipUpdated:
 event StreamFunded:
     id: indexed(uint256)
     funder: indexed(address)
-    added: uint256
+    funded_amount: uint256
+    time_left: uint256
 
 
 event StreamClaimed:
     id: indexed(uint256)
     claimer: indexed(address)
-    exhausted: indexed(bool)
-    claimed: uint256
+    is_expires: indexed(bool)
+    claim_amount: uint256
 
 
 event StreamCancelled:
     id: indexed(uint256)
     canceller: indexed(address)
     reason: indexed(bytes32)
-    refunded: uint256
+    refund_amount: uint256
 
 
 @deploy
@@ -209,9 +210,7 @@ def set_token_accepted(token: IERC20, is_accepted: bool):
     @dev Set whether `token` is accepted by this contract.
     @notice This can only be called by the controller or someone with the MODFIY_TOKENS capability.
         *Please* make sure to be careful with the decimals of the token you add, since those with
-        very small values can cause problems since this contracts works with streaming rates of
-        token/second. For example, tokens like USDC can cause problems if the value of the product
-        is lower than $30/month (vs. USDT which has 18 decimals).
+        very small values can cause problems when doing math with streaming rates.
     @param token An ERC20-compatible token to accept or reject.
     @param is_accepted A boolean value that controls whehter `token` is accepted or rejected.
     """
@@ -219,6 +218,47 @@ def set_token_accepted(token: IERC20, is_accepted: bool):
         assert msg.sender == self.controller  # dev: insufficient capability
 
     self.token_is_accepted[token] = is_accepted
+
+
+def _compute_stream_life(
+    funder: address,
+    token: IERC20,
+    amount: uint256,
+    products: DynArray[bytes32, MAX_PRODUCTS],
+) -> uint256:
+    stream_life: uint256 = 0
+    for validator: Validator in self.validators:
+        # NOTE: Validator either raises or returns a stream life for the products based on funding
+        stream_life = max(
+            stream_life,
+            extcall validator.validate(msg.sender, token, amount, products),
+        )
+
+    return stream_life
+
+
+@external
+def compute_stream_life(
+    funder: address,
+    token: IERC20,
+    amount: uint256,
+    products: DynArray[bytes32, MAX_PRODUCTS],
+) -> uint256:
+    """
+    @dev Compute the stream life for the given stream parameters using this manager's Validators
+    @notice Computed value is only a suggestion, but can be useful to set the value of
+        `min_stream_life` in `create_stream()` or `fund_stream()`.
+    @param token An ERC20-compatible token that this contract allows to create streams for.
+    @param amount The amount of `token` that should be pre-funded for this stream.
+    @param products An array of the product codes this stream should pay for. The product codes are
+        treated as application-specific parameters and have no special treatment by this contract.
+        Typically, validators are employted to do the specific processing necessary to compute the
+        stream rate for the newly created stream.
+    @return stream_life The amount of time that the given Stream should be exist for, computed
+        using the `amount` that `creator` has provided to pay for `products, as well as any
+        additional logical conditions specified by the connected set of validators.
+    """
+    return self._compute_stream_life(funder, token, amount, products)
 
 
 @external
@@ -256,31 +296,26 @@ def create_stream(
         msg.sender, self, amount, default_return_value=True
     )
 
-    # Check all validators for any unacceptable or incorrect stream parameters
-    amount_per_second: uint256 = 0
-    for validator: Validator in self.validators:
-        # NOTE: Validator either raises or returns a funding rate to add to the total
-        amount_per_second += extcall validator.validate(msg.sender, token, amount, products)
+    # Check all validators for any unacceptable or incorrect stream parameters, compute stream life
+    stream_life: uint256 = self._compute_stream_life(msg.sender, token, amount, products)
 
     # Ensure stream life parameters are acceptable to caller
-    # NOTE: div/0 if `amount_per_second` is 0, signaling no supported products found
-    stream_life: uint256 = amount // amount_per_second  # dev: no valid products detected
-    assert min_stream_life <= stream_life  # dev: stream too expensive
+    assert stream_life >= min_stream_life  # dev: stream too expensive
 
     # Create stream data structure and start streaming
     stream_id: uint256 = self.num_streams
     self.streams[stream_id] = Stream({
         owner: msg.sender,
         token: token,
-        amount_per_second: amount_per_second,
         funded_amount: amount,
-        start_time: block.timestamp,
+        expires_at: block.timestamp + stream_life,
+        last_update: block.timestamp,
         last_claim: block.timestamp,
         products: products,
     })
     self.num_streams = stream_id + 1
 
-    log StreamCreated(stream_id, msg.sender, token, amount_per_second, stream_life, products)
+    log StreamCreated(stream_id, msg.sender, token, amount, stream_life, products)
 
     return stream_id
 
@@ -303,15 +338,17 @@ def set_stream_owner(stream_id: uint256, new_owner: address):
 
 @view
 def _amount_claimable(stream_id: uint256) -> uint256:
-    return min(
-        (
-            (block.timestamp - self.streams[stream_id].last_claim)
-            * self.streams[stream_id].amount_per_second
-        ),
-        # NOTE: After stream expires, should be this
-        self.streams[stream_id].funded_amount,
-    )
+    expires_at: uint256 = self.streams[stream_id].expires_at
+    if expires_at < block.timestamp:
+        return self.streams[stream_id].funded_amount  # All funds vested
 
+    last_claim: uint256 = self.streams[stream_id].last_claim
+    return (
+        # % of funds that have vested so far, since last claim
+        self.streams[stream_id].funded_amount
+        * (block.timestamp - last_claim)
+        // (expires_at - last_claim)
+    )
 
 @view
 @external
@@ -328,12 +365,14 @@ def amount_claimable(stream_id: uint256) -> uint256:
 
 @view
 def _time_left(stream_id: uint256) -> uint256:
-    return (
-        # NOTE: Max is `.funded_amount`
-        (self.streams[stream_id].funded_amount - self._amount_claimable(stream_id))
-        # NOTE: Cannot div/0 due to max
-        // self.streams[stream_id].amount_per_second
-    )
+    if self.streams[stream_id].funded_amount == 0:
+        return 0
+
+    expires_at: uint256 = self.streams[stream_id].expires_at
+    if expires_at < block.timestamp:
+        return 0  # No time left
+
+    return expires_at - block.timestamp
 
 
 @view
@@ -348,49 +387,6 @@ def time_left(stream_id: uint256) -> uint256:
     return self._time_left(stream_id)
 
 
-@external
-def fund_stream(stream_id: uint256, amount: uint256) -> uint256:
-    """
-    @dev Add `amount` tokens worth of funding to Stream `stream_id`, to extend it's `time_left`.
-    @notice This function is unauthenticated and can be called by anyone. This can allow any
-        number of use cases such as allowing service self-payment, handling partial refunds or
-        settling disputes, or simply gifting users the gift of more time!
-    @param stream_id The identifier of the Stream to add `amount` of tokens for.
-    @param amount The total amount of tokens to add for Stream `stream_id`.
-    @return time_left The new amount of time left in Stream `stream_id`.
-    """
-    # NOTE: Anyone can fund a stream
-    token: IERC20 = self.streams[stream_id].token
-    assert self.token_is_accepted[token]  # dev: token not accepted
-    assert extcall token.transferFrom(
-        msg.sender, self, amount, default_return_value=True
-    )
-
-    self.streams[stream_id].funded_amount += amount
-    log StreamFunded(stream_id, msg.sender, amount)
-
-    return self._time_left(stream_id)
-
-
-@view
-def _stream_is_cancelable(stream_id: uint256) -> bool:
-    # Stream owner needs to wait `MIN_STREAM_LIFE` to cancel a stream
-    return block.timestamp - self.streams[stream_id].start_time >= MIN_STREAM_LIFE
-
-
-@view
-@external
-def stream_is_cancelable(stream_id: uint256) -> bool:
-    """
-    @dev Check if Stream `stream_id` is able to be cancelled, after `MIN_STREAM_LIFE` has expired.
-    @notice This is a utility function.
-    @param stream_id The identifier of the Stream to check for the ability to cancel.
-    @return is_cancelable Whether Stream `stream_id` is allowed to be cancelled.
-    """
-    return self._stream_is_cancelable(stream_id)
-
-
-@internal
 def _claim_stream(stream_id: uint256) -> uint256:
     # NOTE: Anyone can claim a stream (for the Controller)
     funded_amount: uint256 = self.streams[stream_id].funded_amount
@@ -420,6 +416,72 @@ def claim_stream(stream_id: uint256) -> uint256:
 
 
 @external
+def fund_stream(stream_id: uint256, amount: uint256, min_stream_life: uint256 = 0) -> uint256:
+    """
+    @dev Add `amount` tokens worth of funding to Stream `stream_id`, to extend it's `time_left`.
+    @notice This function is unauthenticated and can be called by anyone. This can allow any
+        number of use cases such as allowing service self-payment, handling partial refunds or
+        settling disputes, or simply gifting users the gift of more time!
+    @param stream_id The identifier of the Stream to add `amount` of tokens for.
+    @param amount The total amount of tokens to add for Stream `stream_id`.
+    @return time_left The new amount of time left in Stream `stream_id`.
+    """
+    # NOTE: Anyone can fund a stream
+    token: IERC20 = self.streams[stream_id].token
+    assert self.token_is_accepted[token]  # dev: token not accepted
+    assert extcall token.transferFrom(
+        msg.sender, self, amount, default_return_value=True
+    )
+
+    # Make sure stream claims are up-to-date (ensures that stream rate math is correct)
+    self._claim_stream(stream_id)
+    # NOTE: After claim, apply all remaing funds to updated stream life (alongside amount)
+    funded_amount: uint256 = amount + self.streams[stream_id].funded_amount
+
+    # Check all validators for any unacceptable or incorrect stream parameters, compute stream life
+    products: DynArray[bytes32, MAX_PRODUCTS] = self.streams[stream_id].products
+    stream_life: uint256 = self._compute_stream_life(msg.sender, token, funded_amount, products)
+
+    # Ensure computed stream life are acceptable to caller (rate may be different)
+    # NOTE: Use this to ensure stream update deadline too
+    assert stream_life >= min_stream_life
+
+    # Modify stream using new stream life (which may use a different streaming rate)
+    self.streams[stream_id].expires_at = block.timestamp + stream_life
+    self.streams[stream_id].funded_amount = funded_amount
+
+    # NOTE: Use original argument `amount` and not aggregate with leftover `funded_amount`
+    log StreamFunded(stream_id, msg.sender, amount, stream_life)
+
+    return stream_life
+
+
+# TODO: `modify_stream` change `products` and sets `last_update` (authed by `owner` prevents `cancel()` DDoS)
+
+
+@view
+def _stream_is_cancelable(stream_id: uint256) -> bool:
+    # Stream owner needs to wait `MIN_STREAM_LIFE` to cancel a stream
+    return (
+        (block.timestamp - self.streams[stream_id].last_update) >= MIN_STREAM_LIFE
+        and block.timestamp < self.streams[stream_id].expires_at  # is not expired yet
+        and self.streams[stream_id].funded_amount > 0  # has not already been cancelled
+    )
+
+
+@view
+@external
+def stream_is_cancelable(stream_id: uint256) -> bool:
+    """
+    @dev Check if Stream `stream_id` is able to be cancelled, after `MIN_STREAM_LIFE` has expires.
+    @notice This is a utility function.
+    @param stream_id The identifier of the Stream to check for the ability to cancel.
+    @return is_cancelable Whether Stream `stream_id` is allowed to be cancelled.
+    """
+    return self._stream_is_cancelable(stream_id)
+
+
+@external
 def cancel_stream(stream_id: uint256, reason: bytes32 = empty(bytes32)) -> uint256:
     """
     @dev Suspend the streaming of tokens to `controller` for any given `reason`, sending a
@@ -438,7 +500,7 @@ def cancel_stream(stream_id: uint256, reason: bytes32 = empty(bytes32)) -> uint2
     """
     stream_owner: address = self.streams[stream_id].owner
     if msg.sender == stream_owner:
-        # Creator needs to wait `MIN_STREAM_LIFE` to cancel a stream
+        # Creator needs to wait `MIN_STREAM_LIFE` since last update to cancel a stream
         assert self._stream_is_cancelable(stream_id)  # dev: stream not cancellable yet
 
     elif Ability.CANCEL_STREAMS not in self.capabilities[msg.sender]:
@@ -448,11 +510,11 @@ def cancel_stream(stream_id: uint256, reason: bytes32 = empty(bytes32)) -> uint2
     # Claim means everything is up to date, and anything that is left is refundable
     self._claim_stream(stream_id)
 
-    # NOTE: reverts if stream doesn't exist, or has already been cancelled, or is expired
+    # NOTE: reverts if stream doesn't exist, or has already been cancelled, or is expires
     refund_amount: uint256 = self.streams[stream_id].funded_amount
     assert refund_amount > 0  # dev: stream already cancelled or completed
 
-    # NOTE: Stream is now completely exhausted, set to 0 funds available
+    # NOTE: Stream is now completely expires, set to 0 funds available
     self.streams[stream_id].funded_amount = 0
 
     # Refund Stream owner (not whomever cancelled) and send the rest to the controller

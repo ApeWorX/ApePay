@@ -36,8 +36,8 @@ def validate(
     @param products The array of product codes or reasons for the triggering of the action. Note
         that the encoding of this value is entirely application-specific, and multiple supported
         encodings could be potentially be supported by other connected Validators.
-    @return uint256 streaming rate for the subset of products this validator handles. Used to
-        compute the total streaming rate for all products by summing all subtotals of all
-        connected validators to the StreamManager.
+    @return stream_life The amount of time that the given Stream should be exist for, computed
+        using the `amount` that `creator` has provided to pay for `products, as well as any
+        additional logical conditions specified by this validator.
     """
     ...

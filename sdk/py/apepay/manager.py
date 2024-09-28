@@ -142,22 +142,22 @@ class StreamManager(BaseInterfaceModel):
         # NOTE: Immutable in contract
         return timedelta(seconds=self.contract.MIN_STREAM_LIFE())
 
-    def compute_funding_rate(
+    def compute_stream_life(
         self,
         funder: AddressType,
         token: Any,
-        amount: int,
+        amount: str | int,
         products: list[HexBytes],
-    ) -> int:
-        total = 0
-
-        for validator in self.validators:
-            try:
-                total += validator(funder, token, amount, products)
-            except ContractLogicError:
-                continue
-
-        return total
+    ) -> timedelta:
+        return timedelta(
+            # NOTE: Need to use call because it's technically `nonpayable`
+            seconds=self.contract.compute_stream_life.call(
+                funder,
+                token,
+                amount,
+                products,
+            )
+        )
 
     def create(
         self,
@@ -170,45 +170,39 @@ class StreamManager(BaseInterfaceModel):
         if not self.is_accepted(token.address):  # for mypy
             raise TokenNotAccepted(str(token))
 
-        if not isinstance(amount, int):
-            amount = self.conversion_manager.convert(amount, int)
-        assert isinstance(amount, int)  # for mypy
-
-        stream_args: list[Any] = [token, amount, products]
-
-        if min_stream_life is not None:
-            if isinstance(min_stream_life, int):
-                min_stream_life = timedelta(seconds=min_stream_life)
-
-            if min_stream_life < self.MIN_STREAM_LIFE:
-                raise StreamLifeInsufficient(
-                    stream_life=min_stream_life,
-                    min_stream_life=self.MIN_STREAM_LIFE,
-                )
-
-            stream_args.append(min_stream_life)
-
-        else:
-            min_stream_life = self.MIN_STREAM_LIFE
-        assert isinstance(min_stream_life, timedelta)  # for mypy
-
         if sender := txn_kwargs.get("sender"):
             # NOTE: `sender` must always be present, but fallback on ape's exception
             if min(token.balanceOf(sender), token.allowance(sender, self.address)) < amount:
                 raise NotEnoughAllowance(self.address)
 
-            amount_per_second = self.compute_funding_rate(sender, token, amount, products)
+        if min_stream_life is not None:
+            if isinstance(min_stream_life, int):
+                # NOTE: Convert for later
+                min_stream_life = timedelta(seconds=min_stream_life)
 
-            if not (amount_per_second) > 0:
-                raise NoValidProducts()
+        elif (
+            computed_stream_life := self.compute_stream_life(sender, token, amount, products)
+        ) < timedelta(seconds=0):
+            # NOTE: Special trapdoor if no validators picked up the product codes
+            raise NoValidProducts()
 
-            elif (stream_life := timedelta(seconds=amount // amount_per_second)) < min_stream_life:
-                raise StreamLifeInsufficient(
-                    stream_life=stream_life,
-                    min_stream_life=min_stream_life,
-                )
+        elif computed_stream_life < self.MIN_STREAM_LIFE:
+            raise StreamLifeInsufficient(
+                stream_life=computed_stream_life,
+                min_stream_life=self.MIN_STREAM_LIFE,
+            )
 
-        tx = self.contract.create_stream(*stream_args, **txn_kwargs)
+        else:
+            # NOTE: Use this as a safety invariant for StreamManager logic
+            min_stream_life = computed_stream_life
+
+        tx = self.contract.create_stream(
+            token,
+            amount,
+            products,
+            int(min_stream_life.total_seconds()),
+            **txn_kwargs,
+        )
 
         # NOTE: Does not require tracing (unlike `.return_value`)
         log = tx.events.filter(self.contract.StreamCreated)[-1]

@@ -41,28 +41,24 @@ class Stream(BaseInterfaceModel):
 
         return self.chain_manager.contracts.instance_at(self.info.token, contract_type=ERC20)
 
-    @cached_property
-    def amount_per_second(self) -> int:
-        # NOTE: This cannot be updated
-        return self.info.amount_per_second
-
     @property
     def funding_rate(self) -> Decimal:
         """
         Funding rate, in tokens per second, of Stream in human-readable decimal form.
         """
-        return Decimal(self.amount_per_second) / Decimal(10 ** self.token.decimals())
+        info = self.info  # NOTE: Avoid calling contract twice by caching
+
+        return (
+            Decimal(info.funded_amount)
+            / Decimal(info.expires_at - info.last_claim)
+            / Decimal(10 ** self.token.decimals())
+        )
 
     def estimate_funding(self, period: timedelta) -> Decimal:
         """
         Useful for displaying how many tokens you need to add to extend for a specific time period.
         """
         return int(period.total_seconds()) * self.funding_rate
-
-    @cached_property
-    def start_time(self) -> datetime:
-        # NOTE: This cannot be updated
-        return datetime.fromtimestamp(self.info.start_time)
 
     @cached_property
     def products(self) -> list[HexBytes]:
@@ -74,8 +70,8 @@ class Stream(BaseInterfaceModel):
         return self.info.owner
 
     @property
-    def last_pull(self) -> datetime:
-        return datetime.fromtimestamp(self.info.last_pull)
+    def last_claim(self) -> datetime:
+        return datetime.fromtimestamp(self.info.last_claim)
 
     @property
     def amount_claimable(self) -> int:
@@ -91,21 +87,6 @@ class Stream(BaseInterfaceModel):
         seconds = self.contract.time_left(self.id)
         assert seconds < MAX_DURATION_SECONDS, "Invaraint wrong"
         return timedelta(seconds=seconds)
-
-    @property
-    def total_time(self) -> timedelta:
-        info = self.info  # NOTE: Avoid calling contract twice by caching
-
-        # NOTE: Measure time-duration of unclaimed amount remaining
-        remaining_life = info.funded_amount // info.amount_per_second
-        assert remaining_life < MAX_DURATION_SECONDS, "Invariant wrong"
-
-        return (
-            # NOTE: `last_pull == start_time` if never pulled
-            datetime.fromtimestamp(info.last_pull)
-            - datetime.fromtimestamp(info.start_time)
-            + timedelta(seconds=remaining_life)
-        )
 
     @property
     def is_active(self) -> bool:

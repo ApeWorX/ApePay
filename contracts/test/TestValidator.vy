@@ -14,9 +14,10 @@ def validate(
     amount: uint256,
     products: DynArray[bytes32, MAX_PRODUCTS],
 ) -> uint256:
-    sum: uint256 = 0
+    rate: uint256 = 0
 
     for product: bytes32 in products:
-        sum += convert(product, uint256)
+        # NOTE: Tokens per second
+        rate += convert(product, uint256)
 
-    return sum
+    return amount // rate

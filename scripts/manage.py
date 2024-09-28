@@ -20,7 +20,7 @@ def unclaimed(manager):
     """List all unclaimed streams"""
 
     for stream in manager.unclaimed_streams():
-        stream_balance = stream.amount_unlocked / 10 ** stream.token.decimals()
+        stream_balance = stream.amount_claimable / 10 ** stream.token.decimals()
         click.echo(f"{stream.id}: {stream_balance} {stream.token.symbol()}")
 
 
