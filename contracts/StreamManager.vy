@@ -142,10 +142,10 @@ def transfer_control(new_controller: address):
     # NOTE: can revoke transfer at any time calling this method with `self.controller`
     assert msg.sender == self.controller  # dev: not controller
 
-    log NewControllerProposed(msg.sender, new_controller)
-
     self.new_controller = new_controller
     self.new_controller_proposed = block.timestamp
+
+    log NewControllerProposed(msg.sender, new_controller)
 
 
 @external
@@ -162,10 +162,10 @@ def accept_control():
     assert msg.sender == self.new_controller  # dev: not proposed controller
     assert block.timestamp - self.new_controller_proposed >= CONTROLLER_ACCEPTANCE_DELAY
 
-    log NewControllerAccepted(self.controller, msg.sender)
-
     self.controller = msg.sender
     self.new_controller = empty(address)
+
+    log NewControllerAccepted(self.controller, msg.sender)
 
 
 @external
