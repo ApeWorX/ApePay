@@ -339,12 +339,16 @@ def set_stream_owner(stream_id: uint256, new_owner: address):
 @view
 def _amount_claimable(stream_id: uint256) -> uint256:
     expires_at: uint256 = self.streams[stream_id].expires_at
-    if expires_at < block.timestamp:
+    if block.timestamp >= expires_at:
         return self.streams[stream_id].funded_amount  # All funds vested
+    # NOTE: Would lead to >100% vested in return stmt if not explictly limited here
 
     last_claim: uint256 = self.streams[stream_id].last_claim
+    assert last_claim < expires_at, UNREACHABLE  # dev: cannot claim in the future
+    # NOTE: div/0 or Underflow if `last_claim >= expires_at`
+
     return (
-        # % of funds that have vested so far, since last claim
+        # % of funds that have vested so far, since after last claim
         self.streams[stream_id].funded_amount
         * (block.timestamp - last_claim)
         // (expires_at - last_claim)
@@ -464,9 +468,10 @@ def fund_stream(stream_id: uint256, amount: uint256, min_stream_life: uint256 = 
 def _stream_is_cancelable(stream_id: uint256) -> bool:
     # Stream owner needs to wait `MIN_STREAM_LIFE` to cancel a stream
     return (
-        (block.timestamp - self.streams[stream_id].last_update) >= MIN_STREAM_LIFE
-        and block.timestamp < self.streams[stream_id].expires_at  # is not expired yet
+        block.timestamp < self.streams[stream_id].expires_at  # is not expired yet
         and self.streams[stream_id].funded_amount > 0  # has not already been cancelled
+        # Last update to stream parameters had a chance to be fascilitated
+        and (block.timestamp - self.streams[stream_id].last_update) >= MIN_STREAM_LIFE
     )
 
 
@@ -508,17 +513,17 @@ def cancel_stream(stream_id: uint256, reason: bytes32 = empty(bytes32)) -> uint2
         # Controller (or those with capability to cancel) can cancel at any time
         assert msg.sender == self.controller  # dev: insufficient capability
 
-    # Claim means everything is up to date, and anything that is left is refundable
-    self._claim_stream(stream_id)
-
+    # Compute refund amount and subtract it from stream balance
+    funded_amount: uint256 = self.streams[stream_id].funded_amount
     # NOTE: reverts if stream doesn't exist, or has already been cancelled, or is expires
-    refund_amount: uint256 = self.streams[stream_id].funded_amount
+    refund_amount: uint256 = funded_amount - self._amount_claimable(stream_id)
     assert refund_amount > 0  # dev: stream already cancelled or completed
+    self.streams[stream_id].funded_amount = funded_amount - refund_amount
 
-    # NOTE: Stream is now completely expires, set to 0 funds available
-    self.streams[stream_id].funded_amount = 0
+    # Stream is now considered expired, set expiry to right now
+    self.streams[stream_id].expires_at = block.timestamp
 
-    # Refund Stream owner (not whomever cancelled) and send the rest to the controller
+    # Refund Stream owner (not canceller)
     token: IERC20 = self.streams[stream_id].token
     assert extcall token.transfer(stream_owner, refund_amount, default_return_value=True)
 
