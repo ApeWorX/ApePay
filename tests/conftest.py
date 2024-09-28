@@ -90,34 +90,31 @@ def funding_rate(token, products):
 
 @pytest.fixture(scope="session")
 def create_stream(chain, stream_manager, token, payer, products, stream_life, funding_rate):
-    # TODO: Remove when https://github.com/ApeWorX/ape/pull/2277 merges
-    with chain.isolate():
-
-        def create_stream(
-            amount: int | None = None,
-            sender: AccountAPI | None = None,
-            allowance: int = (2**256 - 1),
-            **txn_args,
-        ):
-            if amount is None:
-                amount = int(
-                    Decimal(stream_life.total_seconds())
-                    * funding_rate
-                    # NOTE: To undo the adjustment factor from above
-                    * Decimal(10 ** token.decimals())
-                )
-                assert amount <= token.balanceOf(sender or payer)
-
-            if token.allowance(sender or payer, stream_manager.address) != allowance:
-                token.approve(stream_manager.address, allowance, sender=(sender or payer))
-
-            return stream_manager.create(
-                token, amount, products, sender=(sender or payer), **txn_args
+    def create_stream(
+        amount: int | None = None,
+        sender: AccountAPI | None = None,
+        allowance: int = (2**256 - 1),
+        **txn_args,
+    ):
+        if amount is None:
+            amount = int(
+                Decimal(stream_life.total_seconds())
+                * funding_rate
+                # NOTE: To undo the adjustment factor from above
+                * Decimal(10 ** token.decimals())
             )
+            assert amount <= token.balanceOf(sender or payer)
 
-        yield create_stream
+        if token.allowance(sender or payer, stream_manager.address) != allowance:
+            token.approve(stream_manager.address, allowance, sender=(sender or payer))
+
+        return stream_manager.create(token, amount, products, sender=(sender or payer), **txn_args)
+
+    return create_stream
 
 
 @pytest.fixture(scope="session")
-def stream(create_stream):
-    return create_stream()
+def stream(chain, create_stream):
+    # TODO: Remove when https://github.com/ApeWorX/ape/pull/2277 merges
+    with chain.isolate():
+        yield create_stream()
