@@ -3,7 +3,6 @@ A demo showing some accounts randomly creating, modifying, and cancelling stream
 """
 
 import random
-from datetime import timedelta
 
 import click
 from ape.cli import ConnectedProviderCommand, ape_cli_context
