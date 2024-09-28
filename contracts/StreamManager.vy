@@ -200,7 +200,13 @@ def set_validators(validators: DynArray[Validator, MAX_VALIDATORS]):
     if Ability.MODFIY_VALIDATORS not in self.capabilities[msg.sender]:
         assert msg.sender == self.controller  # dev: insufficient capability
 
-    # TODO: Ensure uniqueness using Set
+    # TODO: Replace this logic with Set when available in Vyper
+    last_validator_uint: uint256 = convert(empty(address), uint256)
+    for validator: Validator in validators:
+        # NOTE: Sort in ascending order to ensure uniqueness of set
+        assert convert(validator.address, uint256) > last_validator_uint  # dev: duplicate validator detected
+        last_validator_uint = convert(validator.address, uint256)
+
     self.validators = validators
 
 
