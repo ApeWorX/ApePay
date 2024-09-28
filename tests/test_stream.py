@@ -86,9 +86,7 @@ def test_fund_stream(chain, token, payer, stream, stream_life, funding_rate, acc
         stream.add_funds(amount, sender=payer)
 
 
-def test_cancel_stream(
-    chain, token, payer, controller, MIN_STREAM_LIFE, stream_life, funding_rate, stream
-):
+def test_cancel_stream(chain, token, payer, controller, MIN_STREAM_LIFE, stream_life, stream):
     # Ensure that we are at 1 second before Stream is cancellable
     cancel_time = stream.last_update + MIN_STREAM_LIFE - timedelta(seconds=1)
     chain.pending_timestamp = int(cancel_time.timestamp())
