@@ -258,7 +258,7 @@ class StreamManager(BaseInterfaceModel):
             def do_something(stream):
                 ...  # Use `stream` to update your infrastructure
         """
-        return self._parse_stream_decorator(app, self.contract.Claimed)
+        return self._parse_stream_decorator(app, self.contract.StreamClaimed)
 
     def on_stream_cancelled(self, app: "SilverbackApp"):
         """
