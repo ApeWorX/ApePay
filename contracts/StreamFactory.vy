@@ -34,7 +34,7 @@ def create(
     validators: DynArray[address, 10] = [],
     min_stream_time: uint256 = ONE_HOUR,
 ) -> address:
-    deployment: address = create_from_blueprint(  # dev: only one deployment allowed
+    manager: address = create_from_blueprint(  # dev: only one deployment allowed
         BLUEPRINT,
         msg.sender,  # Only caller can create
         min_stream_time,  # Safety parameter for new streams
@@ -43,8 +43,8 @@ def create(
         salt=convert(msg.sender, bytes32),  # Ensures unique deployment per caller
         code_offset=3,
     )
-    self.deployments[msg.sender] = deployment
+    self.deployments[msg.sender] = manager
 
-    log ManagerCreated(msg.sender, deployment, accepted_tokens, validators)
+    log ManagerCreated(msg.sender, manager, accepted_tokens, validators)
 
-    return deployment
+    return manager
