@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 import ape
@@ -27,6 +27,7 @@ def test_create_stream(chain, payer, token, funding_rate, stream_life, create_st
     assert stream.amount_claimable == 0
     assert stream.amount_refundable == total_funded
     assert stream.time_left == stream_life
+    assert int(stream.last_update.timestamp()) == chain.blocks.head.timestamp
 
     # Mine to the end of the stream
     chain.mine(deltatime=int(stream.time_left.total_seconds()))

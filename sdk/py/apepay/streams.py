@@ -71,15 +71,15 @@ class Stream(BaseInterfaceModel):
 
     @property
     def expires_at(self) -> datetime:
-        return datetime.fromtimestamp(self.info.expires_at).replace(tzinfo=timezone.utc)
+        return datetime.fromtimestamp(self.info.expires_at, timezone.utc)
 
     @property
     def last_update(self) -> datetime:
-        return datetime.fromtimestamp(self.info.last_update).replace(tzinfo=timezone.utc)
+        return datetime.fromtimestamp(self.info.last_update, timezone.utc)
 
     @property
     def last_claim(self) -> datetime:
-        return datetime.fromtimestamp(self.info.last_claim).replace(tzinfo=timezone.utc)
+        return datetime.fromtimestamp(self.info.last_claim, timezone.utc)
 
     @property
     def amount_claimable(self) -> int:
