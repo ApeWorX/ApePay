@@ -214,8 +214,8 @@ class StreamManager(BaseInterfaceModel):
 
             @app.on_(container)
             @wraps(f)
-            def inner(log):
-                return f(Stream(manager=self, id=log.stream_id))
+            def inner(log, **dependencies):
+                return f(Stream(manager=self, id=log.stream_id), **dependencies)
 
             return inner
 
