@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from functools import partial
 from typing import TYPE_CHECKING, cast
@@ -71,15 +71,15 @@ class Stream(BaseInterfaceModel):
 
     @property
     def expires_at(self) -> datetime:
-        return datetime.fromtimestamp(self.info.expires_at)
+        return datetime.fromtimestamp(self.info.expires_at).replace(tzinfo=timezone.utc)
 
     @property
     def last_update(self) -> datetime:
-        return datetime.fromtimestamp(self.info.last_update)
+        return datetime.fromtimestamp(self.info.last_update).replace(tzinfo=timezone.utc)
 
     @property
     def last_claim(self) -> datetime:
-        return datetime.fromtimestamp(self.info.last_claim)
+        return datetime.fromtimestamp(self.info.last_claim).replace(tzinfo=timezone.utc)
 
     @property
     def amount_claimable(self) -> int:
