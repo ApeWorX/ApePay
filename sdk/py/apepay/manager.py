@@ -5,10 +5,10 @@ from difflib import Differ
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Any, Callable, Union, cast
 
-import click
 from ape.api import ReceiptAPI
 from ape.contracts.base import ContractEvent, ContractInstance, ContractTransactionHandler
 from ape.exceptions import ContractLogicError, DecodingError
+from ape.logging import logger
 from ape.types import AddressType, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from ape_ethereum import multicall
@@ -93,12 +93,18 @@ class StreamManager(BaseInterfaceModel):
 
         @wraps(self.contract.set_validators)
         def set_validators(*validators: _ValidatorItem, **txn_kwargs) -> ReceiptAPI:
+            if len(validators) == 1 and isinstance(validators[0], (tuple, list)):
+                raise ValueError(
+                    "This function accepts one or more validators to set, not a single sequence."
+                )
             # NOTE: Always keep sets sorted, ensure no duplicates
             new_validators = sorted(v.address for v in set(map(self._parse_validator, validators)))
-            # NOTE: Okay to use Click here, intended primarily to support interactive features
-            click.echo("Validators update:")
-            for line in Differ().compare(tuple(v.address for v in self.validators), new_validators):
-                click.echo(line)
+            logger.info(
+                f"Setting validators for StreamManager('{self.address}')\n"
+                + "\n".join(
+                    Differ().compare(tuple(v.address for v in self.validators), new_validators)
+                )
+            )
             return self.contract.set_validators(new_validators, **txn_kwargs)
 
         return cast(ContractTransactionHandler, set_validators)
