@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Any
 
 from ape.contracts.base import ContractInstance
-from ape.exceptions import ContractLogicError
 from ape.types import AddressType
 from ape.utils import BaseInterfaceModel
 from eth_utils import to_int
@@ -25,6 +24,9 @@ class Validator(BaseInterfaceModel):
     def __init__(self, address: str | AddressType, /, *args, **kwargs):
         kwargs["address"] = address
         super().__init__(*args, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.address})"
 
     @field_validator("address", mode="before")
     def normalize_address(cls, value: Any) -> AddressType:
@@ -58,14 +60,12 @@ class Validator(BaseInterfaceModel):
         # Try __eq__ from the other side.
         return NotImplemented
 
-    def __call__(self, *args, **kwargs) -> bool:
-        try:
-            # NOTE: Imitate that the call is coming from the specified StreamManager.
-            #       Also note that a validator can be connected to >1 StreamManagers.
-            self.contract._mutable_methods_["validate"].call(
-                *args, sender=self.manager.address, **kwargs
-            )
-            return True
-
-        except ContractLogicError:
-            return False
+    def __call__(self, *args, **kwargs) -> int:
+        return self.contract._mutable_methods_["validate"].call(
+            *args,  # NOTE: These must be properly formed downstream before calling
+            # NOTE: Imitate that the call is coming from the connected StreamManager, because a
+            #       validator can be connected to >1 StreamManagers so context may be important.
+            sender=self.manager.address,
+            gas_price="0 gwei",  # NOTE: Avoid gas balance issues
+            **kwargs,  # NOTE: Do last so it can override above (if necessary)
+        )  # Sum of product cost(s) for this particular validator

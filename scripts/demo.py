@@ -3,10 +3,10 @@ A demo showing some accounts randomly creating, modifying, and cancelling stream
 """
 
 import random
-from datetime import timedelta
 
 import click
 from ape.cli import ConnectedProviderCommand, ape_cli_context
+from eth_pydantic_types import HashBytes32
 
 from apepay import StreamManager
 
@@ -33,9 +33,10 @@ def cli(
     # Initialize experiment
     deployer = cli_ctx.account_manager.test_accounts[-1]
     token = cli_ctx.local_project.TestToken.deploy(sender=deployer)
+    validator = cli_ctx.local_project.TestValidator.deploy(sender=deployer)
     sm = StreamManager(
         cli_ctx.local_project.StreamManager.deploy(
-            deployer, min_stream_life, [], [token], sender=deployer
+            deployer, min_stream_life, [token], [validator], sender=deployer
         )
     )
 
@@ -53,10 +54,9 @@ def cli(
     for account in accounts:
         token.DEBUG_mint(account, 10_000 * 10**decimals, sender=account)
 
-    # 26 tokens per day
-    starting_life = timedelta(minutes=5).total_seconds()
-    starting_tokens = 26 * 10**decimals
-    funding_amount = 2 * 10**decimals
+    starting_tokens = 3 * 10**decimals  # ~41.63 seconds
+    products = [HashBytes32(b"\x00" * 24 + b"\x01" + b"\x00" * 7)]  # ~259.41 tokens/hour
+    funding_amount = 1 * 10**decimals  # ~13.88 seconds
     streams = {a.address: [] for a in accounts}
 
     while cli_ctx.chain_manager.blocks.head.number < num_blocks:
@@ -64,9 +64,9 @@ def cli(
 
         # Do a little garbage collection
         for stream in streams[payer.address]:
-            click.echo(f"{payer}:{stream.stream_id} - {stream.time_left}")
+            click.echo(f"Stream '{stream.id}' - {stream.time_left}")
             if not stream.is_active:
-                click.echo(f"Stream '{payer}:{stream.stream_id}' is expired, removing...")
+                click.echo(f"Stream '{stream.id}' is expired, removing...")
                 streams[payer.address].remove(stream)
 
         if len(streams[payer.address]) > 0:
@@ -74,14 +74,14 @@ def cli(
 
             if token.balanceOf(payer) >= 10 ** (decimals + 1) and random.random() < fund_stream:
                 click.echo(
-                    f"Stream '{payer}:{stream.stream_id}' is being funded "
+                    f"Stream '{stream.id}' is being funded "
                     f"w/ {funding_amount / 10**decimals:.2f} tokens..."
                 )
                 token.approve(sm.address, funding_amount, sender=payer)
                 stream.add_funds(funding_amount, sender=payer)
 
             elif random.random() < cancel_stream:
-                click.echo(f"Stream '{payer}:{stream.stream_id}' is being cancelled...")
+                click.echo(f"Stream '{stream.id}' is being cancelled...")
                 stream.cancel(sender=payer)
                 streams[payer.address].remove(stream)
 
@@ -91,6 +91,6 @@ def cli(
         elif len(streams[payer.address]) < max_streams and random.random() < create_stream:
             click.echo(f"'{payer}' is creating a new stream...")
             token.approve(sm.address, starting_tokens, sender=payer)
-            stream = sm.create(token, int(starting_tokens / starting_life), sender=payer)
+            stream = sm.create(token, starting_tokens, products, sender=payer)
             streams[payer.address].append(stream)
-            click.echo(f"Stream '{payer}:{stream.stream_id}' was created successfully.")
+            click.echo(f"Stream '{stream.id}' was created successfully.")

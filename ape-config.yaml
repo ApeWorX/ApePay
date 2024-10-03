@@ -30,3 +30,13 @@ deployments:
     mainnet: *releases
   optimism:
     mainnet: *releases
+
+test:
+  gas:
+    exclude: &exclude-mocks
+      - contract_name: Test*
+  coverage:
+    exclude: *exclude-mocks
+    reports:
+      terminal:
+        verbose: true

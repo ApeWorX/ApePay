@@ -1,26 +1,27 @@
-import json
+import inspect
 from collections.abc import Iterator
-from datetime import datetime, timedelta
+from datetime import timedelta
+from difflib import Differ
 from functools import partial, wraps
 from typing import TYPE_CHECKING, Any, Callable, Union, cast
 
 from ape.api import ReceiptAPI
-from ape.contracts.base import (
-    ContractCallHandler,
-    ContractEvent,
-    ContractInstance,
-    ContractTransactionHandler,
-)
+from ape.contracts.base import ContractEvent, ContractInstance, ContractTransactionHandler
 from ape.exceptions import ContractLogicError, DecodingError
+from ape.logging import logger
 from ape.types import AddressType, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from ape_ethereum import multicall
 from pydantic import field_validator
 
-from .exceptions import StreamLifeInsufficient, TokenNotAccepted, ValidatorFailed
+from .exceptions import (
+    NotEnoughAllowance,
+    NoValidProducts,
+    StreamLifeInsufficient,
+    TokenNotAccepted,
+)
 from .package import MANIFEST
 from .streams import Stream
-from .utils import time_unit_to_timedelta
 from .validators import Validator
 
 if TYPE_CHECKING:
@@ -51,8 +52,12 @@ class StreamManager(BaseInterfaceModel):
         return f"<apepay_sdk.StreamManager address={self.address}>"
 
     @property
-    def owner(self) -> AddressType:
-        return self.contract.owner()
+    def controller(self) -> AddressType:
+        return self.contract.controller()
+
+    @property
+    def set_controller(self) -> ContractTransactionHandler:
+        return self.contract.set_controller
 
     @property
     def validators(self) -> list[Validator]:
@@ -87,18 +92,40 @@ class StreamManager(BaseInterfaceModel):
     def set_validators(self) -> ContractTransactionHandler:
 
         @wraps(self.contract.set_validators)
-        def order_validators(*validators: _ValidatorItem, **txn_kwargs) -> ReceiptAPI:
+        def set_validators(*validators: _ValidatorItem, **txn_kwargs) -> ReceiptAPI:
+            if len(validators) == 1 and isinstance(validators[0], (tuple, list)):
+                raise ValueError(
+                    "This function accepts one or more validators to set, not a single sequence."
+                )
             # NOTE: Always keep sets sorted, ensure no duplicates
-            return self.contract.set_validators(
-                sorted(v.address for v in set(map(self._parse_validator, validators))),
-                **txn_kwargs,
+            new_validators = sorted(v.address for v in set(map(self._parse_validator, validators)))
+            logger.info(
+                f"Setting validators for StreamManager('{self.address}')\n"
+                + "\n".join(
+                    Differ().compare(tuple(v.address for v in self.validators), new_validators)
+                )
             )
+            return self.contract.set_validators(new_validators, **txn_kwargs)
 
-        return cast(ContractTransactionHandler, order_validators)
+        return cast(ContractTransactionHandler, set_validators)
 
     def add_validators(self, *new_validators: _ValidatorItem, **txn_kwargs) -> ReceiptAPI:
         return self.set_validators(
             *(set(self.validators) | set(map(self._parse_validator, new_validators))),
+            **txn_kwargs,
+        )
+
+    def replace_validator(
+        self,
+        old_validator: _ValidatorItem,
+        new_validator: _ValidatorItem,
+        **txn_kwargs,
+    ) -> ReceiptAPI:
+        return self.set_validators(
+            *(
+                (set(self.validators) - set([self._parse_validator(old_validator)]))
+                | set([self._parse_validator(new_validator)])
+            ),
             **txn_kwargs,
         )
 
@@ -108,102 +135,85 @@ class StreamManager(BaseInterfaceModel):
             **txn_kwargs,
         )
 
-    @property
-    def add_token(self) -> ContractTransactionHandler:
-        return self.contract.add_token
+    def add_token(self, token: AddressType, **txn_kwargs) -> ReceiptAPI:
+        return self.contract.set_token_accepted(token, True, **txn_kwargs)
 
-    @property
-    def remove_token(self) -> ContractTransactionHandler:
-        return self.contract.remove_token
+    def remove_token(self, token: AddressType, **txn_kwargs) -> ReceiptAPI:
+        return self.contract.set_token_accepted(token, False, **txn_kwargs)
 
-    @property
-    def is_accepted(self) -> ContractCallHandler:
-        return self.contract.token_is_accepted
+    def is_accepted(self, token: AddressType) -> bool:
+        return self.contract.token_is_accepted(token)
 
     @cached_property
     def MIN_STREAM_LIFE(self) -> timedelta:
         # NOTE: Immutable in contract
         return timedelta(seconds=self.contract.MIN_STREAM_LIFE())
 
+    def compute_stream_life(
+        self,
+        funder: AddressType,
+        token: Any,
+        amount: str | int,
+        products: list[HexBytes],
+    ) -> timedelta:
+        return timedelta(
+            # NOTE: Need to use call because it's technically `nonpayable`
+            seconds=self.contract.compute_stream_life.call(
+                funder,
+                token,
+                amount,
+                products,
+            )
+        )
+
     def create(
         self,
         token: ContractInstance,
-        amount_per_second: str | int,
-        reason: HexBytes | bytes | str | dict | None = None,
-        start_time: datetime | int | None = None,
+        amount: str | int,
+        products: list[HexBytes],
+        min_stream_life: timedelta | int | None = None,
         **txn_kwargs,
     ) -> "Stream":
-        if not self.is_accepted(token):
+        if not self.is_accepted(token.address):  # for mypy
             raise TokenNotAccepted(str(token))
 
-        if isinstance(amount_per_second, str) and "/" in amount_per_second:
-            value, time = amount_per_second.split("/")
-            amount_per_second = int(
-                self.conversion_manager.convert(value.strip(), int)
-                / time_unit_to_timedelta(time).total_seconds()
+        if sender := txn_kwargs.get("sender"):
+            # NOTE: `sender` must always be present, but fallback on ape's exception
+            if min(token.balanceOf(sender), token.allowance(sender, self.address)) < amount:
+                raise NotEnoughAllowance(self.address)
+
+        if min_stream_life is not None:
+            if isinstance(min_stream_life, int):
+                # NOTE: Convert for later
+                min_stream_life = timedelta(seconds=min_stream_life)
+
+        elif (
+            computed_stream_life := self.compute_stream_life(sender, token, amount, products)
+        ) < timedelta(seconds=0):
+            # NOTE: Special trapdoor if no validators picked up the product codes
+            raise NoValidProducts()
+
+        elif computed_stream_life < self.MIN_STREAM_LIFE:
+            raise StreamLifeInsufficient(
+                stream_life=computed_stream_life,
+                min_stream_life=self.MIN_STREAM_LIFE,
             )
 
-        if amount_per_second == 0:
-            raise ValueError("`amount_per_second` must be greater than 0.")
+        else:
+            # NOTE: Use this as a safety invariant for StreamManager logic
+            min_stream_life = computed_stream_life
 
-        args: list[Any] = [token, amount_per_second]
-
-        if reason is not None:
-            if isinstance(reason, dict):
-                reason = json.dumps(reason, separators=(",", ":"))
-
-            if isinstance(reason, str):
-                reason = reason.encode("utf-8")
-
-            args.append(reason)
-
-        if start_time is not None:
-            if len(args) == 2:
-                args.append(b"")  # Add empty reason string
-
-            if isinstance(start_time, datetime):
-                args.append(int(start_time.timestamp()))
-
-            elif isinstance(start_time, int) and start_time < 0:
-                args.append(self.chain_manager.pending_timestamp + start_time)
-
-            else:
-                args.append(start_time)
-
-        if sender := hasattr(token, "allowance") and txn_kwargs.get("sender"):
-            allowance = token.allowance(sender, self.contract)
-
-            if allowance == 2**256 - 1:  # NOTE: Sentinel value meaning "all balance"
-                allowance = token.balanceOf(sender)
-
-            stream_life = allowance // amount_per_second
-
-            if stream_life < self.MIN_STREAM_LIFE.total_seconds():
-                raise StreamLifeInsufficient(
-                    stream_life=timedelta(seconds=stream_life),
-                    min_stream_life=self.MIN_STREAM_LIFE,
-                )
-
-            validator_args = [sender, *args[:2]]
-            # Arg 3 (reason) is optional
-            if len(args) == 3:
-                validator_args.append(args[2])
-            else:
-                validator_args.append(b"")
-            # Skip arg 4 (start_time)
-
-            for v in self.validators:
-                if not v(*validator_args):
-                    raise ValidatorFailed(v)
-
-        tx = self.contract.create_stream(*args, **txn_kwargs)
-
-        event = tx.events.filter(self.contract.StreamCreated)[-1]
-        return Stream.from_event(
-            manager=self,
-            event=event,
-            is_creation_event=True,
+        tx = self.contract.create_stream(
+            token,
+            amount,
+            products,
+            int(min_stream_life.total_seconds()),
+            **txn_kwargs,
         )
+
+        # NOTE: Does not require tracing (unlike `.return_value`)
+        log = tx.events.filter(self.contract.StreamCreated)[-1]
+        return Stream(manager=self, id=log.stream_id)
 
     def _parse_stream_decorator(self, app: "SilverbackApp", container: ContractEvent):
 
@@ -211,8 +221,13 @@ class StreamManager(BaseInterfaceModel):
 
             @app.on_(container)
             @wraps(f)
-            def inner(log):
-                return f(Stream(manager=self, creator=log.creator, stream_id=log.stream_id))
+            async def inner(log, **dependencies):
+                result = f(Stream(manager=self, id=log.stream_id), **dependencies)
+
+                if inspect.isawaitable(result):
+                    return await result
+
+                return result
 
             return inner
 
@@ -255,7 +270,7 @@ class StreamManager(BaseInterfaceModel):
             def do_something(stream):
                 ...  # Use `stream` to update your infrastructure
         """
-        return self._parse_stream_decorator(app, self.contract.Claimed)
+        return self._parse_stream_decorator(app, self.contract.StreamClaimed)
 
     def on_stream_cancelled(self, app: "SilverbackApp"):
         """
@@ -270,30 +285,16 @@ class StreamManager(BaseInterfaceModel):
         """
         return self._parse_stream_decorator(app, self.contract.StreamCancelled)
 
-    def streams_by_creator(self, creator: AddressType) -> Iterator["Stream"]:
-        for stream_id in range(self.contract.num_streams(creator)):
-            yield Stream(manager=self, creator=creator, stream_id=stream_id)
+    def all_streams(self) -> Iterator[Stream]:
+        for stream_id in range(self.contract.num_streams()):
+            yield Stream(manager=self, id=stream_id)
 
-    def all_streams(self, start_block: int | None = None) -> Iterator["Stream"]:
-        if start_block is None and self.contract.creation_metadata:
-            start_block = self.contract.creation_metadata.block
-
-        for stream_created_event in self.contract.StreamCreated.range(
-            start_block or 0,
-            self.chain_manager.blocks.head.number,
-        ):
-            yield Stream.from_event(
-                manager=self,
-                event=stream_created_event,
-                is_creation_event=True,
-            )
-
-    def active_streams(self, start_block: int | None = None) -> Iterator["Stream"]:
-        for stream in self.all_streams(start_block=start_block):
+    def active_streams(self) -> Iterator[Stream]:
+        for stream in self.all_streams():
             if stream.is_active:
                 yield stream
 
-    def unclaimed_streams(self, start_block: int | None = None) -> Iterator["Stream"]:
-        for stream in self.all_streams(start_block=start_block):
-            if not stream.is_active and stream.amount_unlocked > 0:
+    def unclaimed_streams(self) -> Iterator[Stream]:
+        for stream in self.all_streams():
+            if stream.amount_claimable > 0:
                 yield stream

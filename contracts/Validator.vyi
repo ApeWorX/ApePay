@@ -1,13 +1,60 @@
-from ethereum.ercs import IERC20
+"""
+@title StreamManager Validation Interface Specification
+@dev
+    Validators for the ApePay StreamManager are an important part of how your system can be
+    customized for the requirements of your product, organization, and operation of payments.
+    There are several use cases for a Validator, and of course any use case where you need to
+    "hook" into the pre-payment validation point can be covered.
 
-MAX_REASON_SIZE: constant(uint16) = 1024
+    Here are some use cases for a Validator:
+
+        1. Check if a stream funder is authorized to do so, based on a pre-vetted list
+           (see [Allowlist.vy](./validators/Allowlist.vy))
+        2. Check if a stream funder is a known bad actor, against an internal or external
+           list (see [Denylist.vy](./validators/Denylist.vy))
+        3. Check if the amount of time being funded is too large (e.g. operating a beta)
+        4. Compute the `stream_life` for a given set of products (not all validators need to)
+        5. Update and track any internal state for other purposes (airdrops, NFT mints, etc.)
+        6. Emit more logs (for other Silverback services to hook onto)
+
+@notice
+    Implement this interface with any additional checks that should be performed on stream
+    creation, funding or migration events in order to block certain behaviors or modify the stream
+    time to a specific limit, as in the case of a pre-release or sunsetting product.
+"""
+from ethereum.ercs import IERC20
 
 
 @external
 def validate(
-    creator: address,
+    funder: address,
     token: IERC20,
-    amount_per_second: uint256,
-    reason: Bytes[MAX_REASON_SIZE],
+    amount: uint256,
+    products: DynArray[bytes32, 20],
 ) -> uint256:
+    """
+    @notice
+        Validate that the proposed Stream action initiated by `creator` and funded by `amount` of
+        `token` for the associated `products` is properly formed, allowed, and meets any other
+        application-specific behaviors required to fund the stream. Should either return 0 or
+        the subtotal of the cost of the subset of `products` that the validator works with.
+    @dev
+        Method can make modifications and external calls based on stream properties.
+        This method should raise if and only if the input matches the domain it is checking, and
+        violates any rules from inside that domain, otherwise will cause a Denial-of-Service issue.
+        Validator should not reject input that doesn't match it's domain of checks it is performing
+        or it will reject potentially valid streams.
+        Validator should return only the subtotal for all products within it's domain.
+    @param creator The owner of the Stream that has the action being performed against.
+    @param token The ERC20 token that is being used to fund the stream
+    @param amount The amount of `token` that is funding the stream. Can be used to ensure product
+        time limits are within acceptable bounds by computing a rate from the subtotal price for
+        the subset of matching products this validator handles.
+    @param products The array of product codes or reasons for the triggering of the action. Note
+        that the encoding of this value is entirely application-specific, and multiple supported
+        encodings could be potentially be supported by other connected Validators.
+    @return stream_life The amount of time that the given Stream should be exist for, computed
+        using the `amount` that `creator` has provided to pay for `products, as well as any
+        additional logical conditions specified by this validator.
+    """
     ...
