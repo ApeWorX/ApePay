@@ -1,3 +1,4 @@
+import inspect
 from collections.abc import Iterator
 from datetime import timedelta
 from difflib import Differ
@@ -214,8 +215,13 @@ class StreamManager(BaseInterfaceModel):
 
             @app.on_(container)
             @wraps(f)
-            def inner(log, **dependencies):
-                return f(Stream(manager=self, id=log.stream_id), **dependencies)
+            async def inner(log, **dependencies):
+                result = f(Stream(manager=self, id=log.stream_id), **dependencies)
+
+                if inspect.isawaitable(result):
+                    return await result
+
+                return result
 
             return inner
 
