@@ -14,7 +14,7 @@
 
     Anyone (not just the stream `owner`) can add more paid time to a Stream. Streams can be cancel-
     led by the `owner` at any point after `MIN_STREAM_LIFE` has elapsed, which is a parameter de-
-    signed to enforce the amount it takes to provision the product or service being fascilitated by
+    signed to enforce the amount it takes to provision the product or service being facilitated by
     this contract.
 
     The purpose of these Streams is usually as an optimistic payment method for an off-chain good
@@ -103,7 +103,7 @@ event StreamFunded:
 event StreamClaimed:
     stream_id: indexed(uint256)
     claimer: indexed(address)
-    is_expires: indexed(bool)
+    is_expired: indexed(bool)
     claim_amount: uint256
 
 
