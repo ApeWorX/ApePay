@@ -55,7 +55,7 @@ streams: public(HashMap[uint256, Stream])
 # Service Provider (has all Capabilities, also beneficiary of funding)
 controller: public(address)
 new_controller: public(address)
-new_controller_proposed: public(uint256)
+control_transfer_proposed: public(uint256)
 CONTROLLER_ACCEPTANCE_DELAY: constant(uint256) = 7 * 24 * 60 * 60  # 1 week
 
 event NewControllerProposed:
@@ -143,7 +143,7 @@ def transfer_control(new_controller: address):
     assert msg.sender == self.controller  # dev: not controller
 
     self.new_controller = new_controller
-    self.new_controller_proposed = block.timestamp
+    self.control_transfer_proposed = block.timestamp
 
     log NewControllerProposed(msg.sender, new_controller)
 
@@ -160,7 +160,7 @@ def accept_control():
         by executing `transfer_control()` with themselves (or a different address) as the proposed.
     """
     assert msg.sender == self.new_controller  # dev: not proposed controller
-    assert block.timestamp - self.new_controller_proposed >= CONTROLLER_ACCEPTANCE_DELAY
+    assert block.timestamp - self.control_transfer_proposed >= CONTROLLER_ACCEPTANCE_DELAY
 
     self.controller = msg.sender
     self.new_controller = empty(address)
