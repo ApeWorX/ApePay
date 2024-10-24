@@ -1,8 +1,8 @@
 from typing import Any
 
 from ape.contracts import ContractInstance
-from ape.types import AddressType, BaseInterfaceModel
-from ape.utils import ZERO_ADDRESS
+from ape.types import AddressType
+from ape.utils import ZERO_ADDRESS, BaseInterfaceModel
 from pydantic import field_validator
 
 from .exceptions import ManagerDoesNotExist, NoFactoryAvailable
