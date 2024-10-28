@@ -26,15 +26,17 @@ TODOs:
 
 ### Setup (Python)
 
-First, [install Ape](https://docs.apeworx.io/ape/stable/userguides/quickstart.html#installation).
+1. [install Ape](https://docs.apeworx.io/ape/stable/userguides/quickstart.html#installation). 
 
-Second, make sure to install the plugins:
+2. Clone `ApePay` and change directory `cd` into the folder. 
+
+3. Make sure to install the plugins:
 
 ```sh
 $ ape plugins install . --upgrade
 ```
 
-Next, prior to installing the SDK package, you need to compile the project:
+4. Prior to installing the SDK package, you need to compile the project:
 
 ```sh
 $ ape compile
