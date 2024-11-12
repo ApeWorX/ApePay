@@ -66,6 +66,5 @@ class Validator(BaseInterfaceModel):
             # NOTE: Imitate that the call is coming from the connected StreamManager, because a
             #       validator can be connected to >1 StreamManagers so context may be important.
             sender=self.manager.address,
-            gas_price="0 gwei",  # NOTE: Avoid gas balance issues
             **kwargs,  # NOTE: Do last so it can override above (if necessary)
         )  # Sum of product cost(s) for this particular validator
