@@ -22,7 +22,7 @@ dependencies = [
 
 [project.optional-dependencies]
 bot = [
-    "silverback>=0.5,<1",
+    "silverback>=0.6,<1",
 ]
 lint = [
     "flake8",
