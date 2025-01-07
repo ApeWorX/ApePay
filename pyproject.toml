@@ -38,13 +38,17 @@ apepay = ["manifest.json", "py.typed"]
 [tool.ape]
 name = "ApePay"
 
-[tool.ape.plugins]
-plugins = [
-  { name = "arbitrum" },
-  { name = "optimism" },
-  { name = "foundry" },
-  { name = "vyper" },
-]
+[[tool.ape.plugins]]
+name = "arbitrum"
+
+[[tool.ape.plugins]]
+name = "optimism"
+
+[[tool.ape.plugins]]
+name = "foundry"
+
+[[tool.ape.plugins]]
+name = "vyper"
 
 [tool.ape.compile]
 output_extra = ["ABI"]
