@@ -60,7 +60,7 @@ jobs:
         with:
           name: ape-build-folder
           path: .build/
-      - run: pip install .
+      - run: pip install .[test]
       - run: ape test -s
 
   js-test:
