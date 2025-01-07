@@ -64,29 +64,38 @@ output_extra = ["ABI"]
 default_provider = "foundry"
 
 [tool.ape.deployments.ethereum]
-[tool.ape.deployments.ethereum.sepolia]
-[[tool.ape.deployments.ethereum.sepolia.releases]]
+[[tool.ape.deployments.ethereum.sepolia]]
 contract_type = "StreamFactory"
 address = "0x92823EB2DB42b8df354EDB5A1FB3668057e2935D"
 salt = "ApePay v0.3"
 
-[[tool.ape.deployments.ethereum.sepolia.releases]]
+[[tool.ape.deployments.ethereum.sepolia]]
 contract_type = "StreamManager"
 address = "0x6A1aa538ebB85Fd98655eCEe5EaB7D9cb3cbCD2B"
 salt = "ApePay v0.3"
 blueprint = true
 
-[tool.ape.deployments.arbitrum.mainnet]
-releases = [
-    { contract_type = "StreamFactory", address = "0x92823EB2DB42b8df354EDB5A1FB3668057e2935D", salt = "ApePay v0.3" },
-    { contract_type = "StreamManager", address = "0x6A1aa538ebB85Fd98655eCEe5EaB7D9cb3cbCD2B", salt = "ApePay v0.3", blueprint = true }
-]
+[[tool.ape.deployments.arbitrum.mainnet]]
+contract_type = "StreamFactory"
+address = "0x92823EB2DB42b8df354EDB5A1FB3668057e2935D"
+salt = "ApePay v0.3"
 
-[tool.ape.deployments.optimism.mainnet]
-releases = [
-    { contract_type = "StreamFactory", address = "0x92823EB2DB42b8df354EDB5A1FB3668057e2935D", salt = "ApePay v0.3" },
-    { contract_type = "StreamManager", address = "0x6A1aa538ebB85Fd98655eCEe5EaB7D9cb3cbCD2B", salt = "ApePay v0.3", blueprint = true }
-]
+[[tool.ape.deployments.arbitrum.mainnet]]
+contract_type = "StreamManager"
+address = "0x6A1aa538ebB85Fd98655eCEe5EaB7D9cb3cbCD2B"
+salt = "ApePay v0.3"
+blueprint = true
+
+[[tool.ape.deployments.optimism.mainnet]]
+contract_type = "StreamFactory"
+address = "0x92823EB2DB42b8df354EDB5A1FB3668057e2935D"
+salt = "ApePay v0.3"
+
+[[tool.ape.deployments.optimism.mainnet]]
+contract_type = "StreamManager"
+address = "0x6A1aa538ebB85Fd98655eCEe5EaB7D9cb3cbCD2B"
+salt = "ApePay v0.3"
+blueprint = true
 
 [tool.ape.test.gas]
 exclude = ["Test*"]
