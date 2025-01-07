@@ -14,10 +14,8 @@ readme = "README.md"
 requires-python = ">=3.10,<4"
 
 dependencies = [
-    "eth-ape>=0.8,<1",
+    "eth-ape>=0.8.24,<1",
     "pydantic>=2.7,<3",
-    # NOTE: Pinning issue w/ Ape
-    "eth-typing<5",
 ]
 
 [project.optional-dependencies]
@@ -33,7 +31,7 @@ lint = [
     "apepay[bot]"
 ]
 test = [
-    "ape-titanoboa",
+    "ape-titanoboa>=0.8.0a0",
 ]
 dev = [
     "apepay[bot,lint,test]"
