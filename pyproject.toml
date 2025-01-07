@@ -1,35 +1,27 @@
 [build-system]
-requires = [
-    "setuptools>=64",
-    "setuptools_scm>=8"
-]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "apepay"
 dynamic = ["version"]
 description = "Python SDK for ApePay"
-authors = [
-    { name = "ApeWorX LTD", email = "admin@apeworx.io" }
-]
+authors = [{ name = "ApeWorX LTD", email = "admin@apeworx.io" }]
 license = { text = "Apache 2.0" }
 readme = "README.md"
 requires-python = ">=3.10,<4"
 
-dependencies = [
-    "eth-ape>=0.8.24,<1",
-    "pydantic>=2.7,<3",
-]
+dependencies = ["eth-ape>=0.8.24,<1", "pydantic>=2.7,<3"]
 
 [project.optional-dependencies]
 bot = ["silverback>=0.5,<1"]
 lint = [
-    "flake8",
-    "black",
-    "isort",
-    "mypy",
-    # NOTE: Be able to lint our silverback add-ons
-    "apepay[bot]"
+  "flake8",
+  "black",
+  "isort",
+  "mypy",
+  # NOTE: Be able to lint our silverback add-ons
+  "apepay[bot]",
 ]
 test = ["ape-foundry"]
 dev = ["apepay[bot,lint,test]"]
@@ -38,10 +30,7 @@ dev = ["apepay[bot,lint,test]"]
 where = ["sdk/py"]
 
 [tool.setuptools.package-data]
-apepay = [
-    "manifest.json",
-    "py.typed"
-]
+apepay = ["manifest.json", "py.typed"]
 
 [tool.setuptools_scm]
 # NOTE: Config entry needed for this plugin to function
@@ -51,10 +40,10 @@ name = "ApePay"
 
 [tool.ape.plugins]
 plugins = [
-    { name = "arbitrum" },
-    { name = "optimism" },
-    { name = "foundry" },
-    { name = "vyper" }
+  { name = "arbitrum" },
+  { name = "optimism" },
+  { name = "foundry" },
+  { name = "vyper" },
 ]
 
 [tool.ape.compile]
@@ -109,8 +98,8 @@ verbose = true
 [tool.black]
 line-length = 100
 target-version = ["py311"]
-include = "\\.pyi?$"
-exclude = "node_modules|migrations|build/|buck-out/|dist/|_build/|\\.git/|\\.hg/|\\.mypy_cache/|\\.tox/|\\.venv/"
+include = '\.pyi?$'
+exclude = 'node_modules|migrations|build/|buck-out/|dist/|_build/|\.git/|\.hg/|\.mypy_cache/|\.tox/|\.venv/'
 
 [tool.isort]
 line_length = 100
