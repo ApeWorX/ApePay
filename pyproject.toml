@@ -90,11 +90,11 @@ address = "0x6A1aa538ebB85Fd98655eCEe5EaB7D9cb3cbCD2B"
 salt = "ApePay v0.3"
 blueprint = true
 
-[tool.ape.test.gas]
-exclude = ["Test*"]
+[[tool.ape.test.gas.exclude]]
+contract_name = "Test*"
 
-[tool.ape.test.coverage]
-exclude = ["Test*"]
+[[tool.ape.test.coverage.exclude]]
+contract_name = "Test*"
 
 [tool.ape.test.coverage.reports.terminal]
 verbose = true
