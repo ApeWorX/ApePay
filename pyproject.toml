@@ -33,7 +33,7 @@ lint = [
     "apepay[bot]"
 ]
 test = [
-    "ape-foundry",
+    "ape-titanoboa",
 ]
 dev = [
     "apepay[bot,lint,test]"

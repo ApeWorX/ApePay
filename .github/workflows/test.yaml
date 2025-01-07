@@ -52,7 +52,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: foundry-rs/foundry-toolchain@v1
       - uses: ApeWorX/github-action@v3
         with:
           python-version: "3.11"

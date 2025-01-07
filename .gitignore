@@ -12,6 +12,7 @@ sdk/py/apepay/version.py
 __pycache__
 .hypothesis
 dist/
+*.egg-info
 
 # Javascript
 node_modules/
