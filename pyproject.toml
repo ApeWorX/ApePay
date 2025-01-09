@@ -38,10 +38,10 @@ apepay = ["manifest.json", "py.typed"]
 name = "ApePay"
 
 plugins = [
-    { name = "arbitrum" },
-    { name = "optimism" },
-    { name = "foundry" },
-    { name = "vyper" },
+  { name = "arbitrum" },
+  { name = "optimism" },
+  { name = "foundry" },
+  { name = "vyper" },
 ]
 
 [tool.ape.compile]
