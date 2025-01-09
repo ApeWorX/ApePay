@@ -33,7 +33,7 @@ class FundsNotClaimable(ApePayException):
 
 class NotEnoughAllowance(ApePayException, ValueError):
     def __init__(self, manager: AddressType):
-        super().__init__(f"Not enough allownace, please approve {manager}")
+        super().__init__(f"Not enough allowance, please approve {manager}")
 
 
 class StreamLifeInsufficient(ApePayException, ValueError):

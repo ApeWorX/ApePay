@@ -23,7 +23,7 @@ async def load_db(_):
 @sm.on_stream_created(app)
 async def grant_product(stream):
     db[stream.id] = stream
-    print(f"provisioning products: {stream.products}")
+    print(f"provisioning products: {stream.products}")  # noqa: T001
     return stream.time_left
 
 
@@ -37,6 +37,6 @@ async def update_product_funding(stream):
 
 @sm.on_stream_cancelled(app)
 async def revoke_product(stream):
-    print(f"unprovisioning product for {stream.creator}")
+    print(f"unprovisioning product for {stream.creator}")  # noqa: T001
     db[stream.id] = None
     return stream.time_left
