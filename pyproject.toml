@@ -1,54 +1,101 @@
 [build-system]
-requires = [ "setuptools>=64", "setuptools_scm>=8" ]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "apepay"
-dynamic = [ "version" ]
+dynamic = ["version"]
 description = "Python SDK for ApePay"
-authors = [
-  {name = "ApeWorX LTD", email = "admin@apeworx.io"},
-]
+authors = [{ name = "ApeWorX LTD", email = "admin@apeworx.io" }]
 license = { text = "Apache 2.0" }
 readme = "README.md"
 requires-python = ">=3.10,<4"
-
-dependencies = [
-    "eth-ape>=0.8.24,<1",
-    "pydantic>=2.7,<3",
-]
+dependencies = ["eth-ape>=0.8.24,<1", "pydantic>=2.7,<3"]
 
 [project.optional-dependencies]
-bot = [
-    "silverback>=0.5,<1",
-]
+bot = ["silverback>=0.5,<1"]
 lint = [
-    "flake8",
-    "black",
-    "isort",
-    "mypy",
-    # NOTE: Be able to lint our silverback add-ons
-    "apepay[bot]"
+  "flake8",
+  "black",
+  "isort",
+  "mypy",
+  # NOTE: Be able to lint our silverback add-ons
+  "apepay[bot]",
 ]
-test = [
-    "ape-titanoboa>=0.8.0a1",
-]
-dev = [
-    "apepay[bot,lint,test]"
-]
+test = ["ape-titanoboa>=0.8.0.a1"]
+dev = ["apepay[bot,lint,test]"]
 
 [tool.setuptools.packages.find]
-where = [ "sdk/py" ]
+where = ["sdk/py"]
 
 [tool.setuptools.package-data]
-apepay = [ "manifest.json", "py.typed" ]
+apepay = ["manifest.json", "py.typed"]
 
 [tool.setuptools_scm]
 # NOTE: Config entry needed for this plugin to function
 
+[tool.ape]
+name = "ApePay"
+
+plugins = [
+    { name = "arbitrum" },
+    { name = "optimism" },
+    { name = "foundry" },
+    { name = "vyper" },
+]
+
+[tool.ape.compile]
+output_extra = ["ABI"]
+
+[tool.ape.ethereum.local]
+default_provider = "foundry"
+
+[tool.ape.deployments.ethereum]
+[[tool.ape.deployments.ethereum.sepolia]]
+contract_type = "StreamFactory"
+address = "0x92823EB2DB42b8df354EDB5A1FB3668057e2935D"
+salt = "ApePay v0.3"
+
+[[tool.ape.deployments.ethereum.sepolia]]
+contract_type = "StreamManager"
+address = "0x6A1aa538ebB85Fd98655eCEe5EaB7D9cb3cbCD2B"
+salt = "ApePay v0.3"
+blueprint = true
+
+[[tool.ape.deployments.arbitrum.mainnet]]
+contract_type = "StreamFactory"
+address = "0x92823EB2DB42b8df354EDB5A1FB3668057e2935D"
+salt = "ApePay v0.3"
+
+[[tool.ape.deployments.arbitrum.mainnet]]
+contract_type = "StreamManager"
+address = "0x6A1aa538ebB85Fd98655eCEe5EaB7D9cb3cbCD2B"
+salt = "ApePay v0.3"
+blueprint = true
+
+[[tool.ape.deployments.optimism.mainnet]]
+contract_type = "StreamFactory"
+address = "0x92823EB2DB42b8df354EDB5A1FB3668057e2935D"
+salt = "ApePay v0.3"
+
+[[tool.ape.deployments.optimism.mainnet]]
+contract_type = "StreamManager"
+address = "0x6A1aa538ebB85Fd98655eCEe5EaB7D9cb3cbCD2B"
+salt = "ApePay v0.3"
+blueprint = true
+
+[[tool.ape.test.gas.exclude]]
+contract_name = "Test*"
+
+[[tool.ape.test.coverage.exclude]]
+contract_name = "Test*"
+
+[tool.ape.test.coverage.reports.terminal]
+verbose = true
+
 [tool.black]
 line-length = 100
-target-version = [ "py311" ]
+target-version = ["py311"]
 include = '\.pyi?$'
 exclude = 'node_modules|migrations|build/|buck-out/|dist/|_build/|\.git/|\.hg/|\.mypy_cache/|\.tox/|\.venv/'
 
