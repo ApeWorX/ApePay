@@ -40,7 +40,7 @@ name = "ApePay"
 plugins = [
   { name = "arbitrum" },
   { name = "optimism" },
-  { name = "foundry" },
+  { name = "titanoboa" },
   { name = "vyper" },
 ]
 
@@ -48,7 +48,7 @@ plugins = [
 output_extra = ["ABI"]
 
 [tool.ape.ethereum.local]
-default_provider = "foundry"
+default_provider = "titanoboa"
 
 [tool.ape.deployments.ethereum]
 [[tool.ape.deployments.ethereum.sepolia]]
