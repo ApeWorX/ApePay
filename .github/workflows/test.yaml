@@ -52,7 +52,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: foundry-rs/foundry-toolchain@v1
       - uses: ApeWorX/github-action@v3
         with:
           python-version: "3.11"
@@ -61,7 +60,7 @@ jobs:
         with:
           name: ape-build-folder
           path: .build/
-      - run: pip install .
+      - run: pip install .[test]
       - run: ape test -s
 
   js-test:

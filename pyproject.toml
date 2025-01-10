@@ -10,7 +10,6 @@ authors = [{ name = "ApeWorX LTD", email = "admin@apeworx.io" }]
 license = { text = "Apache 2.0" }
 readme = "README.md"
 requires-python = ">=3.10,<4"
-
 dependencies = ["eth-ape>=0.8.24,<1", "pydantic>=2.7,<3"]
 
 [project.optional-dependencies]
@@ -23,7 +22,7 @@ lint = [
   # NOTE: Be able to lint our silverback add-ons
   "apepay[bot]",
 ]
-test = ["ape-foundry"]
+test = ["ape-titanoboa>=0.8.0.a1"]
 dev = ["apepay[bot,lint,test]"]
 
 [tool.setuptools.packages.find]
@@ -39,17 +38,17 @@ apepay = ["manifest.json", "py.typed"]
 name = "ApePay"
 
 plugins = [
-    { name = "arbitrum" },
-    { name = "optimism" },
-    { name = "foundry" },
-    { name = "vyper" },
+  { name = "arbitrum" },
+  { name = "optimism" },
+  { name = "titanoboa" },
+  { name = "vyper" },
 ]
 
 [tool.ape.compile]
 output_extra = ["ABI"]
 
 [tool.ape.ethereum.local]
-default_provider = "foundry"
+default_provider = "boa"
 
 [tool.ape.deployments.ethereum]
 [[tool.ape.deployments.ethereum.sepolia]]
