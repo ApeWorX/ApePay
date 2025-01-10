@@ -48,7 +48,7 @@ plugins = [
 output_extra = ["ABI"]
 
 [tool.ape.ethereum.local]
-default_provider = "titanoboa"
+default_provider = "boa"
 
 [tool.ape.deployments.ethereum]
 [[tool.ape.deployments.ethereum.sepolia]]
