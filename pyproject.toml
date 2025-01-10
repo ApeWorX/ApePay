@@ -34,8 +34,10 @@ apepay = ["manifest.json", "py.typed"]
 [tool.setuptools_scm]
 # NOTE: Config entry needed for this plugin to function
 
+# NOTE: Can delete this once https://github.com/ApeWorX/ape/pull/2461
+#   is available.
 [tool.ape]
-name = "ApePay"
+name = "apepay"
 
 plugins = [
   { name = "arbitrum" },
