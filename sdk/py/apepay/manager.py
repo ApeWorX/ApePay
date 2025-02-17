@@ -46,7 +46,11 @@ class StreamManager(BaseInterfaceModel):
 
     @property
     def contract(self) -> ContractInstance:
-        return MANIFEST.StreamManager.at(self.address)
+        return self.chain_manager.contracts.instance_at(
+            self.address,
+            contract_type=MANIFEST.StreamManager.contract_type,
+            detect_proxy=False,
+        )
 
     def __repr__(self) -> str:
         return f"<apepay_sdk.StreamManager address={self.address}>"
