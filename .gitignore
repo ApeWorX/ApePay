@@ -2,6 +2,9 @@
 .build/
 .cache/
 
+# Silverback stuff
+.silverback-*/
+
 # setuptools-scm
 sdk/py/apepay/version.py
 

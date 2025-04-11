@@ -224,6 +224,7 @@ class StreamManager(BaseInterfaceModel):
         def decorator(f):
 
             @app.on_(container)
+            @wraps(f)
             async def inner(log, **dependencies):
                 result = f(Stream(manager=self, id=log.stream_id), **dependencies)
 
@@ -232,8 +233,6 @@ class StreamManager(BaseInterfaceModel):
 
                 return result
 
-            # NOTE: Make sure to retain the same name as the underlying task
-            inner.__name__ = f.__name__
             return inner
 
         return decorator
