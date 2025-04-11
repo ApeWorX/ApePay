@@ -1,4 +1,4 @@
-# pragma version ^0.4
+# pragma version 0.4.0
 from ethereum.ercs import IERC20
 
 from .. import Validator

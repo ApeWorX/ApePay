@@ -1,4 +1,4 @@
-# pragma version ^0.4
+# pragma version 0.4.0
 # TODO: Replace w/ Snekmate
 totalSupply: public(uint256)
 balanceOf: public(HashMap[address, uint256])

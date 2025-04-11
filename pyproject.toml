@@ -13,7 +13,7 @@ requires-python = ">=3.10,<4"
 dependencies = ["eth-ape>=0.8.24,<1", "pydantic>=2.7,<3"]
 
 [project.optional-dependencies]
-bot = ["silverback>=0.5,<1"]
+bot = ["silverback>=0.7.13,<1"]
 lint = [
   "flake8",
   "black",
