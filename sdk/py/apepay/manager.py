@@ -9,7 +9,7 @@ from ape.api import ReceiptAPI
 from ape.contracts.base import ContractEvent, ContractInstance, ContractTransactionHandler
 from ape.exceptions import ContractLogicError, DecodingError
 from ape.logging import logger
-from ape.types import AddressType, HexBytes
+from ape.types import AddressType, ContractLog, HexBytes
 from ape.utils import BaseInterfaceModel, cached_property
 from ape_ethereum import multicall
 from pydantic import field_validator
@@ -223,17 +223,21 @@ class StreamManager(BaseInterfaceModel):
 
         def decorator(f):
 
-            @app.on_(container)
-            @wraps(f)
-            async def inner(log, **dependencies):
-                result = f(Stream(manager=self, id=log.stream_id), **dependencies)
+            async def inner(log: ContractLog, **dependencies):
+                stream = Stream(manager=self, id=log.stream_id)
+
+                result = f(stream, **dependencies)
 
                 if inspect.isawaitable(result):
                     return await result
 
                 return result
 
-            return inner
+            # NOTE: Hack another hack (ensure that the name of original function is used in logs)
+            #       https://github.com/taskiq-python/taskiq/blob/f445296282afbfc59732b689bd9c0154b6bb2555/taskiq/decor.py#L60-L77
+            inner.__name__ = f.__name__
+
+            return app.on_(container)(inner)
 
         return decorator
 
