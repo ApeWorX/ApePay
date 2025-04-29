@@ -41,6 +41,14 @@ class Stream(BaseInterfaceModel):
 
         return self.chain_manager.contracts.instance_at(self.info.token, contract_type=ERC20)
 
+    @cached_property
+    def token_decimals(self) -> int:
+        return self.token.decimals()
+
+    @property
+    def funded(self) -> Decimal:
+        return Decimal(self.info.funded_amount) / Decimal(10 ** self.token_decimals)
+
     @property
     def funding_rate(self) -> Decimal:
         """
@@ -51,7 +59,7 @@ class Stream(BaseInterfaceModel):
         return (
             Decimal(info.funded_amount)
             / Decimal(info.expires_at - info.last_claim)
-            / Decimal(10 ** self.token.decimals())
+            / Decimal(10 ** self.token_decimals)
         )
 
     def estimate_funding(self, period: timedelta) -> Decimal:
