@@ -42,7 +42,7 @@ def cli(
 
     # Wait for user to start the example SB app...
     click.secho(
-        f"Please run `APEPAY_CONTRACT_ADDRESS={sm.address} silverback run bots.example:app`",
+        f"Please run `APEPAY_CONTRACT_ADDRESS={sm.address} silverback run example`",
         fg="bright_magenta",
     )
     if not click.confirm("Start experiment?"):
