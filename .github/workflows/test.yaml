@@ -2,8 +2,8 @@ name: CI
 
 on:
   push:
-  pull_request:
     branches: ["main"]
+  pull_request:
 
 concurrency:
   # Cancel older, in-progress jobs from the same PR, same workflow.
@@ -78,3 +78,22 @@ jobs:
           path: .build/
       - run: npm install .
       - run: npm run build --workspaces --if-present
+
+  bots:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: SilverbackLtd/build-action@v1
+        with:
+          push: ${{ github.event_name != 'pull_request' }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
